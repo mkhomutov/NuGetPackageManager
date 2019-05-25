@@ -1,9 +1,25 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="MSBuild.Sdk.Extras">
+  <PropertyGroup>
+    <TargetFrameworks>net462</TargetFrameworks>
+    <AssemblyName>NuGetPackageManager</AssemblyName>
+    <RootNamespace>NuGetPackageManager</RootNamespace>
+    <DefaultLanguage>en-US</DefaultLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <UseWpf>true</UseWpf>
+    <ExtrasEnableImplicitWpfReferences>true</ExtrasEnableImplicitWpfReferences>
+    <ExtrasEnableImplicitWinFormsReferences>true</ExtrasEnableImplicitWinFormsReferences>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ProjectGuid>B3FEB7BE-3416-414A-8CF1-AC9F3A0CFF83</ProjectGuid>
+  </PropertyGroup>
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net462</TargetFramework>
-    <UseWPF>true</UseWPF>
+    <StartupObject />
+    <NoWarn>$(NoWarn);SA1652</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,18 +31,28 @@
     </PackageReference>
     <PackageReference Include="LoadAssembliesOnStartup.Fody" Version="4.0.0" />
     <PackageReference Include="ModuleInit.Fody" Version="2.0.0" />
+    <PackageReference Include="WpfAnalyzers" Version="2.2.0.2" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <ApplicationDefinition Update="App.xaml">
-      <SubType>Designer</SubType>
-    </ApplicationDefinition>
+    <PackageReference Update="NETStandard.Library" Version="2.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="Views\MainWindow.xaml">
-      <SubType>Designer</SubType>
-    </Page>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  
+  <Import Project="$(MSBuildProjectDirectory)\..\Directory.build.shared.explicit.props" Condition="Exists('$(MSBuildProjectDirectory)\..\Directory.build.shared.explicit.props')" />
 
 </Project>
