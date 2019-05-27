@@ -24,4 +24,8 @@
     <PackageReference Include="ModuleInit.Fody" Version="2.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetPackageManager\NuGetPackageManager.csproj" />
+  </ItemGroup>
+
 </Project>
