@@ -32,7 +32,7 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         #endregion
 
-        public ObservableCollection<NugetFeed> Feeds = new ObservableCollection<NugetFeed>();
+        public ObservableCollection<NugetFeed> Feeds { get; set; } = new ObservableCollection<NugetFeed>();
 
         public string Name { get; set; }
 

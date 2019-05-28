@@ -2,6 +2,8 @@
 using Catel.Logging;
 using Catel.MVVM;
 using NugetPackageManager.Example.ViewModels;
+using NugetPackageManager.Xaml.ViewModels;
+using NugetPackageManager.Xaml.Views;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -25,6 +27,7 @@ namespace NugetPackageManager.Example
             var vmlocator = slocator.ResolveType<IViewModelLocator>();
 
             vmlocator.Register<MainWindow, MainViewModel>();
+            vmlocator.Register<SettingsControlView, SettingsControlViewModel>();
 
             base.OnStartup(e);
         }

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net462;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>net462</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <ApplicationIcon />
     <StartupObject />
