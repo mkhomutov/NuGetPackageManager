@@ -14,13 +14,8 @@ namespace NugetPackageManager.Example.ViewModels
     {
         public MainViewModel(IUIVisualizerService service)
         {
-            uIVisualizerService = service;
-        }
-
-        protected override Task InitializeAsync()
-        {
             InitializeCommands();
-            return base.InitializeAsync();
+            uIVisualizerService = service;
         }
 
         public TaskCommand RunNuget { get; set; }

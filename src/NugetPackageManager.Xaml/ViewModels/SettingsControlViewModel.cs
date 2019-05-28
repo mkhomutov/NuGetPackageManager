@@ -13,6 +13,7 @@ namespace NugetPackageManager.Xaml.ViewModels
     {
         public SettingsControlViewModel()
         {
+            CommandInitialize();
             Title = "Settings";
         }
 
@@ -39,12 +40,6 @@ namespace NugetPackageManager.Xaml.ViewModels
         public string Source { get; set; }
 
         public NugetFeed SelectedFeed { get; set; }
-
-        protected override Task InitializeAsync()
-        {
-            CommandInitialize();
-            return base.InitializeAsync();
-        }
 
         protected void CommandInitialize()
         {
