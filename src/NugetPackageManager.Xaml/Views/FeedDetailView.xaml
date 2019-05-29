@@ -1,0 +1,61 @@
+﻿<catel:UserControl x:Class="NugetPackageManager.Xaml.Views.FeedDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:catel="http://schemas.catelproject.com"
+             xmlns:local="clr-namespace:NugetPackageManager.Xaml.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <TextBlock>
+            Name:
+        </TextBlock>
+        <TextBlock Grid.Row="1">
+            Source:
+        </TextBlock>
+
+        <TextBox Grid.Column="1"
+                 Height="20" Width="240"
+                 Margin="4 0 0 0"
+                 VerticalAlignment="Top"
+                 Text="{Binding Name}">
+        </TextBox>
+        <TextBox Grid.Column="1" Grid.Row="1"
+                 Height="20" Width="240"
+                 Margin="4 0 0 0"
+                 VerticalAlignment="Top"
+                 Text="{Binding Source}">
+
+        </TextBox>
+
+        <Button Grid.Column="2" Grid.Row="1"
+                Height="20" Width="30"
+                Margin="4 0 2 2"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Right"
+                Command="{Binding OpenChooseLocalPathToSourceDialog}">
+            ...
+        </Button>
+
+        <Button Grid.Column="1" Grid.Row="2"
+                Grid.ColumnSpan="2"
+                Height="40" Width="60"
+                Margin="2 2 2 2"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Right"
+                Command="{Binding UpdateFeed}">
+            Update
+        </Button>
+    </Grid>
+</catel:UserControl>

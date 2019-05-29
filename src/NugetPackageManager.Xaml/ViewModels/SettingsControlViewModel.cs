@@ -19,8 +19,6 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         #region commands
 
-        public Command UpdateFeed { get; set; }
-
         public Command RemoveFeed { get; set; }
 
         public Command MoveUpFeed { get; set; }
@@ -29,35 +27,31 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         public Command AddFeed { get; set; }
 
-        public Command OpenChooseLocalPathToSourceDialog { get; set; }
-
         #endregion
 
         public ObservableCollection<NugetFeed> Feeds { get; set; } = new ObservableCollection<NugetFeed>();
 
-        public string Name { get; set; }
-
-        public string Source { get; set; }
-
+        [Model]
         public NugetFeed SelectedFeed { get; set; }
 
         protected void CommandInitialize()
         {
-            UpdateFeed = new Command(OnSaveOrUpdateFeed);
+
             RemoveFeed = new Command(OnRemoveFeed);
             MoveUpFeed = new Command(OnMoveUpFeed);
             MoveDownFeed = new Command(OnMoveDownFeed);
             AddFeed = new Command(OnAddFeed);
-            OpenChooseLocalPathToSourceDialog = new Command(OnOpenChooseLocalPathToSourceDialog);
+
+        }
+
+        protected override Task InitializeAsync()
+        {
+            AddDefaultFeeds();
+            return base.InitializeAsync();
         }
 
 
         #region command actions
-
-        private void OnSaveOrUpdateFeed()
-        {
-
-        }
 
         private void OnRemoveFeed()
         {
@@ -66,12 +60,12 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         private void OnMoveUpFeed()
         {
-     
+            //todo moveup extension
         }
 
         private void OnMoveDownFeed()
         {
-
+            //todo movedown extension
         }
 
         private void OnAddFeed()
@@ -79,12 +73,16 @@ namespace NugetPackageManager.Xaml.ViewModels
             Feeds.Add(new NugetFeed(namePlaceholder, sourcePlaceholder));
         }
 
-        private void OnOpenChooseLocalPathToSourceDialog()
+        #endregion 
+
+        private void AddDefaultFeeds()
         {
+            string defaultNugetOrgUrl = "https://api.nuget.org/v3/index.json";
+            string defaultNugetOrgName = "nuget.org";
+
+            Feeds.Add(new NugetFeed(defaultNugetOrgName, defaultNugetOrgUrl));
 
         }
-
-        #endregion 
 
         const string namePlaceholder = "Package source";
         const string sourcePlaceholder = "http://packagesource";

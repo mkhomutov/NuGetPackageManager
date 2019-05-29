@@ -20,5 +20,6 @@ namespace NuGetPackageManager.Model
         public string Source { get; set; }
 
         public bool IsActive { get; set; }
+
     }
 }

@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Views\FeedDetailView.xaml" />
     <None Remove="Views\SettingsControlView.xaml" />
     <None Remove="Views\SettingsWindow.xaml" />
   </ItemGroup>
