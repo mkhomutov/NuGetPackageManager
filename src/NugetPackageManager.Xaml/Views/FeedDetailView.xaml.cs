@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NugetPackageManager.Xaml.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,6 +22,11 @@ namespace NugetPackageManager.Xaml.Views
     public partial class FeedDetailView : Catel.Windows.Controls.UserControl
     {
         public FeedDetailView()
+        {
+            InitializeComponent();
+        }
+
+        public FeedDetailView(FeedDetailViewModel viewModel) : base(viewModel)
         {
             InitializeComponent();
         }

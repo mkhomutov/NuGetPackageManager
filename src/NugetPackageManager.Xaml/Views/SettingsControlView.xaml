@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:NugetPackageManager.Xaml.Views"
+             xmlns:converter="clr-namespace:NugetPackageManager.Xaml.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <catel:UserControl.Resources>
@@ -16,6 +17,7 @@
             <Setter Property="Width" Value="40"></Setter>
             <Setter Property="Margin" Value="1 1 1 1"/>
         </Style>
+        <converter:BlankColumnWidthConverter x:Key="BlankColumnWidthConverter"/>
     </catel:UserControl.Resources>
     <Grid>
         <Grid.Resources>
@@ -52,7 +54,9 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn HeaderContainerStyle="{StaticResource HiddenListViewHeader}">
+                    <GridViewColumn HeaderContainerStyle="{StaticResource HiddenListViewHeader}"
+                                     Width="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}, 
+                        Converter={StaticResource BlankColumnWidthConverter}}">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding}"></TextBlock>

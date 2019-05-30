@@ -1,4 +1,5 @@
 ﻿using Catel.MVVM;
+using NuGetPackageManager.Extension;
 using NuGetPackageManager.Model;
 using System;
 using System.Collections.Generic;
@@ -50,7 +51,6 @@ namespace NugetPackageManager.Xaml.ViewModels
             return base.InitializeAsync();
         }
 
-
         #region command actions
 
         private void OnRemoveFeed()
@@ -60,12 +60,12 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         private void OnMoveUpFeed()
         {
-            //todo moveup extension
+            Feeds.MoveUp(SelectedFeed);
         }
 
         private void OnMoveDownFeed()
         {
-            //todo movedown extension
+            Feeds.MoveDown(SelectedFeed);
         }
 
         private void OnAddFeed()

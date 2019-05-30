@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NugetPackageManager.Xaml.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -19,6 +20,11 @@ namespace NugetPackageManager.Xaml.Views
     public partial class SettingsControlView : Catel.Windows.Controls.UserControl
     {
         public SettingsControlView()
+        {
+            InitializeComponent();
+        }
+
+        public SettingsControlView(SettingsViewModel viewModel) : base(viewModel)
         {
             InitializeComponent();
         }

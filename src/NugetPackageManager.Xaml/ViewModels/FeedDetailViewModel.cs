@@ -1,5 +1,8 @@
 ﻿using Catel;
+using Catel.Data;
 using Catel.MVVM;
+using Catel.Services;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using NuGetPackageManager.Model;
 using System;
 using System.Collections.Generic;
@@ -29,7 +32,15 @@ namespace NugetPackageManager.Xaml.ViewModels
         }
 
         [Model]
-        public NugetFeed Feed { get; set; }
+        public NugetFeed Feed
+        {
+            get { return GetValue<NugetFeed>(FeedProperty); }
+            set {
+                SetValue(FeedProperty, value);
+            }
+        }
+
+        public static readonly PropertyData FeedProperty = RegisterProperty("Feed", typeof(NugetFeed));
 
         [ViewModelToModel]
         public string Name { get; set; }
@@ -41,11 +52,24 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         private void OnSaveOrUpdateFeed()
         {
+
+        }
+
+        void OnFeedChanged()
+        {
+
         }
 
         private void OnOpenChooseLocalPathToSourceDialog()
         {
+            CommonOpenFileDialog folderDialog = new CommonOpenFileDialog();
 
+            folderDialog.InitialDirectory = @"C:\Users";
+            folderDialog.IsFolderPicker = true;
+            if(folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                Source = folderDialog.FileName;
+            }
         }
 
         #endregion
