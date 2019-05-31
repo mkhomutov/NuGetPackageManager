@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace NuGetPackageManager.Model
 {
-    public class NugetFeed : ModelBase
+    public class NugetFeed : ModelBase, ICloneable
     {
         public NugetFeed()
         {
@@ -37,6 +37,17 @@ namespace NuGetPackageManager.Model
         {
             IEditableObject eo = this;
             eo.CancelEdit();
+        }
+
+        public void ForceEndEdit()
+        {
+            IEditableObject eo = this;
+            eo.EndEdit();
+        }
+
+        public object Clone()
+        {
+            return new NugetFeed(this.Name, this.Source) { IsActive = this.IsActive };
         }
     }
 }

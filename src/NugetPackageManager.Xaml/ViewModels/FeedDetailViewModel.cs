@@ -2,7 +2,9 @@
 using Catel.Data;
 using Catel.MVVM;
 using Catel.Services;
+using Catel.Threading;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using NugetPackageManager.Xaml.Providers;
 using NuGetPackageManager.Model;
 using System;
 using System.Collections.Generic;
@@ -22,10 +24,16 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         #endregion
 
-        public FeedDetailViewModel(NugetFeed feed)
+        public FeedDetailViewModel(NugetFeed feed, IModelProvider<NugetFeed> modelProvider)
         {
             Argument.IsNotNull(() => feed);
             Feed = feed;
+
+            //work with model clone
+
+            Feed = (NugetFeed)feed.Clone();
+
+            this.modelProvider = modelProvider;
 
             UpdateFeed = new Command(OnSaveOrUpdateFeed);
             OpenChooseLocalPathToSourceDialog = new Command(OnOpenChooseLocalPathToSourceDialog);
@@ -48,11 +56,18 @@ namespace NugetPackageManager.Xaml.ViewModels
         [ViewModelToModel]
         public string Source { get; set; }
 
+        protected override Task<bool> SaveAsync()
+        {
+            return Task.FromResult(true);            
+        }
+
         #region command actions
 
         private void OnSaveOrUpdateFeed()
         {
-            //store to configuration
+            //manually save model and pass forward
+            Feed.ForceEndEdit();
+            modelProvider.Model = Feed;
         }
 
         void OnFeedChanged()
@@ -73,5 +88,7 @@ namespace NugetPackageManager.Xaml.ViewModels
         }
 
         #endregion
+
+        private readonly IModelProvider<NugetFeed> modelProvider;
     }
 }

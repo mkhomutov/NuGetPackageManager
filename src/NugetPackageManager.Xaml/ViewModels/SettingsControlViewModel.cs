@@ -1,6 +1,7 @@
 ﻿using Catel.Configuration;
 using Catel.Logging;
 using Catel.MVVM;
+using NugetPackageManager.Xaml.Providers;
 using NugetPackageManager.Xaml.Services;
 using NuGetPackageManager.Extension;
 using NuGetPackageManager.Model;
@@ -15,9 +16,10 @@ namespace NugetPackageManager.Xaml.ViewModels
 {
     public class SettingsControlViewModel : ViewModelBase
     {
-        public SettingsControlViewModel(IConfigurationService configurationService)
+        public SettingsControlViewModel(IConfigurationService configurationService, IModelProvider<NugetFeed> modelProvider)
         {
             this.configurationService = configurationService as NugetConfigurationService;
+            this.modelProvider = modelProvider;
             CommandInitialize();
             Title = "Settings";
         }
@@ -54,6 +56,10 @@ namespace NugetPackageManager.Xaml.ViewModels
                 ReadFeedsFromConfiguration();
             }
             else  AddDefaultFeeds();
+
+            //handle manual model save on child viewmodel
+            modelProvider.ModelChanged += ModelProvider_ModelChanged;
+
             return base.InitializeAsync();
         }
 
@@ -85,6 +91,13 @@ namespace NugetPackageManager.Xaml.ViewModels
                 else log.Error($"Configuration value under key {i} is broken and cannot be loaded");
                 i++;
             }
+        }
+
+        private void ModelProvider_ModelChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            //should drop current selected row and add updated
+            Feeds.Remove(SelectedFeed);
+            Feeds.Add(modelProvider.Model);
         }
 
         #region command actions
@@ -123,6 +136,7 @@ namespace NugetPackageManager.Xaml.ViewModels
         const string namePlaceholder = "Package source";
         const string sourcePlaceholder = "http://packagesource";
         private readonly NugetConfigurationService configurationService;
+        private readonly IModelProvider<NugetFeed> modelProvider;
         private static readonly ILog log = LogManager.GetCurrentClassLogger();
     }
 }
