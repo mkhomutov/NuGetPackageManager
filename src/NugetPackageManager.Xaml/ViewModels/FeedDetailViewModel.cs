@@ -52,7 +52,7 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         private void OnSaveOrUpdateFeed()
         {
-
+            //store to configuration
         }
 
         void OnFeedChanged()

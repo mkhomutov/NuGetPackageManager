@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,6 +11,11 @@ namespace NuGetPackageManager.Model
 {
     public class NugetFeed : ModelBase
     {
+        public NugetFeed()
+        {
+
+        }
+
         public NugetFeed(string name, string source)
         {
             Name = name;

@@ -1,4 +1,7 @@
-﻿using Catel.MVVM;
+﻿using Catel.Configuration;
+using Catel.Logging;
+using Catel.MVVM;
+using NugetPackageManager.Xaml.Services;
 using NuGetPackageManager.Extension;
 using NuGetPackageManager.Model;
 using System;
@@ -12,8 +15,9 @@ namespace NugetPackageManager.Xaml.ViewModels
 {
     public class SettingsControlViewModel : ViewModelBase
     {
-        public SettingsControlViewModel()
+        public SettingsControlViewModel(IConfigurationService configurationService)
         {
+            this.configurationService = configurationService as NugetConfigurationService;
             CommandInitialize();
             Title = "Settings";
         }
@@ -37,18 +41,50 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         protected void CommandInitialize()
         {
-
             RemoveFeed = new Command(OnRemoveFeed);
             MoveUpFeed = new Command(OnMoveUpFeed);
             MoveDownFeed = new Command(OnMoveDownFeed);
             AddFeed = new Command(OnAddFeed);
-
         }
 
         protected override Task InitializeAsync()
         {
-            AddDefaultFeeds();
+            if(configurationService.IsValueAvailable(ConfigurationContainer.Local, $"feed{0}"))
+            {
+                ReadFeedsFromConfiguration();
+            }
+            else  AddDefaultFeeds();
             return base.InitializeAsync();
+        }
+
+        protected override Task<bool> SaveAsync()
+        {
+            //store all feed inside configuration
+            for (int i = 0; i<Feeds.Count; i++)
+            {
+                configurationService.SetValue(ConfigurationContainer.Local, $"feed{i}", Feeds[i]);
+            }
+
+            return base.SaveAsync();
+        }
+
+        private void ReadFeedsFromConfiguration()
+        {
+            NugetFeed temp = null; ;
+            int i = 0;
+
+            //restore values from configuration
+            while(configurationService.IsLocalValueAvailable($"feed{i}"))
+            {
+                temp = configurationService.GetValue(ConfigurationContainer.Local, $"feed{i}");
+
+                if (temp != null)
+                {
+                    Feeds.Add(temp);
+                }
+                else log.Error($"Configuration value under key {i} is broken and cannot be loaded");
+                i++;
+            }
         }
 
         #region command actions
@@ -86,5 +122,7 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         const string namePlaceholder = "Package source";
         const string sourcePlaceholder = "http://packagesource";
+        private readonly NugetConfigurationService configurationService;
+        private static readonly ILog log = LogManager.GetCurrentClassLogger();
     }
 }
