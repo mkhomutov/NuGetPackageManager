@@ -76,13 +76,21 @@
                 </Style>
             </StackPanel.Resources>
             <Button x:Name="AddBtn" 
-                    Command="{Binding AddFeed}"/>
+                    Command="{Binding AddFeed}">
+                <Image Source="/NugetPackageManager.Xaml;component/Resources/Add_8x_16x.png"/>
+            </Button>
             <Button x:Name="RemoveBtn"
-                    Command="{Binding RemoveFeed}"/>
+                    Command="{Binding RemoveFeed}">
+                <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/cross-removebg.png"/>
+            </Button>
             <Button x:Name="MoveUpBtn"
-                    Command="{Binding MoveUpFeed}"/>
+                    Command="{Binding MoveUpFeed}">
+                <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/Download_grey_16x.png"/>
+            </Button>
             <Button x:Name="MoveDownBtn"
-                    Command="{Binding MoveDownFeed}"/>
+                    Command="{Binding MoveDownFeed}">
+                <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/Upload_gray_16x.png"/>
+            </Button>
         </StackPanel>
 
         <local:FeedDetailView DataContext="{Binding SelectedFeed}"
