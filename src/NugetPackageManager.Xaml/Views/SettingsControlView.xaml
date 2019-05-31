@@ -77,19 +77,35 @@
             </StackPanel.Resources>
             <Button x:Name="AddBtn" 
                     Command="{Binding AddFeed}">
-                <Image Source="/NugetPackageManager.Xaml;component/Resources/Add_8x_16x.png"/>
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <Image Source="/NugetPackageManager.Xaml;component/Resources/Add_8x_16x.png"/>
+                    </DataTemplate>
+                </Button.ContentTemplate>
             </Button>
             <Button x:Name="RemoveBtn"
                     Command="{Binding RemoveFeed}">
-                <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/cross-removebg.png"/>
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/cross-removebg.png"/>
+                    </DataTemplate>
+                </Button.ContentTemplate>
             </Button>
             <Button x:Name="MoveUpBtn"
                     Command="{Binding MoveUpFeed}">
-                <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/Download_grey_16x.png"/>
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/Download_grey_16x.png"/>
+                    </DataTemplate>
+                </Button.ContentTemplate>
             </Button>
             <Button x:Name="MoveDownBtn"
                     Command="{Binding MoveDownFeed}">
-                <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/Upload_gray_16x.png"/>
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/Upload_gray_16x.png"/>
+                    </DataTemplate>
+                </Button.ContentTemplate>
             </Button>
         </StackPanel>
 
