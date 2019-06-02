@@ -5,21 +5,21 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:NugetPackageManager.Xaml.Views"
-             xmlns:converter="clr-namespace:NugetPackageManager.Xaml.Converters"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:b="clr-namespace:NugetPackageManager.Xaml.Behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <catel:UserControl.Resources>
         <Style x:Key="HiddenListViewHeader" TargetType="{x:Type GridViewColumnHeader}">
-            <Setter Property="Visibility" Value="Collapsed" />
+            <Setter Property="Visibility" Value="Hidden" />
         </Style>
         <Style x:Key="SettingsButton" TargetType="{x:Type Button}">
-            <Setter Property="Height" Value="40"></Setter>
-            <Setter Property="Width" Value="40"></Setter>
-            <Setter Property="Margin" Value="1 1 1 1"/>
+            <Setter Property="Height" Value="24"></Setter>
+            <Setter Property="Width" Value="24"></Setter>
+            <Setter Property="Margin" Value="3 2 3 2"/>
         </Style>
-        <converter:BlankColumnWidthConverter x:Key="BlankColumnWidthConverter"/>
     </catel:UserControl.Resources>
-    <Grid>
+    <Grid Margin="4 2 4 2">
         <Grid.Resources>
             <Style TargetType="TextBlock">
                 <Setter Property="Margin" Value="4 0 0 0"/>
@@ -29,22 +29,37 @@
             <ColumnDefinition/>
             <ColumnDefinition/>
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <TextBlock Text="Package source" VerticalAlignment="Bottom" Margin="2 2 2 2"/>
+        <TextBlock Text="Package source" 
+                   VerticalAlignment="Center" 
+                   Margin="2 2 2 2"/>
         
         <ListView Grid.Row="1" Grid.ColumnSpan="2"
-                  Grid.RowSpan="3"
+                  Margin="0 4 2 0"
+                  Grid.RowSpan="2"
                   MinHeight="200"
+                  MaxHeight="300"
+                  Width="474"
                   SelectedItem="{Binding SelectedFeed}"
                   ItemsSource="{Binding Feeds}">
+            <ListView.Resources>
+                <Style TargetType="{x:Type ListViewItem}">
+                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                    <Setter Property="Background" Value="White" />
+                </Style>
+            </ListView.Resources>
+            <i:Interaction.Behaviors>
+                <catel:Focus/>
+                <b:SelectFirstItemOnContextBehavior/>
+            </i:Interaction.Behaviors>
             <ListView.View>
                 <GridView>
                     <GridViewColumn HeaderContainerStyle="{StaticResource HiddenListViewHeader}">
@@ -54,9 +69,7 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn HeaderContainerStyle="{StaticResource HiddenListViewHeader}"
-                                     Width="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}, 
-                        Converter={StaticResource BlankColumnWidthConverter}}">
+                    <GridViewColumn HeaderContainerStyle="{StaticResource HiddenListViewHeader}">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding}"></TextBlock>
@@ -77,39 +90,27 @@
             </StackPanel.Resources>
             <Button x:Name="AddBtn" 
                     Command="{Binding AddFeed}">
-                <Button.ContentTemplate>
-                    <DataTemplate>
-                        <Image Source="/NugetPackageManager.Xaml;component/Resources/Add_8x_16x.png"/>
-                    </DataTemplate>
-                </Button.ContentTemplate>
+                <Image Source="/NugetPackageManager.Xaml;component/Resources/Add_8x_16x.png"/>
             </Button>
             <Button x:Name="RemoveBtn"
                     Command="{Binding RemoveFeed}">
-                <Button.ContentTemplate>
-                    <DataTemplate>
-                        <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/cross-removebg.png"/>
-                    </DataTemplate>
-                </Button.ContentTemplate>
+                <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/cross-removebg.png"/>
             </Button>
             <Button x:Name="MoveUpBtn"
                     Command="{Binding MoveUpFeed}">
-                <Button.ContentTemplate>
-                    <DataTemplate>
-                        <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/Download_grey_16x.png"/>
-                    </DataTemplate>
-                </Button.ContentTemplate>
+                <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/Download_grey_16x.png"/>
             </Button>
             <Button x:Name="MoveDownBtn"
                     Command="{Binding MoveDownFeed}">
-                <Button.ContentTemplate>
-                    <DataTemplate>
-                        <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/Upload_gray_16x.png"/>
-                    </DataTemplate>
-                </Button.ContentTemplate>
+                <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/Upload_gray_16x.png"/>
             </Button>
         </StackPanel>
 
         <local:FeedDetailView DataContext="{Binding SelectedFeed}"
-                              Grid.Column="3" Grid.Row="1"></local:FeedDetailView>
+                              Grid.ColumnSpan="2" Grid.Row="3"
+                              Margin="0 12 0 0"></local:FeedDetailView>
+
+        <Separator Grid.Row="4" Grid.ColumnSpan="2"
+                   Margin="0 8 0 0"/>
     </Grid>
 </catel:UserControl>

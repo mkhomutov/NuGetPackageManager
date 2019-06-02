@@ -16,27 +16,23 @@ namespace NugetPackageManager.Xaml.ViewModels
 {
     public class FeedDetailViewModel : ViewModelBase
     {
-        #region commands
-
-        public Command UpdateFeed { get; set; }
-
-        public Command OpenChooseLocalPathToSourceDialog { get; set; }
-
-        #endregion
+        private readonly IModelProvider<NugetFeed> _modelProvider;
 
         public FeedDetailViewModel(NugetFeed feed, IModelProvider<NugetFeed> modelProvider)
         {
             Argument.IsNotNull(() => feed);
+            Argument.IsNotNull(() => modelProvider);
+
             Feed = feed;
 
             //work with model clone
 
-            Feed = (NugetFeed)feed.Clone();
+            Feed = feed.Clone();
 
-            this.modelProvider = modelProvider;
+            _modelProvider = modelProvider;
 
-            UpdateFeed = new Command(OnSaveOrUpdateFeed);
-            OpenChooseLocalPathToSourceDialog = new Command(OnOpenChooseLocalPathToSourceDialog);
+            UpdateFeed = new Command(OnUpdateFeedExecute);
+            OpenChooseLocalPathToSourceDialog = new Command(OnOpenChooseLocalPathToSourceDialogExecute);
         }
 
         [Model]
@@ -56,6 +52,14 @@ namespace NugetPackageManager.Xaml.ViewModels
         [ViewModelToModel]
         public string Source { get; set; }
 
+        #region commands
+
+        public Command UpdateFeed { get; set; }
+
+        public Command OpenChooseLocalPathToSourceDialog { get; set; }
+
+        #endregion
+
         protected override Task<bool> SaveAsync()
         {
             return Task.FromResult(true);            
@@ -63,11 +67,11 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         #region command actions
 
-        private void OnSaveOrUpdateFeed()
+        private void OnUpdateFeedExecute()
         {
             //manually save model and pass forward
             Feed.ForceEndEdit();
-            modelProvider.Model = Feed;
+            _modelProvider.Model = Feed;
         }
 
         void OnFeedChanged()
@@ -75,7 +79,7 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         }
 
-        private void OnOpenChooseLocalPathToSourceDialog()
+        private void OnOpenChooseLocalPathToSourceDialogExecute()
         {
             CommonOpenFileDialog folderDialog = new CommonOpenFileDialog();
 
@@ -88,7 +92,5 @@ namespace NugetPackageManager.Xaml.ViewModels
         }
 
         #endregion
-
-        private readonly IModelProvider<NugetFeed> modelProvider;
     }
 }

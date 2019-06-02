@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 
 namespace NugetPackageManager.Xaml.Providers
 {
-    public interface IModelProvider<T> where T: ModelBase
+    public interface IModelProvider<T> : INotifyPropertyChanged where T: ModelBase 
     {
         T Model { get; set; }
-
-        event PropertyChangedEventHandler ModelChanged;
     }
 }

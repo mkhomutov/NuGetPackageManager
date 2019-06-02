@@ -1,4 +1,5 @@
 ﻿using Catel.Data;
+using NuGetPackageManager.Interface;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace NuGetPackageManager.Model
 {
-    public class NugetFeed : ModelBase, ICloneable
+    public class NugetFeed : ModelBase, ICloneable<NugetFeed>
     {
         public NugetFeed()
         {
@@ -45,7 +46,7 @@ namespace NuGetPackageManager.Model
             eo.EndEdit();
         }
 
-        public object Clone()
+        public NugetFeed Clone()
         {
             return new NugetFeed(this.Name, this.Source) { IsActive = this.IsActive };
         }

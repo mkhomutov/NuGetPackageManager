@@ -1,4 +1,5 @@
-﻿using Catel.Configuration;
+﻿using Catel;
+using Catel.Configuration;
 using Catel.Logging;
 using Catel.MVVM;
 using NugetPackageManager.Xaml.Providers;
@@ -16,10 +17,17 @@ namespace NugetPackageManager.Xaml.ViewModels
 {
     public class SettingsControlViewModel : ViewModelBase
     {
+        private static readonly ILog _log = LogManager.GetCurrentClassLogger();
+        private readonly NugetConfigurationService _configurationService;
+        private readonly IModelProvider<NugetFeed> _modelProvider;
+
         public SettingsControlViewModel(IConfigurationService configurationService, IModelProvider<NugetFeed> modelProvider)
         {
-            this.configurationService = configurationService as NugetConfigurationService;
-            this.modelProvider = modelProvider;
+            Argument.IsNotNull(() => configurationService);
+            Argument.IsNotNull(() => modelProvider);
+
+            _configurationService = configurationService as NugetConfigurationService;
+            _modelProvider = modelProvider;
             CommandInitialize();
             Title = "Settings";
         }
@@ -43,22 +51,25 @@ namespace NugetPackageManager.Xaml.ViewModels
 
         protected void CommandInitialize()
         {
-            RemoveFeed = new Command(OnRemoveFeed);
-            MoveUpFeed = new Command(OnMoveUpFeed);
-            MoveDownFeed = new Command(OnMoveDownFeed);
-            AddFeed = new Command(OnAddFeed);
+            RemoveFeed = new Command(OnRemoveFeedExecute);
+            MoveUpFeed = new Command(OnMoveUpFeedExecute);
+            MoveDownFeed = new Command(OnMoveDownFeedExecute);
+            AddFeed = new Command(OnAddFeedExecute);
         }
 
         protected override Task InitializeAsync()
         {
-            if(configurationService.IsValueAvailable(ConfigurationContainer.Local, $"feed{0}"))
+            if (_configurationService.IsValueAvailable(ConfigurationContainer.Local, $"feed{0}"))
             {
                 ReadFeedsFromConfiguration();
             }
-            else  AddDefaultFeeds();
+            else
+            {
+                AddDefaultFeeds();
+            }
 
             //handle manual model save on child viewmodel
-            modelProvider.ModelChanged += ModelProvider_ModelChanged;
+            _modelProvider.PropertyChanged += OnModelProviderModelChanged;
 
             return base.InitializeAsync();
         }
@@ -68,7 +79,7 @@ namespace NugetPackageManager.Xaml.ViewModels
             //store all feed inside configuration
             for (int i = 0; i<Feeds.Count; i++)
             {
-                configurationService.SetValue(ConfigurationContainer.Local, $"feed{i}", Feeds[i]);
+                _configurationService.SetValue(ConfigurationContainer.Local, $"feed{i}", Feeds[i]);
             }
 
             return base.SaveAsync();
@@ -80,63 +91,57 @@ namespace NugetPackageManager.Xaml.ViewModels
             int i = 0;
 
             //restore values from configuration
-            while(configurationService.IsLocalValueAvailable($"feed{i}"))
+            while(_configurationService.IsLocalValueAvailable($"feed{i}"))
             {
-                temp = configurationService.GetValue(ConfigurationContainer.Local, $"feed{i}");
+                temp = _configurationService.GetValue(ConfigurationContainer.Local, $"feed{i}");
 
                 if (temp != null)
                 {
                     Feeds.Add(temp);
                 }
-                else log.Error($"Configuration value under key {i} is broken and cannot be loaded");
+                else _log.Error($"Configuration value under key {i} is broken and cannot be loaded");
                 i++;
             }
         }
 
-        private void ModelProvider_ModelChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void OnModelProviderModelChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             //should drop current selected row and add updated
             Feeds.Remove(SelectedFeed);
-            Feeds.Add(modelProvider.Model);
+            Feeds.Add(_modelProvider.Model);
         }
 
         #region command actions
 
-        private void OnRemoveFeed()
+        private void OnRemoveFeedExecute()
         {
             Feeds.Remove(SelectedFeed);
         }
 
-        private void OnMoveUpFeed()
+        private void OnMoveUpFeedExecute()
         {
             Feeds.MoveUp(SelectedFeed);
         }
 
-        private void OnMoveDownFeed()
+        private void OnMoveDownFeedExecute()
         {
             Feeds.MoveDown(SelectedFeed);
         }
 
-        private void OnAddFeed()
+        private void OnAddFeedExecute()
         {
-            Feeds.Add(new NugetFeed(namePlaceholder, sourcePlaceholder));
+            Feeds.Add(new NugetFeed(Constants.NamePlaceholder, Constants.SourcePlaceholder));
         }
 
         #endregion 
 
         private void AddDefaultFeeds()
         {
-            string defaultNugetOrgUrl = "https://api.nuget.org/v3/index.json";
-            string defaultNugetOrgName = "nuget.org";
-
-            Feeds.Add(new NugetFeed(defaultNugetOrgName, defaultNugetOrgUrl));
-
+            Feeds.Add(
+                new NugetFeed(
+                Constants.DefaultNugetOrgName, 
+                Constants.DefaultNugetOrgUri)
+                );
         }
-
-        const string namePlaceholder = "Package source";
-        const string sourcePlaceholder = "http://packagesource";
-        private readonly NugetConfigurationService configurationService;
-        private readonly IModelProvider<NugetFeed> modelProvider;
-        private static readonly ILog log = LogManager.GetCurrentClassLogger();
     }
 }

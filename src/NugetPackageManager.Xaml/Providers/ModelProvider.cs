@@ -18,19 +18,16 @@ namespace NugetPackageManager.Xaml.Providers
                 if(value != _model)
                 {
                     _model = value;
-                    OnModelChanged();
+                    RaisePropertyChanged();
                 }
             }
         }
 
-        public event PropertyChangedEventHandler ModelChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
-        private void OnModelChanged()
+        private void RaisePropertyChanged()
         {
-            if(ModelChanged != null)
-            {
-                ModelChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Model)));
-            }
+             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Model)));
         }
     }
 }

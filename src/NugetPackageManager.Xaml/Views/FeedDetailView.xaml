@@ -9,51 +9,55 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition/>
-            <RowDefinition/>
         </Grid.RowDefinitions>
-        <TextBlock>
+        <TextBlock VerticalAlignment="Top"
+                   Margin="4 2 0 0">
             Name:
         </TextBlock>
-        <TextBlock Grid.Row="1">
+        <TextBlock Grid.Row="1"
+                   VerticalAlignment="Top"
+                   Margin="4 6 0 0">
             Source:
         </TextBlock>
 
         <TextBox Grid.Column="1"
-                 Height="20" Width="240"
-                 Margin="4 0 0 0"
-                 VerticalAlignment="Top"
+                 Height="20" Width="Auto"
+                 Margin="4 0 2 0"
+                 VerticalAlignment="Top" 
+                 HorizontalAlignment="Stretch"
                  Text="{Binding Name}">
         </TextBox>
         <TextBox Grid.Column="1" Grid.Row="1"
-                 Height="20" Width="240"
-                 Margin="4 0 0 0"
-                 VerticalAlignment="Top"
+                 Height="20" 
+                 Margin="4 4 2 0"
+                 VerticalAlignment="Top" 
+                 HorizontalAlignment="Stretch"
                  Text="{Binding Source}">
 
         </TextBox>
 
         <Button Grid.Column="2" Grid.Row="1"
-                Height="20" Width="30"
-                Margin="4 0 2 2"
+                Width="30"
+                Margin="4 4 2 2"
                 VerticalAlignment="Top"
-                HorizontalAlignment="Right"
+                HorizontalAlignment="Left"
                 Command="{Binding OpenChooseLocalPathToSourceDialog}">
             ...
         </Button>
 
-        <Button Grid.Column="1" Grid.Row="2"
-                Grid.ColumnSpan="2"
-                Height="40" Width="60"
-                Margin="2 2 2 2"
-                VerticalAlignment="Bottom"
-                HorizontalAlignment="Right"
+        <Button Grid.Column="3" Grid.Row="1"
+                Width="75"
+                Margin="4 4 2 2"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Stretch"
                 Command="{Binding UpdateFeed}">
             Update
         </Button>
