@@ -30,6 +30,7 @@
     <None Remove="Resources\cross-removebg.png" />
     <None Remove="Resources\Download_grey_16x.png" />
     <None Remove="Resources\Upload_gray_16x.png" />
+    <None Remove="Themes\Generic.xaml" />
     <None Remove="Views\FeedDetailView.xaml" />
     <None Remove="Views\MainWindow.xaml" />
     <None Remove="Views\SettingsControlView.xaml" />
