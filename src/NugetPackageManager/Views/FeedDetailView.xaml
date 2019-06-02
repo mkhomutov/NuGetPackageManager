@@ -33,6 +33,7 @@
                  Margin="4 0 2 0"
                  VerticalAlignment="Top" 
                  HorizontalAlignment="Stretch"
+                 IsEnabled="{Binding Path=., Converter={catel:ReferenceToBooleanConverter}}"
                  Text="{Binding Name}">
         </TextBox>
         <TextBox Grid.Column="1" Grid.Row="1"
@@ -40,6 +41,7 @@
                  Margin="4 4 2 0"
                  VerticalAlignment="Top" 
                  HorizontalAlignment="Stretch"
+                 IsEnabled="{Binding Path=., Converter={catel:ReferenceToBooleanConverter}}"
                  Text="{Binding Source}">
 
         </TextBox>
@@ -49,7 +51,8 @@
                 Margin="4 4 2 2"
                 VerticalAlignment="Top"
                 HorizontalAlignment="Left"
-                Command="{Binding OpenChooseLocalPathToSourceDialog}">
+                Command="{Binding OpenChooseLocalPathToSourceDialog}"
+                IsEnabled="{Binding Path=., Converter={catel:ReferenceToBooleanConverter}}">
             ...
         </Button>
 
@@ -58,7 +61,8 @@
                 Margin="4 4 2 2"
                 VerticalAlignment="Top"
                 HorizontalAlignment="Stretch"
-                Command="{Binding UpdateFeed}">
+                Command="{Binding UpdateFeed}"
+                IsEnabled="{Binding Path=., Converter={catel:ReferenceToBooleanConverter}}">
             Update
         </Button>
     </Grid>

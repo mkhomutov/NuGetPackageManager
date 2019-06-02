@@ -9,7 +9,7 @@ using System.Windows.Controls.Primitives;
 
 namespace NuGetPackageManager.Behaviors
 {
-    public class SelectFirstItemOnContextBehavior : BehaviorBase<ListView>
+    public class SelectFirstItemOnContextBehavior : BehaviorBase<ListBox>
     {
         protected override void OnAttached()
         {

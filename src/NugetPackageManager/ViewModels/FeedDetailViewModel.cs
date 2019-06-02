@@ -31,8 +31,8 @@ namespace NuGetPackageManager.ViewModels
 
             _modelProvider = modelProvider;
 
-            UpdateFeed = new Command(OnUpdateFeedExecute);
-            OpenChooseLocalPathToSourceDialog = new Command(OnOpenChooseLocalPathToSourceDialogExecute);
+            UpdateFeed = new Command(OnUpdateFeedExecute, OnUpdateFeedCanExecute);
+            OpenChooseLocalPathToSourceDialog = new Command(OnOpenChooseLocalPathToSourceDialogExecute, OnOpenChooseLocalPathToSourceDialogCanExecute);
         }
 
         [Model]
@@ -74,11 +74,6 @@ namespace NuGetPackageManager.ViewModels
             _modelProvider.Model = Feed;
         }
 
-        void OnFeedChanged()
-        {
-
-        }
-
         private void OnOpenChooseLocalPathToSourceDialogExecute()
         {
             CommonOpenFileDialog folderDialog = new CommonOpenFileDialog();
@@ -89,6 +84,20 @@ namespace NuGetPackageManager.ViewModels
             {
                 Source = folderDialog.FileName;
             }
+        }
+
+        #endregion
+
+        #region command execute conditions
+
+        private bool OnUpdateFeedCanExecute()
+        {
+            return Feed != null;
+        }
+
+        private bool OnOpenChooseLocalPathToSourceDialogCanExecute()
+        {
+            return Feed != null;
         }
 
         #endregion

@@ -42,36 +42,37 @@
                    VerticalAlignment="Center" 
                    Margin="2 2 2 2"/>
 
-        <ListView Grid.Row="1" Grid.ColumnSpan="2"
-                  Margin="0 4 2 0"
-                  Grid.RowSpan="2"
-                  MinHeight="200"
-                  MaxHeight="300"
-                  SelectedItem="{Binding SelectedFeed}"
-                  ItemsSource="{Binding Feeds}">
+        <ListBox Grid.Row="1" Grid.ColumnSpan="2"
+                 Margin="0 4 2 0"
+                 Grid.RowSpan="2"
+                 MinHeight="200"
+                 MaxHeight="300"
+                 SelectedItem="{Binding SelectedFeed}"
+                 HorizontalContentAlignment="Stretch"
+                 ItemsSource="{Binding Feeds}">
             <i:Interaction.Behaviors>
                 <catel:Focus/>
                 <b:SelectFirstItemOnContextBehavior/>
             </i:Interaction.Behaviors>
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn HeaderContainerStyle="{StaticResource HiddenListViewHeader}">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <CheckBox IsChecked="{Binding IsActive}"></CheckBox>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn HeaderContainerStyle="{StaticResource HiddenListViewHeader}" Width="474">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}"></TextBlock>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                </GridView>
-            </ListView.View>
-        </ListView>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="4">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+
+                        <CheckBox VerticalAlignment="Center" Margin="4 2 4 2"
+                                  IsChecked="{Binding IsActive}"/>
+
+                        <TextBlock Text="{Binding}" Grid.Column="1" Grid.Row="1" Margin="4 0 4 0"></TextBlock>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+                 
 
         <StackPanel x:Name="ButtonsPanel"
                     Orientation="Horizontal"
