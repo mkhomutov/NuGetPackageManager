@@ -4,15 +4,15 @@ using Catel.MVVM;
 using Catel.Services;
 using Catel.Threading;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using NugetPackageManager.Xaml.Providers;
 using NuGetPackageManager.Model;
+using NuGetPackageManager.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NugetPackageManager.Xaml.ViewModels
+namespace NuGetPackageManager.ViewModels
 {
     public class FeedDetailViewModel : ViewModelBase
     {

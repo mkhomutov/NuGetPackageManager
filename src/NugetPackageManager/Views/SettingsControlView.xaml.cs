@@ -1,4 +1,4 @@
-﻿using NugetPackageManager.Xaml.ViewModels;
+﻿using NuGetPackageManager.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,7 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace NugetPackageManager.Xaml.Views
+namespace NuGetPackageManager.Views
 {
     /// <summary>
     /// Логика взаимодействия для SettingsControlView.xaml

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NugetPackageManager.Xaml.Providers
+namespace NuGetPackageManager.Providers
 {
     public class ModelProvider<T> : IModelProvider<T> where T : ModelBase
     {

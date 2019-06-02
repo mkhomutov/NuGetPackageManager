@@ -1,12 +1,12 @@
-﻿<catel:UserControl x:Class="NugetPackageManager.Xaml.Views.SettingsControlView"
+﻿<catel:UserControl x:Class="NuGetPackageManager.Views.SettingsControlView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:catel="http://schemas.catelproject.com"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:NugetPackageManager.Xaml.Views"
+             xmlns:local="clr-namespace:NuGetPackageManager.Views"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-             xmlns:b="clr-namespace:NugetPackageManager.Xaml.Behaviors"
+             xmlns:b="clr-namespace:NuGetPackageManager.Behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <catel:UserControl.Resources>
@@ -41,21 +41,14 @@
         <TextBlock Text="Package source" 
                    VerticalAlignment="Center" 
                    Margin="2 2 2 2"/>
-        
+
         <ListView Grid.Row="1" Grid.ColumnSpan="2"
                   Margin="0 4 2 0"
                   Grid.RowSpan="2"
                   MinHeight="200"
                   MaxHeight="300"
-                  Width="474"
                   SelectedItem="{Binding SelectedFeed}"
                   ItemsSource="{Binding Feeds}">
-            <ListView.Resources>
-                <Style TargetType="{x:Type ListViewItem}">
-                    <Setter Property="HorizontalContentAlignment" Value="Left" />
-                    <Setter Property="Background" Value="White" />
-                </Style>
-            </ListView.Resources>
             <i:Interaction.Behaviors>
                 <catel:Focus/>
                 <b:SelectFirstItemOnContextBehavior/>
@@ -69,7 +62,7 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn HeaderContainerStyle="{StaticResource HiddenListViewHeader}">
+                    <GridViewColumn HeaderContainerStyle="{StaticResource HiddenListViewHeader}" Width="474">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding}"></TextBlock>
@@ -90,19 +83,19 @@
             </StackPanel.Resources>
             <Button x:Name="AddBtn" 
                     Command="{Binding AddFeed}">
-                <Image Source="/NugetPackageManager.Xaml;component/Resources/Add_8x_16x.png"/>
+                <Image Source="/NugetPackageManager;component/Resources/Add_8x_16x.png"/>
             </Button>
             <Button x:Name="RemoveBtn"
                     Command="{Binding RemoveFeed}">
-                <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/cross-removebg.png"/>
+                <Image Height="16" Source="/NugetPackageManager;component/Resources/cross-removebg.png"/>
             </Button>
             <Button x:Name="MoveUpBtn"
                     Command="{Binding MoveUpFeed}">
-                <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/Download_grey_16x.png"/>
+                <Image Height="16" Source="/NugetPackageManager;component/Resources/Download_grey_16x.png"/>
             </Button>
             <Button x:Name="MoveDownBtn"
                     Command="{Binding MoveDownFeed}">
-                <Image Height="16" Source="/NugetPackageManager.Xaml;component/Resources/Upload_gray_16x.png"/>
+                <Image Height="16" Source="/NugetPackageManager;component/Resources/Upload_gray_16x.png"/>
             </Button>
         </StackPanel>
 

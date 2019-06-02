@@ -13,7 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace NugetPackageManager.Xaml.Services
+namespace NuGetPackageManager.Services
 {
     public class NugetConfigurationService : ConfigurationService
     {

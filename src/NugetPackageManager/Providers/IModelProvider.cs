@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NugetPackageManager.Xaml.Providers
+namespace NuGetPackageManager.Providers
 {
     public interface IModelProvider<T> : INotifyPropertyChanged where T: ModelBase 
     {

@@ -5,8 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 
-namespace NugetPackageManager.Xaml.Behaviors
+namespace NuGetPackageManager.Behaviors
 {
     public class SelectFirstItemOnContextBehavior : BehaviorBase<ListView>
     {
@@ -36,7 +37,7 @@ namespace NugetPackageManager.Xaml.Behaviors
         {
             if(AssociatedObject.Items != null && AssociatedObject.Items.Count > 0)
             {
-                AssociatedObject.SelectedIndex = 0;
+                AssociatedObject.SetCurrentValue(Selector.SelectedIndexProperty, 0);
             }
         }
     }

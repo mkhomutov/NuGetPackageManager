@@ -2,10 +2,10 @@
 using Catel.Configuration;
 using Catel.Logging;
 using Catel.MVVM;
-using NugetPackageManager.Xaml.Providers;
-using NugetPackageManager.Xaml.Services;
 using NuGetPackageManager.Extension;
 using NuGetPackageManager.Model;
+using NuGetPackageManager.Providers;
+using NuGetPackageManager.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NugetPackageManager.Xaml.ViewModels
+namespace NuGetPackageManager.ViewModels
 {
     public class SettingsControlViewModel : ViewModelBase
     {
