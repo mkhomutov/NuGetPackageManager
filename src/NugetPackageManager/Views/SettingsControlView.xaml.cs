@@ -1,8 +1,7 @@
-﻿using System;
+﻿using NuGetPackageManager.ViewModels;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -10,16 +9,22 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace NuGetPackageManager.Views
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Логика взаимодействия для SettingsControlView.xaml
     /// </summary>
-    public partial class MainWindow : Catel.Windows.DataWindow
+    public partial class SettingsControlView : Catel.Windows.Controls.UserControl
     {
-        public MainWindow()
+        public SettingsControlView()
+        {
+            InitializeComponent();
+        }
+
+        public SettingsControlView(SettingsViewModel viewModel) : base(viewModel)
         {
             InitializeComponent();
         }

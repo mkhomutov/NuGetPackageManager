@@ -1,0 +1,114 @@
+﻿<catel:UserControl x:Class="NuGetPackageManager.Views.SettingsControlView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:catel="http://schemas.catelproject.com"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:NuGetPackageManager.Views"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:b="clr-namespace:NuGetPackageManager.Behaviors"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <catel:UserControl.Resources>
+        <Style x:Key="HiddenListViewHeader" TargetType="{x:Type GridViewColumnHeader}">
+            <Setter Property="Visibility" Value="Hidden" />
+        </Style>
+        <Style x:Key="SettingsButton" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Height" Value="24"></Setter>
+            <Setter Property="Width" Value="24"></Setter>
+            <Setter Property="Margin" Value="3 2 3 2"/>
+        </Style>
+    </catel:UserControl.Resources>
+    <Grid Margin="4 2 4 2">
+        <Grid.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="Margin" Value="4 0 0 0"/>
+            </Style>
+        </Grid.Resources>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="Package source" 
+                   VerticalAlignment="Center" 
+                   Margin="2 2 2 2"/>
+
+        <ListBox Grid.Row="1" Grid.ColumnSpan="2"
+                 Margin="0 4 2 0"
+                 Grid.RowSpan="2"
+                 MinHeight="200"
+                 MaxHeight="300"
+                 SelectedItem="{Binding SelectedFeed}"
+                 HorizontalContentAlignment="Stretch"
+                 ItemsSource="{Binding Feeds}">
+            <i:Interaction.Behaviors>
+                <catel:Focus/>
+                <b:SelectFirstItemOnContextBehavior/>
+            </i:Interaction.Behaviors>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="4">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+
+                        <CheckBox VerticalAlignment="Center" Margin="4 2 4 2"
+                                  IsChecked="{Binding IsActive}"/>
+
+                        <TextBlock Text="{Binding}" Grid.Column="1" Grid.Row="1" Margin="4 0 4 0"></TextBlock>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource DefaultListBoxItemStyle}">
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
+                 
+
+        <StackPanel x:Name="ButtonsPanel"
+                    Orientation="Horizontal"
+                    Grid.Column="1"
+                    HorizontalAlignment="Right">
+            <StackPanel.Resources>
+                <Style TargetType="Button" BasedOn="{StaticResource SettingsButton}">
+                </Style>
+            </StackPanel.Resources>
+            <Button x:Name="AddBtn" 
+                    Command="{Binding AddFeed}">
+                <Image Source="/NugetPackageManager;component/Resources/Add_8x_16x.png"/>
+            </Button>
+            <Button x:Name="RemoveBtn"
+                    Command="{Binding RemoveFeed}">
+                <Image Height="16" Source="/NugetPackageManager;component/Resources/cross-removebg.png"/>
+            </Button>
+            <Button x:Name="MoveUpBtn"
+                    Command="{Binding MoveUpFeed}">
+                <Image Height="16" Source="/NugetPackageManager;component/Resources/Download_grey_16x.png"/>
+            </Button>
+            <Button x:Name="MoveDownBtn"
+                    Command="{Binding MoveDownFeed}">
+                <Image Height="16" Source="/NugetPackageManager;component/Resources/Upload_gray_16x.png"/>
+            </Button>
+        </StackPanel>
+
+        <local:FeedDetailView DataContext="{Binding SelectedFeed}"
+                              Grid.ColumnSpan="2" Grid.Row="3"
+                              Margin="0 12 0 0"></local:FeedDetailView>
+
+        <Separator Grid.Row="4" Grid.ColumnSpan="2"
+                   Margin="0 8 0 0"/>
+    </Grid>
+</catel:UserControl>

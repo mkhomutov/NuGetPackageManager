@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NuGetPackageManager.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,16 +11,22 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace NuGetPackageManager.Views
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for FeedDetailView.xaml
     /// </summary>
-    public partial class MainWindow : Catel.Windows.DataWindow
+    public partial class FeedDetailView : Catel.Windows.Controls.UserControl
     {
-        public MainWindow()
+        public FeedDetailView()
+        {
+            InitializeComponent();
+        }
+
+        public FeedDetailView(FeedDetailViewModel viewModel) : base(viewModel)
         {
             InitializeComponent();
         }
