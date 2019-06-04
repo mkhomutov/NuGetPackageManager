@@ -28,6 +28,8 @@ namespace NuGetPackageManager.Models
 
         public bool IsActive { get; set; }
 
+        protected bool IsNameValid => !String.IsNullOrEmpty(Name);
+
         public override string ToString()
         {
             return $"{Name}\n{Source}";
@@ -44,6 +46,30 @@ namespace NuGetPackageManager.Models
             IEditableObject eo = this;
             eo.EndEdit();
         }
+
+        public bool IsValid()
+        {
+            return IsNameValid && GetUriSource() != null;
+        }
+
+        public bool IsLocal()
+        {
+            return GetUriSource()?.IsLoopback ?? false;
+        }
+
+
+        public Uri GetUriSource()
+        {
+            try
+            {
+                return String.IsNullOrEmpty(Source) ? null : new Uri(Source);
+            }
+            catch (UriFormatException)
+            {
+                return null;
+            }
+        }
+
 
         public NuGetFeed Clone()
         {
