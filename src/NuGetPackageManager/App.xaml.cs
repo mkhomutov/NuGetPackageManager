@@ -23,12 +23,6 @@ namespace NuGetPackageManager
         {
             LogManager.AddDebugListener();
 
-            var slocator = this.GetServiceLocator();
-            var vmlocator = slocator.ResolveType<IViewModelLocator>();
-
-            vmlocator.Register<MainWindow, MainViewModel>();
-            vmlocator.Register<SettingsControlView, SettingsControlViewModel>();
-
             base.OnStartup(e);
         }
     }

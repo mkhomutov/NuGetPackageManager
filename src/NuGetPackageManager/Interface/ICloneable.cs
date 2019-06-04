@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGetPackageManager.Interface
+namespace NuGetPackageManager
 {
     public interface ICloneable<out T>
     {

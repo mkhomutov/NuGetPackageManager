@@ -4,7 +4,7 @@ using Catel.MVVM;
 using Catel.Services;
 using Catel.Threading;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using NuGetPackageManager.Model;
+using NuGetPackageManager.Models;
 using NuGetPackageManager.Providers;
 using System;
 using System.Collections.Generic;
@@ -16,12 +16,14 @@ namespace NuGetPackageManager.ViewModels
 {
     public class FeedDetailViewModel : ViewModelBase
     {
-        private readonly IModelProvider<NugetFeed> _modelProvider;
+        private readonly IModelProvider<NuGetFeed> _modelProvider;
 
-        public FeedDetailViewModel(NugetFeed feed, IModelProvider<NugetFeed> modelProvider)
+        public FeedDetailViewModel(NuGetFeed feed, IModelProvider<NuGetFeed> modelProvider)
         {
             Argument.IsNotNull(() => feed);
             Argument.IsNotNull(() => modelProvider);
+
+            _modelProvider = modelProvider;
 
             Feed = feed;
 
@@ -29,22 +31,12 @@ namespace NuGetPackageManager.ViewModels
 
             Feed = feed.Clone();
 
-            _modelProvider = modelProvider;
-
             UpdateFeed = new Command(OnUpdateFeedExecute, OnUpdateFeedCanExecute);
             OpenChooseLocalPathToSourceDialog = new Command(OnOpenChooseLocalPathToSourceDialogExecute, OnOpenChooseLocalPathToSourceDialogCanExecute);
         }
 
         [Model]
-        public NugetFeed Feed
-        {
-            get { return GetValue<NugetFeed>(FeedProperty); }
-            set {
-                SetValue(FeedProperty, value);
-            }
-        }
-
-        public static readonly PropertyData FeedProperty = RegisterProperty("Feed", typeof(NugetFeed));
+        public NuGetFeed Feed { get; set; }
 
         [ViewModelToModel]
         public string Name { get; set; }
@@ -56,17 +48,6 @@ namespace NuGetPackageManager.ViewModels
 
         public Command UpdateFeed { get; set; }
 
-        public Command OpenChooseLocalPathToSourceDialog { get; set; }
-
-        #endregion
-
-        protected override Task<bool> SaveAsync()
-        {
-            return Task.FromResult(true);            
-        }
-
-        #region command actions
-
         private void OnUpdateFeedExecute()
         {
             //manually save model and pass forward
@@ -74,25 +55,23 @@ namespace NuGetPackageManager.ViewModels
             _modelProvider.Model = Feed;
         }
 
+        private bool OnUpdateFeedCanExecute()
+        {
+            return Feed != null;
+        }
+
+        public Command OpenChooseLocalPathToSourceDialog { get; set; }
+
         private void OnOpenChooseLocalPathToSourceDialogExecute()
         {
             CommonOpenFileDialog folderDialog = new CommonOpenFileDialog();
 
             folderDialog.InitialDirectory = @"C:\Users";
             folderDialog.IsFolderPicker = true;
-            if(folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 Source = folderDialog.FileName;
             }
-        }
-
-        #endregion
-
-        #region command execute conditions
-
-        private bool OnUpdateFeedCanExecute()
-        {
-            return Feed != null;
         }
 
         private bool OnOpenChooseLocalPathToSourceDialogCanExecute()
@@ -101,5 +80,10 @@ namespace NuGetPackageManager.ViewModels
         }
 
         #endregion
+
+        protected override Task<bool> SaveAsync()
+        {
+            return Task.FromResult(true);            
+        }
     }
 }

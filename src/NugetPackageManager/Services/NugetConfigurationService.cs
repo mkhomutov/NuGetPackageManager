@@ -3,7 +3,7 @@ using Catel.Data;
 using Catel.Runtime.Serialization;
 using Catel.Runtime.Serialization.Xml;
 using Catel.Services;
-using NuGetPackageManager.Model;
+using NuGetPackageManager.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,11 +28,11 @@ namespace NuGetPackageManager.Services
             return base.GetValueFromStore(container, key);
         }
 
-        public NugetFeed GetValue(ConfigurationContainer container, string key)
+        public NuGetFeed GetValue(ConfigurationContainer container, string key)
         {
             var rawXml = GetValueFromStore(container, key);
 
-            var ser = new System.Xml.Serialization.XmlSerializer(typeof(NugetFeed));
+            var ser = new System.Xml.Serialization.XmlSerializer(typeof(NuGetFeed));
 
             object serializedModel = null;
 
@@ -53,10 +53,10 @@ namespace NuGetPackageManager.Services
             //    feed = configSerializer.Deserialize<NugetFeed>(memstream);
             //}
 
-            return serializedModel == null ? null : serializedModel as NugetFeed;
+            return serializedModel == null ? null : serializedModel as NuGetFeed;
         }
 
-        public void SetValue(ConfigurationContainer container, string key, NugetFeed value)
+        public void SetValue(ConfigurationContainer container, string key, NuGetFeed value)
         {
             using (var memstream = new MemoryStream())
             {

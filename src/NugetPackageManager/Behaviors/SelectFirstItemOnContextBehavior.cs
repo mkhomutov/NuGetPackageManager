@@ -13,22 +13,10 @@ namespace NuGetPackageManager.Behaviors
     {
         protected override void OnAttached()
         {
-            AssociatedObject.Loaded += AssociatedObject_Loaded;
             base.OnAttached();
         }
 
-        private void AssociatedObject_Loaded(object sender, System.Windows.RoutedEventArgs e)
-        {
-            TrySelectFirstItemFromSource();
-        }
-
-        protected override void OnDetaching()
-        {
-            AssociatedObject.Loaded -= AssociatedObject_Loaded;
-            base.OnDetaching();
-        }
-
-        private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+        protected override void OnAssociatedObjectLoaded()
         {
             TrySelectFirstItemFromSource();
         }

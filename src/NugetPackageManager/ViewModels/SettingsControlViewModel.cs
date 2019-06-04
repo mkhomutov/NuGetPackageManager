@@ -2,8 +2,7 @@
 using Catel.Configuration;
 using Catel.Logging;
 using Catel.MVVM;
-using NuGetPackageManager.Extension;
-using NuGetPackageManager.Model;
+using NuGetPackageManager.Models;
 using NuGetPackageManager.Providers;
 using NuGetPackageManager.Services;
 using System;
@@ -19,9 +18,9 @@ namespace NuGetPackageManager.ViewModels
     {
         private static readonly ILog _log = LogManager.GetCurrentClassLogger();
         private readonly NugetConfigurationService _configurationService;
-        private readonly IModelProvider<NugetFeed> _modelProvider;
+        private readonly IModelProvider<NuGetFeed> _modelProvider;
 
-        public SettingsControlViewModel(IConfigurationService configurationService, IModelProvider<NugetFeed> modelProvider)
+        public SettingsControlViewModel(IConfigurationService configurationService, IModelProvider<NuGetFeed> modelProvider)
         {
             Argument.IsNotNull(() => configurationService);
             Argument.IsNotNull(() => modelProvider);
@@ -32,22 +31,43 @@ namespace NuGetPackageManager.ViewModels
             Title = "Settings";
         }
 
+
+        public ObservableCollection<NuGetFeed> Feeds { get; set; } = new ObservableCollection<NuGetFeed>();
+
+        [Model]
+        public NuGetFeed SelectedFeed { get; set; }
+
         #region commands
 
         public Command RemoveFeed { get; set; }
 
+        private void OnRemoveFeedExecute()
+        {
+            Feeds.Remove(SelectedFeed);
+        }
+
         public Command MoveUpFeed { get; set; }
+
+        private void OnMoveUpFeedExecute()
+        {
+            Feeds.MoveUp(SelectedFeed);
+        }
 
         public Command MoveDownFeed { get; set; }
 
+        private void OnMoveDownFeedExecute()
+        {
+            Feeds.MoveDown(SelectedFeed);
+        }
+
         public Command AddFeed { get; set; }
 
+        private void OnAddFeedExecute()
+        {
+            Feeds.Add(new NuGetFeed(Constants.NamePlaceholder, Constants.SourcePlaceholder));
+        }
+
         #endregion
-
-        public ObservableCollection<NugetFeed> Feeds { get; set; } = new ObservableCollection<NugetFeed>();
-
-        [Model]
-        public NugetFeed SelectedFeed { get; set; }
 
         protected void CommandInitialize()
         {
@@ -85,9 +105,15 @@ namespace NuGetPackageManager.ViewModels
             return base.SaveAsync();
         }
 
+        protected override Task CloseAsync()
+        {
+            _modelProvider.PropertyChanged -= OnModelProviderModelChanged;
+            return base.CloseAsync();
+        }
+
         private void ReadFeedsFromConfiguration()
         {
-            NugetFeed temp = null; ;
+            NuGetFeed temp = null; ;
             int i = 0;
 
             //restore values from configuration
@@ -99,7 +125,11 @@ namespace NuGetPackageManager.ViewModels
                 {
                     Feeds.Add(temp);
                 }
-                else _log.Error($"Configuration value under key {i} is broken and cannot be loaded");
+                else
+                {
+                    _log.Error($"Configuration value under key {i} is broken and cannot be loaded");
+                }
+
                 i++;
             }
         }
@@ -111,34 +141,10 @@ namespace NuGetPackageManager.ViewModels
             Feeds.Add(_modelProvider.Model);
         }
 
-        #region command actions
-
-        private void OnRemoveFeedExecute()
-        {
-            Feeds.Remove(SelectedFeed);
-        }
-
-        private void OnMoveUpFeedExecute()
-        {
-            Feeds.MoveUp(SelectedFeed);
-        }
-
-        private void OnMoveDownFeedExecute()
-        {
-            Feeds.MoveDown(SelectedFeed);
-        }
-
-        private void OnAddFeedExecute()
-        {
-            Feeds.Add(new NugetFeed(Constants.NamePlaceholder, Constants.SourcePlaceholder));
-        }
-
-        #endregion 
-
         private void AddDefaultFeeds()
         {
             Feeds.Add(
-                new NugetFeed(
+                new NuGetFeed(
                 Constants.DefaultNugetOrgName, 
                 Constants.DefaultNugetOrgUri)
                 );

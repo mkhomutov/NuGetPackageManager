@@ -1,4 +1,5 @@
-﻿using Catel.IoC;
+﻿using Catel;
+using Catel.IoC;
 using Catel.MVVM;
 using Catel.Services;
 using System;
@@ -11,30 +12,36 @@ namespace NuGetPackageManager.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
-        public MainViewModel(IUIVisualizerService service)
+        private readonly IUIVisualizerService _uIVisualizerService;
+        private readonly ITypeFactory _typeFactory;
+
+        public MainViewModel(ITypeFactory typeFactory, IUIVisualizerService service)
         {
+            Argument.IsNotNull(() => service);
+            Argument.IsNotNull(() => typeFactory);
+
+            _uIVisualizerService = service;
+            _typeFactory = typeFactory;
+
             InitializeCommands();
-            uIVisualizerService = service;
         }
 
         public TaskCommand RunNuget { get; set; }
 
         private void InitializeCommands()
         {
-            RunNuget = new TaskCommand(OnRunNuget);
+            RunNuget = new TaskCommand(OnRunNugetExecute);
         }
 
-        private async Task OnRunNuget()
+        private async Task OnRunNugetExecute()
         {
-            var nugetSettingsVm = this.GetTypeFactory().CreateInstanceWithParametersAndAutoCompletion<SettingsViewModel>();
+            var nugetSettingsVm = _typeFactory.CreateInstanceWithParametersAndAutoCompletion<SettingsViewModel>();
 
             if(nugetSettingsVm !=null)
             {
-                await uIVisualizerService.ShowDialogAsync(nugetSettingsVm);
+                await _uIVisualizerService.ShowDialogAsync(nugetSettingsVm);
             }
             
         }
-
-        private readonly IUIVisualizerService uIVisualizerService;
     }
 }

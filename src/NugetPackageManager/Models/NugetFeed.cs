@@ -1,5 +1,4 @@
 ﻿using Catel.Data;
-using NuGetPackageManager.Interface;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,16 +7,16 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGetPackageManager.Model
+namespace NuGetPackageManager.Models
 {
-    public class NugetFeed : ModelBase, ICloneable<NugetFeed>
+    public class NuGetFeed : ModelBase, ICloneable<NuGetFeed>
     {
-        public NugetFeed()
+        public NuGetFeed()
         {
 
         }
 
-        public NugetFeed(string name, string source)
+        public NuGetFeed(string name, string source)
         {
             Name = name;
             Source = source;
@@ -46,9 +45,9 @@ namespace NuGetPackageManager.Model
             eo.EndEdit();
         }
 
-        public NugetFeed Clone()
+        public NuGetFeed Clone()
         {
-            return new NugetFeed(this.Name, this.Source) { IsActive = this.IsActive };
+            return new NuGetFeed(this.Name, this.Source) { IsActive = this.IsActive };
         }
     }
 }

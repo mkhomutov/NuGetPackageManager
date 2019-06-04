@@ -1,16 +1,20 @@
-﻿using System;
+﻿using Catel;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGetPackageManager.Extension
+namespace NuGetPackageManager
 {
-    public static class ObservableCollectionExtension
+    public static class ObservableCollectionExtensions
     {
         public static void MoveUp<T>(this ObservableCollection<T> collection, T item)
         {
+            Argument.IsNotNull(() => collection);
+            Argument.IsNotNull(nameof(item), item);
+
             var oldindex = collection.IndexOf(item);
 
             if(oldindex == collection.Count-1)
@@ -23,6 +27,9 @@ namespace NuGetPackageManager.Extension
 
         public static void MoveDown<T>(this ObservableCollection<T> collection, T item)
         {
+            Argument.IsNotNull(() => collection);
+            Argument.IsNotNull(nameof(item), item);
+
             var oldindex = collection.IndexOf(item);
             if (oldindex == 0)
             {
