@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:NuGetPackageManager.Views"
+             xmlns:global="clr-namespace:NuGetPackageManager"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:b="clr-namespace:NuGetPackageManager.Behaviors"
              mc:Ignorable="d" 
@@ -18,31 +19,82 @@
             <Setter Property="Width" Value="24"></Setter>
             <Setter Property="Margin" Value="3 2 3 2"/>
         </Style>
+
+        <Geometry x:Key="ErrorGeometry">M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z</Geometry>
+        <Geometry x:Key="WarningGeometry">M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16</Geometry>
+
+        <Style x:Key="SettingsControlLabelStyle" TargetType="{x:Type Label}">
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Label}">
+                        <Grid>
+                            <Viewbox x:Name="errorViewBox" Height="16" Width="16" Visibility="Hidden">
+                                <Grid>
+                                    <Ellipse x:Name="errorPathBackground" Width="14" Height="14" Fill="White"
+                                                 VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    <Path Data="{StaticResource ErrorGeometry}" HorizontalAlignment="Center" Margin="0" 
+                                              SnapsToDevicePixels="True" Stretch="Fill" UseLayoutRounding="True"
+                                              Fill="{TemplateBinding BorderBrush}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Viewbox>
+
+                            <Viewbox x:Name="warningViewBox" Height="16" Width="16" Visibility="Hidden">
+                                <Grid>
+                                    <Path Data="{StaticResource WarningGeometry}" HorizontalAlignment="Center" Margin="0" 
+                                              SnapsToDevicePixels="True" Stretch="Fill" UseLayoutRounding="True"
+                                              Fill="{TemplateBinding BorderBrush}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Viewbox>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+
+                            <DataTrigger Binding="{Binding IsValid}" Value="False">
+                                <Setter Property="BorderBrush" Value="Red" />
+                                <Setter Property="Visibility" TargetName="errorViewBox" Value="Visible" />
+                            </DataTrigger>
+
+                            <DataTrigger Binding="{Binding FeedVerificationResult}" Value="{x:Static global:FeedVerificationResult.AuthenticationRequired}">
+                                <Setter Property="BorderBrush" Value="Orange" />
+                                <Setter Property="Visibility" TargetName="warningViewBox" Value="Visible" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </catel:UserControl.Resources>
-    <Grid Margin="4 2 4 2">
-        <Grid.Resources>
-            <Style TargetType="TextBlock">
-                <Setter Property="Margin" Value="4 0 0 0"/>
-            </Style>
-        </Grid.Resources>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <TextBlock Text="Package source" 
+    <catel:InfoBarMessageControl>
+        <Grid Margin="4 2 4 2">
+            <Grid.Resources>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Margin" Value="4 0 0 0"/>
+                </Style>
+            </Grid.Resources>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <catel:WarningAndErrorValidator Source="{Binding}" />
+            
+            <TextBlock Text="Package source" 
                    VerticalAlignment="Center" 
                    Margin="2 2 2 2"/>
 
-        <ListBox Grid.Row="1" Grid.ColumnSpan="2"
+            <ListBox Grid.Row="1" Grid.ColumnSpan="2"
                  Margin="0 4 2 0"
                  Grid.RowSpan="2"
                  MinHeight="200"
@@ -50,81 +102,99 @@
                  SelectedItem="{Binding SelectedFeed}"
                  HorizontalContentAlignment="Stretch"
                  ItemsSource="{Binding Feeds}">
-            <i:Interaction.Behaviors>
-                <catel:Focus/>
-                <b:SelectFirstItemOnContextBehavior/>
-            </i:Interaction.Behaviors>
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Grid Margin="4">
+                <i:Interaction.Behaviors>
+                    <catel:Focus/>
+                    <b:SelectFirstItemOnContextBehavior/>
+                </i:Interaction.Behaviors>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="4">
 
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="40"/>
-                        </Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
 
-                        <CheckBox VerticalAlignment="Center" Margin="4 2 4 2"
+                            <CheckBox VerticalAlignment="Center" Margin="4 2 4 2"
                                   IsChecked="{Binding IsActive}"/>
 
-                        <TextBlock Text="{Binding}" Grid.Column="1" Grid.Row="1" Margin="4 0 4 0"></TextBlock>
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-            <ListBox.ItemContainerStyle>
-                <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource DefaultListBoxItemStyle}">
-                </Style>
-            </ListBox.ItemContainerStyle>
-        </ListBox>
-                 
+                            <TextBlock Text="{Binding Path=., NotifyOnValidationError=True, ValidatesOnDataErrors=True}"
+                                   Grid.Column="1"
+                                   Margin="4 0 4 0">
+                            </TextBlock>
 
-        <StackPanel x:Name="ButtonsPanel"
+                            <Label x:Name="ValidationFlag" HorizontalAlignment="Right"
+                               Style="{StaticResource SettingsControlLabelStyle}"
+                               Content="{Binding Path=.}">
+                            </Label>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource DefaultListBoxItemStyle}">
+                        <Setter Property="Validation.ErrorTemplate">
+                            <Setter.Value>
+                                <ControlTemplate>
+                                    <Border Background="Red" Opacity="0.2">
+                                        <AdornedElementPlaceholder/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+
+
+            <StackPanel x:Name="ButtonsPanel"
                     Orientation="Horizontal"
                     Grid.Column="1"
                     HorizontalAlignment="Right">
-            <StackPanel.Resources>
-                <Style TargetType="Button" BasedOn="{StaticResource SettingsButton}">
-                </Style>
-            </StackPanel.Resources>
-            <Button x:Name="AddBtn" 
+                <StackPanel.Resources>
+                    <Style TargetType="Button" BasedOn="{StaticResource SettingsButton}">
+                    </Style>
+                </StackPanel.Resources>
+                <Button x:Name="AddBtn" 
                     Command="{Binding AddFeed}">
-                <Viewbox>
-                    <Canvas Width="24" Height="24">
-                        <Path Data="{Binding Source={StaticResource Plus}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
-                    </Canvas>
-                </Viewbox>
-            </Button>
-            <Button x:Name="RemoveBtn"
+                    <Viewbox>
+                        <Canvas Width="24" Height="24">
+                            <Path Data="{Binding Source={StaticResource Plus}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+                <Button x:Name="RemoveBtn"
                     Command="{Binding RemoveFeed}">
-                <Viewbox>
-                    <Canvas Width="24" Height="24">
-                        <Path Data="{Binding Source={StaticResource Minus}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
-                    </Canvas>
-                </Viewbox>
-            </Button>
-            <Button x:Name="MoveUpBtn"
+                    <Viewbox>
+                        <Canvas Width="24" Height="24">
+                            <Path Data="{Binding Source={StaticResource Minus}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+                <Button x:Name="MoveUpBtn"
                     Command="{Binding MoveUpFeed}">
-                <Viewbox>
-                    <Canvas Width="24" Height="24">
-                        <Path Data="{Binding Source={StaticResource Arrow-down-bold}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
-                    </Canvas>
-                </Viewbox>
-            </Button>
-            <Button x:Name="MoveDownBtn"
+                    <Viewbox>
+                        <Canvas Width="24" Height="24">
+                            <Path Data="{Binding Source={StaticResource Arrow-down-bold}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+                <Button x:Name="MoveDownBtn"
                     Command="{Binding MoveDownFeed}">
-                <Viewbox>
-                    <Canvas Width="24" Height="24">
-                        <Path Data="{Binding Source={StaticResource Arrow-up-bold}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
-                    </Canvas>
-                </Viewbox>
-            </Button>
-        </StackPanel>
+                    <Viewbox>
+                        <Canvas Width="24" Height="24">
+                            <Path Data="{Binding Source={StaticResource Arrow-up-bold}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+            </StackPanel>
 
-        <local:FeedDetailView DataContext="{Binding SelectedFeed}"
+            <local:FeedDetailView DataContext="{Binding SelectedFeed}"
                               Grid.ColumnSpan="2" Grid.Row="3"
                               Margin="0 12 0 0"></local:FeedDetailView>
 
-        <Separator Grid.Row="4" Grid.ColumnSpan="2"
+            <Separator Grid.Row="4" Grid.ColumnSpan="2"
                    Margin="0 8 0 0"/>
-    </Grid>
+        </Grid>
+    </catel:InfoBarMessageControl>
 </catel:UserControl>

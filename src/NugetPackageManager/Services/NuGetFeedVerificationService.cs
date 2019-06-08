@@ -19,7 +19,7 @@ namespace NuGetPackageManager.Services
     {
         private static readonly ILog _log = LogManager.GetCurrentClassLogger();
 
-        public FeedVerificationResult VerifyFeed(string source, bool authenticateIfRequired = true)
+        public async Task<FeedVerificationResult> VerifyFeed(string source, bool authenticateIfRequired = true)
         {
             Argument.IsNotNull(() => source);
 
@@ -35,11 +35,19 @@ namespace NuGetPackageManager.Services
             {
                 var packageSource = new PackageSource(source);
 
+                var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root:null), Repository.Provider.GetCoreV3());
+
                 var repository = new SourceRepository(packageSource, v3_providers);
-                var searchResource =  repository.GetResource<PackageSearchResource>();
+
+                var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
+                //var searchResource =  repository.GetResourceAsync<PackageSearchResource>().Result;
                 
                 //try to perform search
-                searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, CancellationToken.None);
+                var metadata = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, CancellationToken.None);
+            }
+            catch(FatalProtocolException ex)
+            {
+                HandleNugetProtocolException(ex, source);
             }
             catch(WebException ex)
             {
@@ -94,6 +102,20 @@ namespace NuGetPackageManager.Services
                 }
             }
             catch (Exception ex)
+            {
+                _log.Debug(ex, "Failed to verify feed '{0}'", source);
+            }
+
+            return FeedVerificationResult.Invalid;
+        }
+
+        private static FeedVerificationResult HandleNugetProtocolException(FatalProtocolException exception, string source)
+        {
+            try
+            {
+
+            }
+            catch(Exception ex)
             {
                 _log.Debug(ex, "Failed to verify feed '{0}'", source);
             }

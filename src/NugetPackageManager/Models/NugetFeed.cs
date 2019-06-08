@@ -28,7 +28,7 @@ namespace NuGetPackageManager.Models
 
         public bool IsActive { get; set; }
 
-        public FeedVerificationResult VerificationResult { get; set; } = FeedVerificationResult.Unknown;
+        public FeedVerificationResult VerificationResult { get; set; } = FeedVerificationResult.Valid;
 
         public bool IsNameValid => !String.IsNullOrEmpty(Name);
 
@@ -51,7 +51,8 @@ namespace NuGetPackageManager.Models
 
         public bool IsValid()
         {
-            return IsNameValid && GetUriSource() != null;
+            return IsNameValid && GetUriSource() != null
+                && !(VerificationResult == FeedVerificationResult.Unknown || VerificationResult == FeedVerificationResult.Invalid);
         }
 
         public bool IsLocal()

@@ -35,6 +35,8 @@ namespace NuGetPackageManager.ViewModels
             _modelProvider = modelProvider;
             CommandInitialize();
             Title = "Settings";
+
+            DeferValidationUntilFirstSaveCall = false;
         }
 
 
@@ -129,10 +131,12 @@ namespace NuGetPackageManager.ViewModels
 
                 if (!SelectedFeed.IsLocal())
                 {
-                    //verify remote feed
+                    var result = VerifyFeedAsync(SelectedFeed);
                 }
             }
         }
+
+        
 
         private bool IsNameUniqueRule(NuGetFeed feed)
         {
@@ -146,7 +150,7 @@ namespace NuGetPackageManager.ViewModels
                 return;
             }
 
-            var verificationResult = await TaskHelper.Run(() => _feedVerificationService.VerifyFeed(feed.Source, true), true);
+            var verificationResult = await _feedVerificationService.VerifyFeed(feed.Source, true);
 
             feed.VerificationResult = verificationResult;
         }
