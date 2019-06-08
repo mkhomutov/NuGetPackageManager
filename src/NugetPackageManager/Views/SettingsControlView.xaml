@@ -88,19 +88,35 @@
             </StackPanel.Resources>
             <Button x:Name="AddBtn" 
                     Command="{Binding AddFeed}">
-                <Image Source="/NugetPackageManager;component/Resources/Add_8x_16x.png"/>
+                <Viewbox>
+                    <Canvas Width="24" Height="24">
+                        <Path Data="{Binding Source={StaticResource Plus}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
+                    </Canvas>
+                </Viewbox>
             </Button>
             <Button x:Name="RemoveBtn"
                     Command="{Binding RemoveFeed}">
-                <Image Height="16" Source="/NugetPackageManager;component/Resources/cross-removebg.png"/>
+                <Viewbox>
+                    <Canvas Width="24" Height="24">
+                        <Path Data="{Binding Source={StaticResource Minus}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
+                    </Canvas>
+                </Viewbox>
             </Button>
             <Button x:Name="MoveUpBtn"
                     Command="{Binding MoveUpFeed}">
-                <Image Height="16" Source="/NugetPackageManager;component/Resources/Download_grey_16x.png"/>
+                <Viewbox>
+                    <Canvas Width="24" Height="24">
+                        <Path Data="{Binding Source={StaticResource Arrow-down-bold}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
+                    </Canvas>
+                </Viewbox>
             </Button>
             <Button x:Name="MoveDownBtn"
                     Command="{Binding MoveDownFeed}">
-                <Image Height="16" Source="/NugetPackageManager;component/Resources/Upload_gray_16x.png"/>
+                <Viewbox>
+                    <Canvas Width="24" Height="24">
+                        <Path Data="{Binding Source={StaticResource Arrow-up-bold}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
+                    </Canvas>
+                </Viewbox>
             </Button>
         </StackPanel>
 

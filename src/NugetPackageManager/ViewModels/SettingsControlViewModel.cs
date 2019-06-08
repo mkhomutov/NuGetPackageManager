@@ -179,6 +179,9 @@ namespace NuGetPackageManager.ViewModels
             //should drop current selected row and add updated
             Feeds.Remove(SelectedFeed);
             Feeds.Add(_modelProvider.Model);
+
+            //keep selection
+            SelectedFeed = _modelProvider.Model;
         }
 
         private void AddDefaultFeeds()

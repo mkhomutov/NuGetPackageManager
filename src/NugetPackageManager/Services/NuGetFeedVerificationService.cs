@@ -59,12 +59,6 @@ namespace NuGetPackageManager.Services
                 result = FeedVerificationResult.Invalid;
             }
             
-            using(var scope = ScopeManager<SourceRepository>.GetScopeManager())
-            {
-                scope.
-            }
-            //using (ScopeManager<AuthenticationScope>.GetScopeManager(source.GetSafeScopeName(), () => new AuthenticationScope(authenticateIfRequired)))
-
             _log.Debug("Verified feed '{0}', result is '{1}'", source, result);
 
             return result;

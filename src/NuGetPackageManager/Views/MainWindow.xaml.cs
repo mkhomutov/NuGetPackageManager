@@ -22,6 +22,7 @@ namespace NuGetPackageManager.Views
         public MainWindow()
         {
             InitializeComponent();
+            ShowInTaskbar = true;
         }
     }
 }

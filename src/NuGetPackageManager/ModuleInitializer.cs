@@ -18,5 +18,7 @@ public static class ModuleInitializer
 
         serviceLocator.RegisterType<IConfigurationService, NugetConfigurationService>();
         serviceLocator.RegisterType<IModelProvider<NuGetFeed>, ModelProvider<NuGetFeed>>();
+
+        serviceLocator.RegisterType<INuGetFeedVerificationService, NuGetFeedVerificationService>();
     }
 }

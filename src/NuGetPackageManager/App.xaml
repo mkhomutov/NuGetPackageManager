@@ -7,6 +7,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary  Source="/NuGetPackageManager;component/Themes/Generic.xaml"/>
+                <ResourceDictionary Source="/NugetPackageManager;component/Themes/MaterialIcons.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
