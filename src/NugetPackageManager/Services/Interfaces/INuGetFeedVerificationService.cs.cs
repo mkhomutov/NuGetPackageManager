@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NuGetPackageManager.Services
 {
-    interface INuGetFeedVerificationService
+    public interface INuGetFeedVerificationService
     {
         FeedVerificationResult VerifyFeed(string source, bool authenticateIfRequired = true);
     }

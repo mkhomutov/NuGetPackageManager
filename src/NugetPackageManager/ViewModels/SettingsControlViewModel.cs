@@ -1,7 +1,9 @@
 ﻿using Catel;
 using Catel.Configuration;
+using Catel.Data;
 using Catel.Logging;
 using Catel.MVVM;
+using Catel.Threading;
 using NuGetPackageManager.Models;
 using NuGetPackageManager.Providers;
 using NuGetPackageManager.Services;
@@ -18,14 +20,18 @@ namespace NuGetPackageManager.ViewModels
     {
         private static readonly ILog _log = LogManager.GetCurrentClassLogger();
         private readonly NugetConfigurationService _configurationService;
+        private readonly INuGetFeedVerificationService _feedVerificationService;
         private readonly IModelProvider<NuGetFeed> _modelProvider;
 
-        public SettingsControlViewModel(IConfigurationService configurationService, IModelProvider<NuGetFeed> modelProvider)
+        public SettingsControlViewModel(IConfigurationService configurationService, INuGetFeedVerificationService feedVerificationService,
+            IModelProvider<NuGetFeed> modelProvider)
         {
             Argument.IsNotNull(() => configurationService);
             Argument.IsNotNull(() => modelProvider);
+            Argument.IsNotNull(() => feedVerificationService);
 
             _configurationService = configurationService as NugetConfigurationService;
+            _feedVerificationService = feedVerificationService;
             _modelProvider = modelProvider;
             CommandInitialize();
             Title = "Settings";
@@ -109,6 +115,40 @@ namespace NuGetPackageManager.ViewModels
         {
             _modelProvider.PropertyChanged -= OnModelProviderModelChanged;
             return base.CloseAsync();
+        }
+
+        protected override void ValidateBusinessRules(List<IBusinessRuleValidationResult> validationResults)
+        {
+            if (SelectedFeed != null)
+            {
+                if (!IsNameUniqueRule(SelectedFeed))
+                {
+                    validationResults.Add(BusinessRuleValidationResult.CreateError($"Two or more feeds have same name '{SelectedFeed.Name}'"));
+                }
+
+
+                if (!SelectedFeed.IsLocal())
+                {
+                    //verify remote feed
+                }
+            }
+        }
+
+        private bool IsNameUniqueRule(NuGetFeed feed)
+        {
+            return Feeds.Count(x => x.Name == feed.Name) < 2;
+        }
+
+        private async Task VerifyFeedAsync(NuGetFeed feed)
+        {
+            if (feed == null || !feed.IsValid())
+            {
+                return;
+            }
+
+            var verificationResult = await TaskHelper.Run(() => _feedVerificationService.VerifyFeed(feed.Source, true), true);
+
+            feed.VerificationResult = verificationResult;
         }
 
         private void ReadFeedsFromConfiguration()

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace NuGetPackageManager.Models
 {
-    public class NuGetFeed : ModelBase, ICloneable<NuGetFeed>
+    public class NuGetFeed : ModelBase, ICloneable<NuGetFeed>, IDataErrorInfo
     {
         public NuGetFeed()
         {
@@ -28,7 +28,9 @@ namespace NuGetPackageManager.Models
 
         public bool IsActive { get; set; }
 
-        protected bool IsNameValid => !String.IsNullOrEmpty(Name);
+        public FeedVerificationResult VerificationResult { get; set; } = FeedVerificationResult.Unknown;
+
+        public bool IsNameValid => !String.IsNullOrEmpty(Name);
 
         public override string ToString()
         {
@@ -57,7 +59,6 @@ namespace NuGetPackageManager.Models
             return GetUriSource()?.IsLoopback ?? false;
         }
 
-
         public Uri GetUriSource()
         {
             try
@@ -66,6 +67,7 @@ namespace NuGetPackageManager.Models
             }
             catch (UriFormatException)
             {
+                Error = "Incorrect feed source can`t be recognized as Uri";
                 return null;
             }
         }
@@ -73,7 +75,42 @@ namespace NuGetPackageManager.Models
 
         public NuGetFeed Clone()
         {
-            return new NuGetFeed(this.Name, this.Source) { IsActive = this.IsActive };
+            return new NuGetFeed(
+                this.Name, this.Source) { IsActive = this.IsActive };
         }
+
+        #region IDataErrorInfo
+
+        public string Error { get; private set; } = String.Empty;
+
+        public string this[string columnName]
+        {
+            get
+            {
+                switch(columnName)
+                {
+                    case nameof(Name):
+                        {
+                            if(!IsNameValid)
+                            {
+                                return "Feed name cannot be empty";
+                            }
+                            break;
+                        }
+                    case nameof(Source):
+                        {
+                            if(GetUriSource() == null)
+                            {
+                                return "Incorrect feed source can`t be recognized as Uri";
+                            }
+                            break;
+                        }
+                }
+
+                return String.Empty;
+            }
+        }
+        
+        #endregion
     }
 }

@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace NuGetPackageManager
 {
-    enum  FeedVerificationResult
+    public enum  FeedVerificationResult
     {
         Unknown,
         Valid,
         AuthenticationRequired,
+        AuthorizationRequired,
         Invalid
     }
 }
