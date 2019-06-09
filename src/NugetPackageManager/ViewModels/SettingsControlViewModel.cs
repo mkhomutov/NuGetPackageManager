@@ -136,7 +136,6 @@ namespace NuGetPackageManager.ViewModels
             }
         }
 
-        
 
         private bool IsNameUniqueRule(NuGetFeed feed)
         {

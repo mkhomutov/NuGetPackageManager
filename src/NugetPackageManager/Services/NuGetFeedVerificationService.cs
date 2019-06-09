@@ -84,21 +84,16 @@ namespace NuGetPackageManager.Services
                     return FeedVerificationResult.Invalid;
                 }
 
-                if ((int)httpWebResponse.StatusCode == 403)
-                {
-                    return FeedVerificationResult.AuthenticationRequired;
-                }
-
-                if ((int)httpWebResponse.StatusCode == 401)
+                //403 error
+                if (httpWebResponse.StatusCode == HttpStatusCode.Forbidden)
                 {
                     return FeedVerificationResult.AuthorizationRequired;
                 }
 
-                if (exception.Status == WebExceptionStatus.ProtocolError)
+                //401 error
+                if (httpWebResponse.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    return httpWebResponse.StatusCode == HttpStatusCode.Unauthorized
-                        ? FeedVerificationResult.AuthenticationRequired
-                        : FeedVerificationResult.Invalid;
+                    return FeedVerificationResult.AuthenticationRequired;
                 }
             }
             catch (Exception ex)
@@ -113,6 +108,23 @@ namespace NuGetPackageManager.Services
         {
             try
             {
+                var innerException = exception.InnerException;
+
+                if (innerException == null)
+                {
+                    //handle based on protocol error messages
+                    if (innerException.Message.Contains("returned an unexpected status code '401 Unauthorized'"))
+                    {
+                        return FeedVerificationResult.AuthenticationRequired;
+                    }
+                }
+                else
+                {
+                    if(innerException is WebException)
+                    {
+                        HandleWebException(innerException as WebException, source);
+                    }
+                }
 
             }
             catch(Exception ex)
@@ -122,6 +134,7 @@ namespace NuGetPackageManager.Services
 
             return FeedVerificationResult.Invalid;
         }
+
         #endregion
     }
 }
