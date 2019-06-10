@@ -5,7 +5,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 
-namespace Orc.NuGetExplorer.Native
+namespace NuGetPackageManager.Native
 {
     internal enum DownlevelTextMode
     {

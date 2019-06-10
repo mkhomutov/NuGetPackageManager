@@ -5,7 +5,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 
-namespace Orc.NuGetExplorer.Native
+namespace NuGetPackageManager.Native
 {
     using System;
     using System.Runtime.InteropServices;
@@ -13,6 +13,8 @@ namespace Orc.NuGetExplorer.Native
     using Catel;
     using Catel.Configuration;
     using Catel.Logging;
+    using NuGetPackageManager.Crypto;
+    using NuGetPackageManager.Native;
 
     internal class CredentialsPrompter
     {

@@ -149,7 +149,7 @@ namespace NuGetPackageManager.ViewModels
                 return;
             }
 
-            var verificationResult = await _feedVerificationService.VerifyFeed(feed.Source, true);
+            var verificationResult = await _feedVerificationService.VerifyFeedAsync(feed.Source, true);
 
             feed.VerificationResult = verificationResult;
         }

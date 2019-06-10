@@ -9,7 +9,7 @@
 //#define LOG_SENSITIVE_INFO
 #endif
 
-namespace Orc.NuGetExplorer.Native
+namespace NuGetPackageManager.Native
 {
     using System;
     using System.Runtime.ConstrainedExecution;

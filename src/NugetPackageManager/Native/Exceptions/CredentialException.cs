@@ -5,7 +5,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 
-namespace Orc.NuGetExplorer.Native
+namespace NuGetPackageManager.Native
 {
     using System;
     using System.Security.Permissions;

@@ -5,6 +5,7 @@ using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGetPackageManager.Loggers;
+using NuGetPackageManager.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace NuGetPackageManager.Services
     {
         private static readonly ILog _log = LogManager.GetCurrentClassLogger();
 
-        public async Task<FeedVerificationResult> VerifyFeed(string source, bool authenticateIfRequired = true)
+        public async Task<FeedVerificationResult> VerifyFeedAsync(string source, bool authenticateIfRequired = true)
         {
             Argument.IsNotNull(() => source);
 
@@ -40,7 +41,6 @@ namespace NuGetPackageManager.Services
                 var repository = new SourceRepository(packageSource, v3_providers);
 
                 var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
-                //var searchResource =  repository.GetResourceAsync<PackageSearchResource>().Result;
                 
                 //try to perform search
                 var metadata = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, CancellationToken.None);
@@ -113,7 +113,7 @@ namespace NuGetPackageManager.Services
                 if (innerException == null)
                 {
                     //handle based on protocol error messages
-                    if (innerException.Message.Contains("returned an unexpected status code '401 Unauthorized'"))
+                    if (exception.Message.Contains("returned an unexpected status code '401 Unauthorized'"))
                     {
                         return FeedVerificationResult.AuthenticationRequired;
                     }

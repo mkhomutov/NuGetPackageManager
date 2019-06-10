@@ -3,6 +3,7 @@ using Catel.IoC;
 using NuGetPackageManager.Providers;
 using NuGetPackageManager.Services;
 using NuGetPackageManager.Models;
+using NuGet.Credentials;
 
 /// <summary>
 /// Used by the ModuleInit. All code inside the Initialize method is ran as soon as the assembly is loaded.
@@ -20,5 +21,9 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<IModelProvider<NuGetFeed>, ModelProvider<NuGetFeed>>();
 
         serviceLocator.RegisterType<INuGetFeedVerificationService, NuGetFeedVerificationService>();
+
+        serviceLocator.RegisterType<IAuthenticationProvider, AuthenticationProvider>();
+        serviceLocator.RegisterType<ICredentialProvider, NativeWinCredentialsProvider>();
+
     }
 }
