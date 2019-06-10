@@ -1,16 +1,13 @@
-﻿using Catel;
-using NuGet.Configuration;
-using NuGet.Credentials;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Providers
+﻿namespace NuGetPackageManager.Providers
 {
+    using Catel;
+    using NuGet.Configuration;
+    using NuGet.Credentials;
+    using System;
+    using System.Net;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class NativeWinCredentialsProvider : ICredentialProvider
     {
         private readonly IAuthenticationProvider _authenticationProvider;

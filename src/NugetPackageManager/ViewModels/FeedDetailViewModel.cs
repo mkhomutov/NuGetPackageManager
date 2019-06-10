@@ -1,19 +1,12 @@
-﻿using Catel;
-using Catel.Data;
-using Catel.MVVM;
-using Catel.Services;
-using Catel.Threading;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using NuGetPackageManager.Models;
-using NuGetPackageManager.Providers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.ViewModels
+﻿namespace NuGetPackageManager.ViewModels
 {
+    using Catel;
+    using Catel.MVVM;
+    using Microsoft.WindowsAPICodePack.Dialogs;
+    using NuGetPackageManager.Models;
+    using NuGetPackageManager.Providers;
+    using System.Threading.Tasks;
+
     public class FeedDetailViewModel : ViewModelBase
     {
         private readonly IModelProvider<NuGetFeed> _modelProvider;
@@ -43,8 +36,6 @@ namespace NuGetPackageManager.ViewModels
 
         [ViewModelToModel]
         public string Source { get; set; }
-
-        #region commands
 
         public Command UpdateFeed { get; set; }
 
@@ -79,11 +70,9 @@ namespace NuGetPackageManager.ViewModels
             return Feed != null;
         }
 
-        #endregion
-
         protected override Task<bool> SaveAsync()
         {
-            return Task.FromResult(true);            
+            return Task.FromResult(true);
         }
     }
 }

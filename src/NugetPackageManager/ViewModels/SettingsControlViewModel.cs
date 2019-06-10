@@ -1,26 +1,26 @@
-﻿using Catel;
-using Catel.Configuration;
-using Catel.Data;
-using Catel.Logging;
-using Catel.MVVM;
-using Catel.Threading;
-using NuGetPackageManager.Models;
-using NuGetPackageManager.Providers;
-using NuGetPackageManager.Services;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.ViewModels
+﻿namespace NuGetPackageManager.ViewModels
 {
+    using Catel;
+    using Catel.Configuration;
+    using Catel.Data;
+    using Catel.Logging;
+    using Catel.MVVM;
+    using NuGetPackageManager.Models;
+    using NuGetPackageManager.Providers;
+    using NuGetPackageManager.Services;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     public class SettingsControlViewModel : ViewModelBase
     {
         private static readonly ILog _log = LogManager.GetCurrentClassLogger();
+
         private readonly NugetConfigurationService _configurationService;
+
         private readonly INuGetFeedVerificationService _feedVerificationService;
+
         private readonly IModelProvider<NuGetFeed> _modelProvider;
 
         public SettingsControlViewModel(IConfigurationService configurationService, INuGetFeedVerificationService feedVerificationService,
@@ -39,13 +39,10 @@ namespace NuGetPackageManager.ViewModels
             DeferValidationUntilFirstSaveCall = false;
         }
 
-
         public ObservableCollection<NuGetFeed> Feeds { get; set; } = new ObservableCollection<NuGetFeed>();
 
         [Model]
         public NuGetFeed SelectedFeed { get; set; }
-
-        #region commands
 
         public Command RemoveFeed { get; set; }
 
@@ -75,8 +72,6 @@ namespace NuGetPackageManager.ViewModels
             Feeds.Add(new NuGetFeed(Constants.NamePlaceholder, Constants.SourcePlaceholder));
         }
 
-        #endregion
-
         protected void CommandInitialize()
         {
             RemoveFeed = new Command(OnRemoveFeedExecute);
@@ -105,7 +100,7 @@ namespace NuGetPackageManager.ViewModels
         protected override Task<bool> SaveAsync()
         {
             //store all feed inside configuration
-            for (int i = 0; i<Feeds.Count; i++)
+            for (int i = 0; i < Feeds.Count; i++)
             {
                 _configurationService.SetValue(ConfigurationContainer.Local, $"feed{i}", Feeds[i]);
             }
@@ -136,7 +131,6 @@ namespace NuGetPackageManager.ViewModels
             }
         }
 
-
         private bool IsNameUniqueRule(NuGetFeed feed)
         {
             return Feeds.Count(x => x.Name == feed.Name) < 2;
@@ -160,7 +154,7 @@ namespace NuGetPackageManager.ViewModels
             int i = 0;
 
             //restore values from configuration
-            while(_configurationService.IsLocalValueAvailable($"feed{i}"))
+            while (_configurationService.IsLocalValueAvailable($"feed{i}"))
             {
                 temp = _configurationService.GetValue(ConfigurationContainer.Local, $"feed{i}");
 
@@ -191,7 +185,7 @@ namespace NuGetPackageManager.ViewModels
         {
             Feeds.Add(
                 new NuGetFeed(
-                Constants.DefaultNugetOrgName, 
+                Constants.DefaultNugetOrgName,
                 Constants.DefaultNugetOrgUri)
                 );
         }

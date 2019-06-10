@@ -1,19 +1,13 @@
-﻿using Catel.Data;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Models
+﻿namespace NuGetPackageManager.Models
 {
+    using Catel.Data;
+    using System;
+    using System.ComponentModel;
+
     public class NuGetFeed : ModelBase, ICloneable<NuGetFeed>, IDataErrorInfo
     {
         public NuGetFeed()
         {
-
         }
 
         public NuGetFeed(string name, string source)
@@ -73,26 +67,25 @@ namespace NuGetPackageManager.Models
             }
         }
 
-
         public NuGetFeed Clone()
         {
             return new NuGetFeed(
-                this.Name, this.Source) { IsActive = this.IsActive };
+                this.Name, this.Source)
+            { IsActive = this.IsActive };
         }
 
-        #region IDataErrorInfo
-
         public string Error { get; private set; } = String.Empty;
+
 
         public string this[string columnName]
         {
             get
             {
-                switch(columnName)
+                switch (columnName)
                 {
                     case nameof(Name):
                         {
-                            if(!IsNameValid)
+                            if (!IsNameValid)
                             {
                                 return "Feed name cannot be empty";
                             }
@@ -100,7 +93,7 @@ namespace NuGetPackageManager.Models
                         }
                     case nameof(Source):
                         {
-                            if(GetUriSource() == null)
+                            if (GetUriSource() == null)
                             {
                                 return "Incorrect feed source can`t be recognized as Uri";
                             }
@@ -111,7 +104,5 @@ namespace NuGetPackageManager.Models
                 return String.Empty;
             }
         }
-        
-        #endregion
     }
 }

@@ -1,16 +1,14 @@
-﻿using Catel.Logging;
-using NuGet.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Loggers
+﻿namespace NuGetPackageManager.Loggers
 {
+    using Catel.Logging;
+    using NuGet.Common;
+    using System;
+    using System.Threading.Tasks;
+
     public class DebugLogger : ILogger
     {
         private ILog _log = LogManager.GetCurrentClassLogger();
+
         private bool _verbose;
 
         public DebugLogger(bool verbose)
@@ -20,21 +18,27 @@ namespace NuGetPackageManager.Loggers
 
         public void Log(LogLevel level, string data)
         {
-             switch(level)
-             {
-                case LogLevel.Debug: LogDebug(data);
+            switch (level)
+            {
+                case LogLevel.Debug:
+                    LogDebug(data);
                     break;
-                case LogLevel.Error: LogError(data);
+                case LogLevel.Error:
+                    LogError(data);
                     break;
-                case LogLevel.Information: LogInformation(data);
+                case LogLevel.Information:
+                    LogInformation(data);
                     break;
-                case LogLevel.Warning: LogWarning(data);
+                case LogLevel.Warning:
+                    LogWarning(data);
                     break;
-                case LogLevel.Minimal: LogMinimal(data);
+                case LogLevel.Minimal:
+                    LogMinimal(data);
                     break;
-                case LogLevel.Verbose: LogVerbose(data);
+                case LogLevel.Verbose:
+                    LogVerbose(data);
                     break;
-             }
+            }
         }
 
         public void Log(ILogMessage message)

@@ -1,13 +1,8 @@
-﻿using Catel;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager
+﻿namespace NuGetPackageManager
 {
+    using Catel;
+    using System.Collections.ObjectModel;
+
     public static class ObservableCollectionExtensions
     {
         public static void MoveUp<T>(this ObservableCollection<T> collection, T item)
@@ -17,7 +12,7 @@ namespace NuGetPackageManager
 
             var oldindex = collection.IndexOf(item);
 
-            if(oldindex == collection.Count-1)
+            if (oldindex == collection.Count - 1)
             {
                 return;
             }

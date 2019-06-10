@@ -1,20 +1,13 @@
-﻿using Catel.Configuration;
-using Catel.Data;
-using Catel.Runtime.Serialization;
-using Catel.Runtime.Serialization.Xml;
-using Catel.Services;
-using NuGetPackageManager.Models;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization.Json;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using Catel.Configuration;
+    using Catel.Data;
+    using Catel.Runtime.Serialization;
+    using Catel.Runtime.Serialization.Xml;
+    using Catel.Services;
+    using NuGetPackageManager.Models;
+    using System.IO;
+
     public class NugetConfigurationService : ConfigurationService
     {
         public NugetConfigurationService(ISerializationManager serializationManager,
@@ -69,9 +62,8 @@ namespace NuGetPackageManager.Services
                 string rawxml = streamReader.ReadToEnd();
 
                 SetValueToStore(container, key, rawxml);
-            }    
+            }
         }
-
 
         protected override void SetValueToStore(ConfigurationContainer container, string key, string value)
         {

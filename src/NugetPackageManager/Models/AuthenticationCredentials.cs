@@ -1,16 +1,11 @@
-﻿using Catel;
-using Catel.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Models
+﻿namespace NuGetPackageManager.Models
 {
+    using Catel;
+    using Catel.Data;
+    using System;
+
     public class AuthenticationCredentials : ModelBase
     {
-        #region Constructors
         public AuthenticationCredentials(Uri uri)
         {
             Argument.IsNotNull(() => uri);
@@ -18,9 +13,7 @@ namespace NuGetPackageManager.Models
             Host = uri.Host;
             Password = string.Empty;
         }
-        #endregion
 
-        #region Properties
         public string Host { get; private set; }
 
         public string UserName { get; set; }
@@ -28,6 +21,5 @@ namespace NuGetPackageManager.Models
         public string Password { get; set; }
 
         public bool StoreCredentials { get; set; }
-        #endregion
     }
 }

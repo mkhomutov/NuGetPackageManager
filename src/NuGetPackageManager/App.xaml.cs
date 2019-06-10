@@ -1,19 +1,8 @@
-﻿using Catel.IoC;
-using Catel.Logging;
-using Catel.MVVM;
-using NuGetPackageManager;
-using NuGetPackageManager.ViewModels;
-using NuGetPackageManager.Views;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
-
-namespace NuGetPackageManager
+﻿namespace NuGetPackageManager
 {
+    using Catel.Logging;
+    using System.Windows;
+
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>

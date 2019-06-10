@@ -1,21 +1,17 @@
-﻿using Catel;
-using Catel.Logging;
-using Catel.Scoping;
-using NuGet.Configuration;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
-using NuGetPackageManager.Loggers;
-using NuGetPackageManager.Providers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using Catel;
+    using Catel.Logging;
+    using NuGet.Configuration;
+    using NuGet.Protocol;
+    using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Loggers;
+    using System;
+    using System.Net;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     internal class NuGetFeedVerificationService : INuGetFeedVerificationService
     {
         private static readonly ILog _log = LogManager.GetCurrentClassLogger();
@@ -36,20 +32,20 @@ namespace NuGetPackageManager.Services
             {
                 var packageSource = new PackageSource(source);
 
-                var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root:null), Repository.Provider.GetCoreV3());
+                var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root: null), Repository.Provider.GetCoreV3());
 
                 var repository = new SourceRepository(packageSource, v3_providers);
 
                 var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
-                
+
                 //try to perform search
                 var metadata = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, CancellationToken.None);
             }
-            catch(FatalProtocolException ex)
+            catch (FatalProtocolException ex)
             {
                 HandleNugetProtocolException(ex, source);
             }
-            catch(WebException ex)
+            catch (WebException ex)
             {
                 result = HandleWebException(ex, source);
             }
@@ -66,13 +62,11 @@ namespace NuGetPackageManager.Services
 
                 result = FeedVerificationResult.Invalid;
             }
-            
+
             _log.Debug("Verified feed '{0}', result is '{1}'", source, result);
 
             return result;
         }
-
-        #region Methods
 
         private static FeedVerificationResult HandleWebException(WebException exception, string source)
         {
@@ -120,21 +114,19 @@ namespace NuGetPackageManager.Services
                 }
                 else
                 {
-                    if(innerException is WebException)
+                    if (innerException is WebException)
                     {
                         HandleWebException(innerException as WebException, source);
                     }
                 }
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _log.Debug(ex, "Failed to verify feed '{0}'", source);
             }
 
             return FeedVerificationResult.Invalid;
         }
-
-        #endregion
     }
 }

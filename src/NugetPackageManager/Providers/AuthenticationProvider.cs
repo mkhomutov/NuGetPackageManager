@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Catel;
-using Catel.Configuration;
-using Catel.Logging;
-using Catel.Windows.Threading;
-using NuGetPackageManager.Models;
-using NuGetPackageManager.Native;
-
-namespace NuGetPackageManager.Providers
+﻿namespace NuGetPackageManager.Providers
 {
+    using Catel;
+    using Catel.Configuration;
+    using Catel.Logging;
+    using NuGetPackageManager.Models;
+    using NuGetPackageManager.Native;
+    using System;
+    using System.Threading.Tasks;
+
     public class AuthenticationProvider : IAuthenticationProvider
     {
         private ILog _log = LogManager.GetCurrentClassLogger();
+
         private IConfigurationService _configurationService;
 
         public AuthenticationProvider(IConfigurationService configurationService)
