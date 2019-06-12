@@ -126,7 +126,12 @@ namespace NuGetPackageManager.Services
                             throw new ProviderException("Credential provider gave an invalid response.");
                         }
 
-                        if (response.Status != CredentialStatus.UserCanceled)
+                        if(response.Status == CredentialStatus.UserCanceled)
+                        {
+                            //create cancellation
+                            cancellationToken.ThrowIfCancellationRequested();
+                        }   
+                        else
                         {
                             AddToCredentialCache(uri, type, provider, response);
                         }

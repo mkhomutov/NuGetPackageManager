@@ -40,11 +40,10 @@ namespace NuGetPackageManager.Providers
             {
                 _log.Debug($"Requesting credentials for '{uri}'");
             }
-      
+
 
             bool? result = null;
 
-            var credentials = new AuthenticationCredentials(uri);
             var uriString = uri.ToString().ToLower();
 
             var credentialsPrompter = new CredentialsPrompter(_configurationService)
@@ -62,29 +61,22 @@ namespace NuGetPackageManager.Providers
 
             if (result ?? false)
             {
-                credentials.UserName = credentialsPrompter.UserName;
-                credentials.Password = credentialsPrompter.Password;
-            }
-            else
-            {
-                credentials.StoreCredentials = false;
-            }
+                //creating success response
 
-            if (result ?? false)
-            {
-                _log.Debug("Successfully requested credentials for '{0}' using user '{1}'", uri, credentials.UserName);
+                _log.Debug("Successfully requested credentials for '{0}' using user '{1}'", uri, credentialsPrompter.UserName);
 
                 //creating network credentials
-                var nugetCredentials = new NetworkCredential(credentials.UserName, credentials.Password);
+                var nugetCredentials = new NetworkCredential(credentialsPrompter.UserName, credentialsPrompter.Password);
 
                 var response = new CredentialResponse(nugetCredentials);
 
                 return response;
             }
-
-            _log.Debug("Failed to request credentials for '{0}'", uri);
-
-            return null;
+            else
+            {
+                _log.Debug("Failed to request credentials for '{0}'", uri);
+                return new CredentialResponse(CredentialStatus.UserCanceled);
+            }
         }
     }
 }

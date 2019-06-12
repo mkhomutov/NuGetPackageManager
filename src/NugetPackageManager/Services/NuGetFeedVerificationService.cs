@@ -24,6 +24,13 @@
         {
             Argument.IsNotNull(() => credentialProviderLoaderService);
             _credentialProviderLoaderService = credentialProviderLoaderService;
+
+            //set own provider 
+            HttpHandlerResourceV3.CredentialService = new Lazy<ICredentialService>(() => new ExplorerCredentialService(
+                    new AsyncLazy<IEnumerable<ICredentialProvider>>(() => _credentialProviderLoaderService.GetCredentialProvidersAsync()),
+                    false,
+                    true)
+                );
         }
 
         public async Task<FeedVerificationResult> VerifyFeedAsync(string source, bool authenticateIfRequired = true)
@@ -46,13 +53,6 @@
 
                 var repository = new SourceRepository(packageSource, v3_providers);
 
-                HttpHandlerResourceV3.CredentialService = new Lazy<ICredentialService>(() => new ExplorerCredentialService(
-                    new AsyncLazy<IEnumerable<ICredentialProvider>>( () => _credentialProviderLoaderService.GetCredentialProvidersAsync()),
-                    false,
-                    true)
-                );
-
-
                 var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
 
                 //try to perform search
@@ -60,7 +60,7 @@
             }
             catch (FatalProtocolException ex)
             {
-                HandleNugetProtocolException(ex, source);
+                result = HandleNugetProtocolException(ex, source);
             }
             catch (WebException ex)
             {
@@ -146,6 +146,7 @@
             return FeedVerificationResult.Invalid;
         }
 
+        [ObsoleteEx]
         public Task<FeedVerificationResult> VerifyFeed(string source, bool authenticateIfRequired = true)
         {
             throw new NotImplementedException();
