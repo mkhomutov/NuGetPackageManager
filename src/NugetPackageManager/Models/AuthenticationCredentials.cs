@@ -11,7 +11,6 @@
             Argument.IsNotNull(() => uri);
 
             Host = uri.Host;
-            Password = string.Empty;
         }
 
         public string Host { get; private set; }

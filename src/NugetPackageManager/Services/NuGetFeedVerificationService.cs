@@ -2,11 +2,14 @@
 {
     using Catel;
     using Catel.Logging;
+    using NuGet.Common;
     using NuGet.Configuration;
+    using NuGet.Credentials;
     using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Loggers;
     using System;
+    using System.Collections.Generic;
     using System.Net;
     using System.Text;
     using System.Threading;
@@ -15,6 +18,13 @@
     internal class NuGetFeedVerificationService : INuGetFeedVerificationService
     {
         private static readonly ILog _log = LogManager.GetCurrentClassLogger();
+        private readonly ICredentialProviderLoaderService _credentialProviderLoaderService;
+
+        public NuGetFeedVerificationService(ICredentialProviderLoaderService credentialProviderLoaderService)
+        {
+            Argument.IsNotNull(() => credentialProviderLoaderService);
+            _credentialProviderLoaderService = credentialProviderLoaderService;
+        }
 
         public async Task<FeedVerificationResult> VerifyFeedAsync(string source, bool authenticateIfRequired = true)
         {
@@ -35,6 +45,13 @@
                 var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root: null), Repository.Provider.GetCoreV3());
 
                 var repository = new SourceRepository(packageSource, v3_providers);
+
+                HttpHandlerResourceV3.CredentialService = new Lazy<ICredentialService>(() => new ExplorerCredentialService(
+                    new AsyncLazy<IEnumerable<ICredentialProvider>>( () => _credentialProviderLoaderService.GetCredentialProvidersAsync()),
+                    false,
+                    true)
+                );
+
 
                 var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
 
@@ -127,6 +144,11 @@
             }
 
             return FeedVerificationResult.Invalid;
+        }
+
+        public Task<FeedVerificationResult> VerifyFeed(string source, bool authenticateIfRequired = true)
+        {
+            throw new NotImplementedException();
         }
     }
 }

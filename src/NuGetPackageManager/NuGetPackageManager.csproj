@@ -51,6 +51,7 @@
     <PackageReference Include="NuGet.Credentials" Version="4.9.4" />
     <PackageReference Include="NuGet.Packaging.Core" Version="4.9.4" />
     <PackageReference Include="NuGet.Protocol" Version="4.9.4" />
+    <PackageReference Include="Obsolete.Fody" Version="5.0.0" />
     <PackageReference Include="WpfAnalyzers" Version="2.2.0.2" PrivateAssets="all" />
   </ItemGroup>
 

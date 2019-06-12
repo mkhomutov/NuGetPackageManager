@@ -22,7 +22,7 @@ public static class ModuleInitializer
 
         serviceLocator.RegisterType<INuGetFeedVerificationService, NuGetFeedVerificationService>();
 
-        serviceLocator.RegisterType<IAuthenticationProvider, AuthenticationProvider>();
-        serviceLocator.RegisterType<ICredentialProvider, NativeWinCredentialsProvider>();
+        serviceLocator.RegisterType<ICredentialProvider, WindowsCredentialProvider>();
+        serviceLocator.RegisterType<ICredentialProviderLoaderService, CredentialProviderLoaderService>();
     }
 }
