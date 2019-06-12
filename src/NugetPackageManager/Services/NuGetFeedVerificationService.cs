@@ -55,8 +55,14 @@
 
                 var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
 
-                //try to perform search
-                var metadata = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, CancellationToken.None);
+                using (var cts  = new CancellationTokenSource())
+                {
+                    var cancellationToken = cts.Token;
+
+                    //try to perform search
+                    var metadata = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, cancellationToken);
+                }
+           
             }
             catch (FatalProtocolException ex)
             {
@@ -128,6 +134,10 @@
                     {
                         return FeedVerificationResult.AuthenticationRequired;
                     }
+                    if (exception.Message.Contains("returned an unexpected status code '403 Forbidden'"))
+                    {
+                        return FeedVerificationResult.AuthorizationRequired;
+                    }
                 }
                 else
                 {
@@ -147,9 +157,79 @@
         }
 
         [ObsoleteEx]
-        public Task<FeedVerificationResult> VerifyFeed(string source, bool authenticateIfRequired = true)
+        public FeedVerificationResult VerifyFeed(string source, bool authenticateIfRequired = true)
         {
-            throw new NotImplementedException();
+            int timeOut = 3000;
+
+            Argument.IsNotNull(() => source);
+
+            var result = FeedVerificationResult.Valid;
+            var logger = new DebugLogger(true);
+
+            StringBuilder errorMessage = new StringBuilder($"Failed to verify feed '{source}'");
+
+            _log.Debug("Verifying feed '{0}'", source);
+
+            var v3_providers = Repository.Provider.GetCoreV3();
+            try
+            {
+                var packageSource = new PackageSource(source);
+
+                var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root: null), Repository.Provider.GetCoreV3());
+
+                var repository = new SourceRepository(packageSource, v3_providers);
+
+                var searchResource = repository.GetResource<PackageSearchResource>();
+
+                using (var cts = new CancellationTokenSource())
+                {
+                    var cancellationToken = cts.Token;
+
+                    //try to perform search
+                    var searchTask = searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, cancellationToken);
+
+                    var searchCompletion = Task.WhenAny(searchTask, Task.Delay(timeOut, cancellationToken)).Result;
+
+                    if(searchCompletion != searchTask)
+                    {
+                        throw new TimeoutException("Search operation has timed out");
+                    }
+
+                    if(searchTask.IsFaulted && searchTask.Exception != null)
+                    {
+                        throw searchTask.Exception;
+                    }
+                    if(searchTask.IsCanceled)
+                    {
+                        return FeedVerificationResult.Unknown;
+                    }
+                }
+            }
+            catch (FatalProtocolException ex)
+            {
+                result = HandleNugetProtocolException(ex, source);
+            }
+            catch (WebException ex)
+            {
+                result = HandleWebException(ex, source);
+            }
+            catch (UriFormatException ex)
+            {
+                errorMessage.Append(", a UriFormatException occurred");
+                _log.Debug(ex, errorMessage.ToString());
+
+                result = FeedVerificationResult.Invalid;
+            }
+            catch (Exception ex)
+            {
+                _log.Debug(ex, errorMessage.ToString());
+
+                result = FeedVerificationResult.Invalid;
+            }
+
+            _log.Debug("Verified feed '{0}', result is '{1}'", source, result);
+
+            return result;
         }
     }
 }

@@ -56,9 +56,16 @@
                                 <Setter Property="Visibility" TargetName="errorViewBox" Value="Visible" />
                             </DataTrigger>
 
-                            <DataTrigger Binding="{Binding FeedVerificationResult}" Value="{x:Static global:FeedVerificationResult.AuthenticationRequired}">
+                            <DataTrigger Binding="{Binding VerificationResult}" Value="{x:Static global:FeedVerificationResult.AuthenticationRequired}">
                                 <Setter Property="BorderBrush" Value="Orange" />
                                 <Setter Property="Visibility" TargetName="warningViewBox" Value="Visible" />
+                                <Setter Property="ToolTip" Value="Authentication is required for access"/>
+                            </DataTrigger>
+
+                            <DataTrigger Binding="{Binding VerificationResult}" Value="{x:Static global:FeedVerificationResult.AuthorizationRequired}">
+                                <Setter Property="BorderBrush" Value="Orange" />
+                                <Setter Property="Visibility" TargetName="warningViewBox" Value="Visible"/>
+                                <Setter Property="ToolTip" Value="Authorization is required for access"/>
                             </DataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -125,6 +132,7 @@
                             </TextBlock>
 
                             <Label x:Name="ValidationFlag" HorizontalAlignment="Right"
+                                   Grid.Column="2"
                                Style="{StaticResource SettingsControlLabelStyle}"
                                Content="{Binding Path=.}">
                             </Label>

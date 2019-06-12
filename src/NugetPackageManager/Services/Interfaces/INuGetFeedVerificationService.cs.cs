@@ -6,7 +6,7 @@
     {
         Task<FeedVerificationResult> VerifyFeedAsync(string source, bool authenticateIfRequired = true);
 
-        [ObsoleteEx]
-        Task<FeedVerificationResult> VerifyFeed(string source, bool authenticateIfRequired = true);
+        //[ObsoleteEx]
+        FeedVerificationResult VerifyFeed(string source, bool authenticateIfRequired = true);
     }
 }

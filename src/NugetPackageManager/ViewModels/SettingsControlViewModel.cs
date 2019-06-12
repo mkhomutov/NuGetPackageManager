@@ -126,7 +126,7 @@
 
                 if (!SelectedFeed.IsLocal())
                 {
-                    var result = VerifyFeedAsync(SelectedFeed);
+                    _ =  VerifyFeedAsync(SelectedFeed);
                 }
             }
         }
@@ -144,9 +144,11 @@
             }
 
             var verificationResult = await _feedVerificationService.VerifyFeedAsync(feed.Source, true);
+            //var verificationResult = _feedVerificationService.VerifyFeed(feed.Source, true);
 
             feed.VerificationResult = verificationResult;
         }
+
 
         private void ReadFeedsFromConfiguration()
         {
