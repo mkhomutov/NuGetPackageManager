@@ -79,14 +79,6 @@
             { IsActive = this.IsActive };
         }
 
-        public void CopyTo(NuGetFeed feed)
-        {
-            feed.VerificationResult = VerificationResult;
-            feed.Source = Source;
-            feed.Name = Name;
-            feed.IsActive = IsActive;
-        }
-
         public string Error { get; private set; } = String.Empty;
 
 

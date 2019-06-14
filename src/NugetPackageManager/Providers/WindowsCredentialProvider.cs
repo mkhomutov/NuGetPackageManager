@@ -1,20 +1,16 @@
-﻿using Catel;
-using Catel.Configuration;
-using Catel.Logging;
-using NuGet.Configuration;
-using NuGet.Credentials;
-using NuGetPackageManager.Models;
-using NuGetPackageManager.Native;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Providers
+﻿namespace NuGetPackageManager.Providers
 {
+    using Catel;
+    using Catel.Configuration;
+    using Catel.Logging;
+    using NuGet.Configuration;
+    using NuGet.Credentials;
+    using NuGetPackageManager.Native;
+    using System;
+    using System.Net;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class WindowsCredentialProvider : ICredentialProvider
     {
         private ILog _log = LogManager.GetCurrentClassLogger();
@@ -32,7 +28,7 @@ namespace NuGetPackageManager.Providers
 
         public async Task<CredentialResponse> GetAsync(Uri uri, IWebProxy proxy, CredentialRequestType type, string message, bool isRetry, bool nonInteractive, CancellationToken cancellationToken)
         {
-            if(isRetry)
+            if (isRetry)
             {
                 _log.Debug($"Retrying to request credentials for '{uri}'");
             }

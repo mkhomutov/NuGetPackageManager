@@ -94,6 +94,10 @@
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource DefaultListBoxItemStyle}">
+                    </Style>
+                </ListBox.ItemContainerStyle>
             </ListBox>
 
 

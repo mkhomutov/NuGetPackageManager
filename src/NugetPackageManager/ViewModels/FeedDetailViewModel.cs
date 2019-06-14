@@ -17,7 +17,6 @@
             Argument.IsNotNull(() => modelProvider);
 
             _modelProvider = modelProvider;
-            _modelProvider.PropertyChanged += OnModelProviderPropertyChanged;
 
             //work with model clone
 
@@ -74,9 +73,9 @@
             return Task.FromResult(true);
         }
 
-        private void OnModelProviderPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            Feed = _modelProvider.Model.Clone();
-        }
+        //private void OnModelProviderPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        //{
+        //    Feed = _modelProvider.Model.Clone();
+        //}
     }
 }

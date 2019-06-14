@@ -1,29 +1,28 @@
-﻿using Catel;
-using Catel.Logging;
-using NuGet.Common;
-using NuGet.Configuration;
-using NuGet.Credentials;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using Catel;
+    using Catel.Logging;
+    using NuGet.Common;
+    using NuGet.Configuration;
+    using NuGet.Credentials;
+    using System;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Net;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class ExplorerCredentialService : ICredentialService
     {
         private readonly ConcurrentDictionary<string, bool> _retryCache
              = new ConcurrentDictionary<string, bool>();
+
         private readonly ConcurrentDictionary<string, CredentialResponse> _providerCredentialCache
             = new ConcurrentDictionary<string, CredentialResponse>();
+
         private readonly bool _nonInteractive;
 
         private ILog _log = LogManager.GetCurrentClassLogger();
-
 
         /// <summary>
         /// Gets the currently configured providers.
@@ -57,7 +56,6 @@ namespace NuGetPackageManager.Services
             _nonInteractive = nonInteractive;
             HandlesDefaultCredentials = handlesDefaultCredentials;
         }
-
 
         /// <summary>
         /// Provides credentials for http requests.
@@ -126,11 +124,11 @@ namespace NuGetPackageManager.Services
                             throw new ProviderException("Credential provider gave an invalid response.");
                         }
 
-                        if(response.Status == CredentialStatus.UserCanceled)
+                        if (response.Status == CredentialStatus.UserCanceled)
                         {
                             //create cancellation
                             cancellationToken.ThrowIfCancellationRequested();
-                        }   
+                        }
                         else
                         {
                             AddToCredentialCache(uri, type, provider, response);
@@ -193,7 +191,6 @@ namespace NuGetPackageManager.Services
 
             return false;
         }
-
 
         private bool TryFromCredentialCache(Uri uri, CredentialRequestType type, bool isRetry, ICredentialProvider provider,
             out CredentialResponse credentials)

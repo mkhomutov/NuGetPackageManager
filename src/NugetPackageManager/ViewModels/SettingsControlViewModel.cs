@@ -1,6 +1,7 @@
 ﻿namespace NuGetPackageManager.ViewModels
 {
     using Catel;
+    using Catel.Collections;
     using Catel.Configuration;
     using Catel.Data;
     using Catel.Logging;
@@ -25,21 +26,17 @@
 
         private readonly INuGetFeedVerificationService _feedVerificationService;
 
-        private readonly IMessageService _messageService;
-
         private readonly IModelProvider<NuGetFeed> _modelProvider;
 
         public SettingsControlViewModel(IConfigurationService configurationService, INuGetFeedVerificationService feedVerificationService,
-            IModelProvider<NuGetFeed> modelProvider, IMessageService messageService)
+            IModelProvider<NuGetFeed> modelProvider)
         {
             Argument.IsNotNull(() => configurationService);
             Argument.IsNotNull(() => modelProvider);
             Argument.IsNotNull(() => feedVerificationService);
-            Argument.IsNotNull(() => messageService);
 
             _configurationService = configurationService as NugetConfigurationService;
             _feedVerificationService = feedVerificationService;
-            _messageService = messageService;
             _modelProvider = modelProvider;
             CommandInitialize();
             Title = "Settings";
@@ -127,16 +124,27 @@
         {
             if (SelectedFeed != null)
             {
-                if (!IsNameUniqueRule(SelectedFeed))
+                if (IsNamesNotUniqueRule(out var names))
                 {
-                    validationResults.Add(BusinessRuleValidationResult.CreateError($"Two or more feeds have same name '{SelectedFeed.Name}'"));
+                    foreach(var name in names)
+                    {
+                        validationResults.Add(BusinessRuleValidationResult.CreateError($"Two or more feeds have same name '{name}'"));
+                    }
                 }
             }
         }
 
-        private bool IsNameUniqueRule(NuGetFeed feed)
+        private bool IsNamesNotUniqueRule(out IEnumerable<string> invalidNames)
         {
-            return Feeds.Count(x => x.Name == feed.Name) < 2;
+            var names = new List<string>();
+
+            var groups = Feeds.GroupBy(x => x.Name).Where(g => g.Count() > 1);
+
+            groups.ForEach(g => names.Add(g.Key));
+
+            invalidNames = names;
+
+            return groups.Count() > 0;
         }
 
         private async Task VerifyFeedAsync(NuGetFeed feed)

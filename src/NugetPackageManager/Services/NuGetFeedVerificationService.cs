@@ -18,11 +18,13 @@
     internal class NuGetFeedVerificationService : INuGetFeedVerificationService
     {
         private static readonly ILog _log = LogManager.GetCurrentClassLogger();
+
         private readonly ICredentialProviderLoaderService _credentialProviderLoaderService;
 
         public NuGetFeedVerificationService(ICredentialProviderLoaderService credentialProviderLoaderService)
         {
             Argument.IsNotNull(() => credentialProviderLoaderService);
+
             _credentialProviderLoaderService = credentialProviderLoaderService;
 
             //set own provider 
@@ -55,14 +57,14 @@
 
                 var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
 
-                using (var cts  = new CancellationTokenSource())
+                using (var cts = new CancellationTokenSource())
                 {
                     var cancellationToken = cts.Token;
 
                     //try to perform search
                     var metadata = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, cancellationToken);
                 }
-           
+
             }
             catch (FatalProtocolException ex)
             {
@@ -190,16 +192,16 @@
 
                     var searchCompletion = Task.WhenAny(searchTask, Task.Delay(timeOut, cancellationToken)).Result;
 
-                    if(searchCompletion != searchTask)
+                    if (searchCompletion != searchTask)
                     {
                         throw new TimeoutException("Search operation has timed out");
                     }
 
-                    if(searchTask.IsFaulted && searchTask.Exception != null)
+                    if (searchTask.IsFaulted && searchTask.Exception != null)
                     {
                         throw searchTask.Exception;
                     }
-                    if(searchTask.IsCanceled)
+                    if (searchTask.IsCanceled)
                     {
                         return FeedVerificationResult.Unknown;
                     }

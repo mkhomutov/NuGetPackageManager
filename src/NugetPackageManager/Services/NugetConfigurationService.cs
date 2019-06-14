@@ -10,10 +10,12 @@
 
     public class NugetConfigurationService : ConfigurationService
     {
+        private readonly IXmlSerializer _configSerializer;
+
         public NugetConfigurationService(ISerializationManager serializationManager,
             IObjectConverterService objectConverterService, IXmlSerializer serializer) : base(serializationManager, objectConverterService, serializer)
         {
-            configSerializer = serializer;
+            _configSerializer = serializer;
         }
 
         protected override string GetValueFromStore(ConfigurationContainer container, string key)
@@ -53,7 +55,7 @@
         {
             using (var memstream = new MemoryStream())
             {
-                value.Save(memstream, configSerializer);
+                value.Save(memstream, _configSerializer);
 
                 var streamReader = new StreamReader(memstream);
 
@@ -71,7 +73,5 @@
 
             base.SetValueToStore(container, key, value);
         }
-
-        private IXmlSerializer configSerializer;
     }
 }

@@ -1,19 +1,15 @@
-﻿using Catel;
-using Catel.MVVM.Converters;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Converters
+﻿namespace NuGetPackageManager.Converters
 {
+    using Catel;
+    using Catel.MVVM.Converters;
+    using System;
+    using System.Globalization;
+
     public class BoolToIntConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            Argument.IsNotNull( () => value);
+            Argument.IsNotNull(() => value);
 
             bool from = (bool)value;
 

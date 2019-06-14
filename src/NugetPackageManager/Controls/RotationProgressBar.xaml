@@ -15,8 +15,12 @@
                 M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z
             </Geometry>
 
-            <SolidColorBrush Color="Red" x:Key="ErrorColor"/>
-            <SolidColorBrush Color="Green" x:Key="SuccessColor"/>
+            <SolidColorBrush Color="{DynamicResource ErrorMaterialColor}" x:Key="ErrorMaterialColorBrush"/>
+            <SolidColorBrush Color="{DynamicResource SuccessMaterialColor}" x:Key="SuccessMaterialColorBrush"/>
+
+            <Color x:Key="ErrorMaterialColor">#ff1744</Color>
+            <Color x:Key="SuccessMaterialColor">#00bfa5</Color>
+            
             
 
             <ControlTemplate TargetType="{x:Type local:RotationProgressBar}" x:Key="RotationProgressBar">
@@ -61,24 +65,24 @@
                         <Setter Property="Data" TargetName="Icon" Value="{StaticResource WarningGeometry}"/>
                     </Trigger>
                     
-                    <!-- progress work result invalid -->
+                    <!-- executed work result invalid -->
                     <MultiTrigger>
                         <MultiTrigger.Conditions>
                             <Condition Property="IsInProgress" Value="False"></Condition>
                             <Condition Property="Success" Value="False"></Condition>
                         </MultiTrigger.Conditions>
                         <Setter Property="Data" TargetName="Icon" Value="{StaticResource ErrorGeometry}"/>
-                        <Setter Property="Fill" TargetName="Icon" Value="{StaticResource ErrorColor}"/>
+                        <Setter Property="Fill" TargetName="Icon" Value="{StaticResource ErrorMaterialColorBrush}"/>
                     </MultiTrigger>
                     
-                    <!--progress work result fine -->
+                    <!--executed work result fine -->
                     <MultiTrigger>
                         <MultiTrigger.Conditions>
                             <Condition Property="IsInProgress" Value="False"></Condition>
                             <Condition Property="Success" Value="true"></Condition>
                         </MultiTrigger.Conditions>
                         <Setter Property="Data" TargetName="Icon" Value="{StaticResource CompleteGeometry}"/>
-                        <Setter Property="Fill" TargetName="Icon" Value="{StaticResource SuccessColor}"/>
+                        <Setter Property="Fill" TargetName="Icon" Value="{StaticResource SuccessMaterialColorBrush}"/>
                     </MultiTrigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>

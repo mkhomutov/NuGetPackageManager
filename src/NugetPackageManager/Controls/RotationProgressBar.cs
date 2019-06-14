@@ -1,15 +1,10 @@
-﻿using Catel.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Shapes;
-
-namespace NuGetPackageManager.Controls
+﻿namespace NuGetPackageManager.Controls
 {
+    using Catel.Logging;
+    using System.Windows;
+    using System.Windows.Controls;
+    using System.Windows.Shapes;
+
     public class RotationProgressBar : ProgressBar
     {
         private static ILog _log = LogManager.GetCurrentClassLogger();
@@ -34,18 +29,15 @@ namespace NuGetPackageManager.Controls
         public static readonly DependencyProperty SpeedProperty =
             DependencyProperty.Register("Speed", typeof(double), typeof(RotationProgressBar), new PropertyMetadata(1d));
 
-
         public Path IconData
         {
             get { return (Path)GetValue(IconDataProperty); }
             set { SetValue(IconDataProperty, value); }
         }
 
-
         // Using a DependencyProperty as the backing store for Icon.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IconDataProperty =
             DependencyProperty.Register("IconData", typeof(Path), typeof(RotationProgressBar), new PropertyMetadata());
-
 
         public bool IsInProgress
         {
@@ -64,7 +56,6 @@ namespace NuGetPackageManager.Controls
         // Using a DependencyProperty as the backing store for IsInProgress.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsInProgressProperty = IsInProgressPropertyKey.DependencyProperty;
 
-
         public bool Success
         {
             get { return (bool)GetValue(SuccessProperty); }
@@ -76,8 +67,5 @@ namespace NuGetPackageManager.Controls
 
         // Using a DependencyProperty as the backing store for Success.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty SuccessProperty = DependencyProperty.Register("Success", typeof(bool), typeof(RotationProgressBar), new PropertyMetadata(false));
-
-
-
     }
 }
