@@ -12,7 +12,7 @@ namespace NuGetPackageManager.Controls
 {
     public class RotationProgressBar : ProgressBar
     {
-        private ILog _log = LogManager.GetCurrentClassLogger();
+        private static ILog _log = LogManager.GetCurrentClassLogger();
 
         public RotationProgressBar()
         {
@@ -22,11 +22,6 @@ namespace NuGetPackageManager.Controls
         private void RotationProgressBar_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             IsInProgress = e.NewValue > Minimum && e.NewValue < Maximum;
-
-            if(!IsInProgress)
-            {
-                _log.Debug($"{nameof(IsInProgress)} property value changed to {IsInProgress}");
-            }
         }
 
         public double Speed
@@ -59,22 +54,28 @@ namespace NuGetPackageManager.Controls
         }
 
         private static readonly DependencyPropertyKey IsInProgressPropertyKey =
-            DependencyProperty.RegisterReadOnly("IsInProgress", typeof(bool), typeof(RotationProgressBar), new PropertyMetadata(false));
+            DependencyProperty.RegisterReadOnly("IsInProgress", typeof(bool), typeof(RotationProgressBar), new PropertyMetadata(false, OnIsInProgressChanged));
+
+        private static void OnIsInProgressChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            _log.Debug($"Progress status changed: { ((bool)e.NewValue ? "activated" : "ended") }");
+        }
 
         // Using a DependencyProperty as the backing store for IsInProgress.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsInProgressProperty = IsInProgressPropertyKey.DependencyProperty;
 
+
         public bool Success
         {
             get { return (bool)GetValue(SuccessProperty); }
-            protected set { SetValue(SuccessPropertyKey, value); }
+            set { SetValue(SuccessProperty, value); }
         }
 
-        private static readonly DependencyPropertyKey SuccessPropertyKey =
-           DependencyProperty.RegisterReadOnly("Success", typeof(bool), typeof(RotationProgressBar), new PropertyMetadata(false));
+        //private static readonly DependencyPropertyKey SuccessPropertyKey =
+        //   DependencyProperty.RegisterReadOnly("Success", typeof(bool), typeof(RotationProgressBar), new PropertyMetadata(false));
 
         // Using a DependencyProperty as the backing store for Success.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty SuccessProperty = SuccessPropertyKey.DependencyProperty;
+        public static readonly DependencyProperty SuccessProperty = DependencyProperty.Register("Success", typeof(bool), typeof(RotationProgressBar), new PropertyMetadata(false));
 
 
 

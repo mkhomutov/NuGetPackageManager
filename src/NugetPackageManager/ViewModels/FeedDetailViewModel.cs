@@ -17,8 +17,7 @@
             Argument.IsNotNull(() => modelProvider);
 
             _modelProvider = modelProvider;
-
-            Feed = feed;
+            _modelProvider.PropertyChanged += OnModelProviderPropertyChanged;
 
             //work with model clone
 
@@ -73,6 +72,11 @@
         protected override Task<bool> SaveAsync()
         {
             return Task.FromResult(true);
+        }
+
+        private void OnModelProviderPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            Feed = _modelProvider.Model.Clone();
         }
     }
 }

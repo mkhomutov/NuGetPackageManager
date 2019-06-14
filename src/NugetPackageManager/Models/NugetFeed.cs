@@ -24,9 +24,13 @@
 
         public bool IsVerifiedNow { get; set; }
 
+        public int TestCount { get; set; }
+
         public FeedVerificationResult VerificationResult { get; set; } = FeedVerificationResult.Valid;
 
         public bool IsNameValid => !String.IsNullOrEmpty(Name);
+
+        public bool IsAccessible => VerificationResult == FeedVerificationResult.Valid;
 
         public override string ToString()
         {
@@ -47,8 +51,7 @@
 
         public bool IsValid()
         {
-            return IsNameValid && GetUriSource() != null
-                && !(VerificationResult == FeedVerificationResult.Unknown || VerificationResult == FeedVerificationResult.Invalid);
+            return IsNameValid && GetUriSource() != null;
         }
 
         public bool IsLocal()
@@ -74,6 +77,14 @@
             return new NuGetFeed(
                 this.Name, this.Source)
             { IsActive = this.IsActive };
+        }
+
+        public void CopyTo(NuGetFeed feed)
+        {
+            feed.VerificationResult = VerificationResult;
+            feed.Source = Source;
+            feed.Name = Name;
+            feed.IsActive = IsActive;
         }
 
         public string Error { get; private set; } = String.Empty;

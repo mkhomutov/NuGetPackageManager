@@ -12,6 +12,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.ComponentModel;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -43,7 +44,7 @@
             CommandInitialize();
             Title = "Settings";
 
-            DeferValidationUntilFirstSaveCall = false;
+            DeferValidationUntilFirstSaveCall = true;
         }
 
         public ObservableCollection<NuGetFeed> Feeds { get; set; } = new ObservableCollection<NuGetFeed>();
@@ -99,7 +100,8 @@
             }
 
             //handle manual model save on child viewmodel
-            _modelProvider.PropertyChanged += OnModelProviderModelChanged;
+            _modelProvider.PropertyChanged += OnModelProviderPropertyChanged;
+            Feeds.CollectionChanged += OnFeedsCollectioChanged;
 
             return base.InitializeAsync();
         }
@@ -117,7 +119,7 @@
 
         protected override Task CloseAsync()
         {
-            _modelProvider.PropertyChanged -= OnModelProviderModelChanged;
+            _modelProvider.PropertyChanged -= OnModelProviderPropertyChanged;
             return base.CloseAsync();
         }
 
@@ -128,22 +130,6 @@
                 if (!IsNameUniqueRule(SelectedFeed))
                 {
                     validationResults.Add(BusinessRuleValidationResult.CreateError($"Two or more feeds have same name '{SelectedFeed.Name}'"));
-                }
-
-                if (!SelectedFeed.IsLocal())
-                {
-                    SelectedFeed.IsVerifiedNow = true;
-
-                    var task = Task.Run(() => VerifyFeedAsync(SelectedFeed));
-
-                    task.Wait();
-
-                    if (task.IsFaulted && task.Exception != null)
-                    {
-                        throw task.Exception;
-                    }
-              
-                    SelectedFeed.IsVerifiedNow = false;
                 }
             }
         }
@@ -160,7 +146,13 @@
                 return;
             }
 
-            var verificationTask = await _feedVerificationService.VerifyFeedAsync(feed.Source, true);
+            feed.IsVerifiedNow = true;
+
+            var result = await _feedVerificationService.VerifyFeedAsync(feed.Source, true);
+
+            feed.VerificationResult = result;
+
+            feed.IsVerifiedNow = false;
         }
 
 
@@ -187,14 +179,41 @@
             }
         }
 
-        private void OnModelProviderModelChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void OnModelProviderPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             //should drop current selected row and add updated
             Feeds.Remove(SelectedFeed);
             Feeds.Add(_modelProvider.Model);
 
-            //keep selection
             SelectedFeed = _modelProvider.Model;
+
+            //keep selection
+            //SelectedFeed = _modelProvider.Model;
+
+            ////copy values from edited clone
+            //_modelProvider.Model.CopyTo(SelectedFeed);
+
+            //_modelProvider.Model = SelectedFeed;
+        }
+
+
+        private async void OnFeedsCollectioChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            //verify all new feeds in collection
+            //because of feed edit is simple re-insertion we should'nt handle property change inside model
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            {
+                if (e.NewItems != null)
+                {
+                    foreach (NuGetFeed item in e.NewItems)
+                    {
+                        if (!item.IsLocal())
+                        {
+                            await VerifyFeedAsync(item);
+                        }
+                    }
+                }
+            }
         }
 
         private void AddDefaultFeeds()
