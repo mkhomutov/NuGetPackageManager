@@ -5,12 +5,15 @@
     using Catel.Data;
     using Catel.Logging;
     using Catel.MVVM;
+    using Catel.Services;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
+    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public class SettingsControlViewModel : ViewModelBase
@@ -21,17 +24,21 @@
 
         private readonly INuGetFeedVerificationService _feedVerificationService;
 
+        private readonly IMessageService _messageService;
+
         private readonly IModelProvider<NuGetFeed> _modelProvider;
 
         public SettingsControlViewModel(IConfigurationService configurationService, INuGetFeedVerificationService feedVerificationService,
-            IModelProvider<NuGetFeed> modelProvider)
+            IModelProvider<NuGetFeed> modelProvider, IMessageService messageService)
         {
             Argument.IsNotNull(() => configurationService);
             Argument.IsNotNull(() => modelProvider);
             Argument.IsNotNull(() => feedVerificationService);
+            Argument.IsNotNull(() => messageService);
 
             _configurationService = configurationService as NugetConfigurationService;
             _feedVerificationService = feedVerificationService;
+            _messageService = messageService;
             _modelProvider = modelProvider;
             CommandInitialize();
             Title = "Settings";
@@ -123,10 +130,20 @@
                     validationResults.Add(BusinessRuleValidationResult.CreateError($"Two or more feeds have same name '{SelectedFeed.Name}'"));
                 }
 
-
                 if (!SelectedFeed.IsLocal())
                 {
-                    _ =  VerifyFeedAsync(SelectedFeed);
+                    SelectedFeed.IsVerifiedNow = true;
+
+                    var task = Task.Run(() => VerifyFeedAsync(SelectedFeed));
+
+                    task.Wait();
+
+                    if (task.IsFaulted && task.Exception != null)
+                    {
+                        throw task.Exception;
+                    }
+              
+                    SelectedFeed.IsVerifiedNow = false;
                 }
             }
         }
@@ -143,10 +160,7 @@
                 return;
             }
 
-            var verificationResult = await _feedVerificationService.VerifyFeedAsync(feed.Source, true);
-            //var verificationResult = _feedVerificationService.VerifyFeed(feed.Source, true);
-
-            feed.VerificationResult = verificationResult;
+            var verificationTask = await _feedVerificationService.VerifyFeedAsync(feed.Source, true);
         }
 
 

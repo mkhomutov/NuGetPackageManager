@@ -15,8 +15,6 @@ namespace NuGetPackageManager.Views
     /// </summary>
     public partial class MainWindow : Catel.Windows.DataWindow
     {
-        private readonly BackgroundWorker worker;
-
         public MainWindow()
         {
             InitializeComponent();

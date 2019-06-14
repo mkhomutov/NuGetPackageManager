@@ -22,6 +22,8 @@
 
         public bool IsActive { get; set; }
 
+        public bool IsVerifiedNow { get; set; }
+
         public FeedVerificationResult VerificationResult { get; set; } = FeedVerificationResult.Valid;
 
         public bool IsNameValid => !String.IsNullOrEmpty(Name);
