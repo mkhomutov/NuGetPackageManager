@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:NuGetPackageManager.Views"
+             xmlns:controls="clr-namespace:NuGetPackageManager.Controls"
              xmlns:global="clr-namespace:NuGetPackageManager"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:b="clr-namespace:NuGetPackageManager.Behaviors"
@@ -131,27 +132,14 @@
                                    Margin="4 0 4 0">
                             </TextBlock>
 
-                            <Label x:Name="ValidationFlag" HorizontalAlignment="Right"
-                                   Grid.Column="2"
-                               Style="{StaticResource SettingsControlLabelStyle}"
-                               Content="{Binding Path=.}">
-                            </Label>
+                            <controls:RotationProgressBar Width="200" Height="100" Speed="5" x:Name="CircularBar" Maximum="100" Minimum="0">
+                                <controls:RotationProgressBar.IconData>
+                                    <Path Data="M12,3A9,9 0 0,0 3,12H0L4,16L8,12H5A7,7 0 0,1 12,5A7,7 0 0,1 19,12A7,7 0 0,1 12,19C10.5,19 9.09,18.5 7.94,17.7L6.5,19.14C8.04,20.3 9.94,21 12,21A9,9 0 0,0 21,12A9,9 0 0,0 12,3M14,12A2,2 0 0,0 12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12Z" Fill="Black"/>
+                                </controls:RotationProgressBar.IconData>
+                            </controls:RotationProgressBar>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource DefaultListBoxItemStyle}">
-                        <Setter Property="Validation.ErrorTemplate">
-                            <Setter.Value>
-                                <ControlTemplate>
-                                    <Border Background="Red" Opacity="0.2">
-                                        <AdornedElementPlaceholder/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
             </ListBox>
 
 

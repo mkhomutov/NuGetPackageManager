@@ -2,10 +2,12 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:catel="http://schemas.catelproject.com"
+             xmlns:local="clr-namespace:NuGetPackageManager.Controls"
              StartupUri="Views/MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/NugetPackageManager;component/Controls/RotationProgressBar.xaml"/>
                 <ResourceDictionary  Source="/NuGetPackageManager;component/Themes/Generic.xaml"/>
                 <ResourceDictionary Source="/NugetPackageManager;component/Themes/MaterialIcons.xaml"/>
             </ResourceDictionary.MergedDictionaries>

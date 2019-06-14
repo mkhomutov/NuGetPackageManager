@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <None Remove="App.xaml" />
+    <None Remove="Controls\RotationProgressBar.xaml" />
     <None Remove="Resources\Add_8x_16x.png" />
     <None Remove="Resources\cross-removebg.png" />
     <None Remove="Resources\Download_grey_16x.png" />
