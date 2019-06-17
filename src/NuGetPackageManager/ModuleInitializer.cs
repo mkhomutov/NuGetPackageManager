@@ -1,8 +1,9 @@
 ﻿using Catel.Configuration;
 using Catel.IoC;
+using NuGet.Credentials;
+using NuGetPackageManager.Models;
 using NuGetPackageManager.Providers;
 using NuGetPackageManager.Services;
-using NuGetPackageManager.Model;
 
 /// <summary>
 /// Used by the ModuleInit. All code inside the Initialize method is ran as soon as the assembly is loaded.
@@ -17,6 +18,11 @@ public static class ModuleInitializer
         var serviceLocator = ServiceLocator.Default;
 
         serviceLocator.RegisterType<IConfigurationService, NugetConfigurationService>();
-        serviceLocator.RegisterType<IModelProvider<NugetFeed>, ModelProvider<NugetFeed>>();
+        serviceLocator.RegisterType<IModelProvider<NuGetFeed>, ModelProvider<NuGetFeed>>();
+
+        serviceLocator.RegisterType<INuGetFeedVerificationService, NuGetFeedVerificationService>();
+
+        serviceLocator.RegisterType<ICredentialProvider, WindowsCredentialProvider>();
+        serviceLocator.RegisterType<ICredentialProviderLoaderService, CredentialProviderLoaderService>();
     }
 }

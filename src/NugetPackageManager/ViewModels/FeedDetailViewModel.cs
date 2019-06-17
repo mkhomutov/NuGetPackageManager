@@ -1,50 +1,33 @@
-﻿using Catel;
-using Catel.Data;
-using Catel.MVVM;
-using Catel.Services;
-using Catel.Threading;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using NuGetPackageManager.Model;
-using NuGetPackageManager.Providers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace NuGetPackageManager.ViewModels
 {
+    using Catel;
+    using Catel.MVVM;
+    using Microsoft.WindowsAPICodePack.Dialogs;
+    using NuGetPackageManager.Models;
+    using NuGetPackageManager.Providers;
+    using System.Threading.Tasks;
+
     public class FeedDetailViewModel : ViewModelBase
     {
-        private readonly IModelProvider<NugetFeed> _modelProvider;
+        private readonly IModelProvider<NuGetFeed> _modelProvider;
 
-        public FeedDetailViewModel(NugetFeed feed, IModelProvider<NugetFeed> modelProvider)
+        public FeedDetailViewModel(NuGetFeed feed, IModelProvider<NuGetFeed> modelProvider)
         {
             Argument.IsNotNull(() => feed);
             Argument.IsNotNull(() => modelProvider);
 
-            Feed = feed;
+            _modelProvider = modelProvider;
 
             //work with model clone
 
             Feed = feed.Clone();
-
-            _modelProvider = modelProvider;
 
             UpdateFeed = new Command(OnUpdateFeedExecute, OnUpdateFeedCanExecute);
             OpenChooseLocalPathToSourceDialog = new Command(OnOpenChooseLocalPathToSourceDialogExecute, OnOpenChooseLocalPathToSourceDialogCanExecute);
         }
 
         [Model]
-        public NugetFeed Feed
-        {
-            get { return GetValue<NugetFeed>(FeedProperty); }
-            set {
-                SetValue(FeedProperty, value);
-            }
-        }
-
-        public static readonly PropertyData FeedProperty = RegisterProperty("Feed", typeof(NugetFeed));
+        public NuGetFeed Feed { get; set; }
 
         [ViewModelToModel]
         public string Name { get; set; }
@@ -52,20 +35,7 @@ namespace NuGetPackageManager.ViewModels
         [ViewModelToModel]
         public string Source { get; set; }
 
-        #region commands
-
         public Command UpdateFeed { get; set; }
-
-        public Command OpenChooseLocalPathToSourceDialog { get; set; }
-
-        #endregion
-
-        protected override Task<bool> SaveAsync()
-        {
-            return Task.FromResult(true);            
-        }
-
-        #region command actions
 
         private void OnUpdateFeedExecute()
         {
@@ -74,25 +44,23 @@ namespace NuGetPackageManager.ViewModels
             _modelProvider.Model = Feed;
         }
 
+        private bool OnUpdateFeedCanExecute()
+        {
+            return Feed != null;
+        }
+
+        public Command OpenChooseLocalPathToSourceDialog { get; set; }
+
         private void OnOpenChooseLocalPathToSourceDialogExecute()
         {
             CommonOpenFileDialog folderDialog = new CommonOpenFileDialog();
 
             folderDialog.InitialDirectory = @"C:\Users";
             folderDialog.IsFolderPicker = true;
-            if(folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 Source = folderDialog.FileName;
             }
-        }
-
-        #endregion
-
-        #region command execute conditions
-
-        private bool OnUpdateFeedCanExecute()
-        {
-            return Feed != null;
         }
 
         private bool OnOpenChooseLocalPathToSourceDialogCanExecute()
@@ -100,6 +68,14 @@ namespace NuGetPackageManager.ViewModels
             return Feed != null;
         }
 
-        #endregion
+        protected override Task<bool> SaveAsync()
+        {
+            return Task.FromResult(true);
+        }
+
+        //private void OnModelProviderPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        //{
+        //    Feed = _modelProvider.Model.Clone();
+        //}
     }
 }
