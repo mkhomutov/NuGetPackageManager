@@ -1,20 +1,12 @@
-﻿using Catel.Data;
-using NuGetPackageManager.Interface;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Model
+﻿namespace NuGetPackageManager.Model
 {
+    using System.ComponentModel;
+    using Catel.Data;
+
     public class NugetFeed : ModelBase, ICloneable<NugetFeed>
     {
         public NugetFeed()
         {
-
         }
 
         public NugetFeed(string name, string source)
@@ -28,6 +20,11 @@ namespace NuGetPackageManager.Model
         public string Source { get; set; }
 
         public bool IsActive { get; set; }
+
+        public NugetFeed Clone()
+        {
+            return new NugetFeed(Name, Source) {IsActive = IsActive};
+        }
 
         public override string ToString()
         {
@@ -44,11 +41,6 @@ namespace NuGetPackageManager.Model
         {
             IEditableObject eo = this;
             eo.EndEdit();
-        }
-
-        public NugetFeed Clone()
-        {
-            return new NugetFeed(this.Name, this.Source) { IsActive = this.IsActive };
         }
     }
 }
