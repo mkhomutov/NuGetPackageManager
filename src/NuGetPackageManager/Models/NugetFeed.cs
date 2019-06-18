@@ -89,21 +89,20 @@
                 switch (columnName)
                 {
                     case nameof(Name):
+
+                        if (!IsNameValid)
                         {
-                            if (!IsNameValid)
-                            {
-                                return "Feed name cannot be empty";
-                            }
-                            break;
+                            return "Feed name cannot be empty";
                         }
+                        break;
+
                     case nameof(Source):
+
+                        if (GetUriSource() == null)
                         {
-                            if (GetUriSource() == null)
-                            {
-                                return "Incorrect feed source can`t be recognized as Uri";
-                            }
-                            break;
+                            return "Incorrect feed source can`t be recognized as Uri";
                         }
+                        break;
                 }
 
                 return String.Empty;

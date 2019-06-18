@@ -27,10 +27,10 @@ namespace NuGetPackageManager.ViewModels
 
         private void InitializeCommands()
         {
-            RunNuget = new TaskCommand(OnRunNugetExecute);
+            RunNuget = new TaskCommand(OnRunNugetExecuteAsync);
         }
 
-        private async Task OnRunNugetExecute()
+        private async Task OnRunNugetExecuteAsync()
         {
             var nugetSettingsVm = _typeFactory.CreateInstanceWithParametersAndAutoCompletion<SettingsViewModel>();
 

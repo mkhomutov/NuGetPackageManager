@@ -7,14 +7,14 @@
 
     public class RotationProgressBar : ProgressBar
     {
-        private static ILog _log = LogManager.GetCurrentClassLogger();
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         public RotationProgressBar()
         {
-            this.ValueChanged += RotationProgressBar_ValueChanged;
+            ValueChanged += OnRotationProgressBarValueChanged;
         }
 
-        private void RotationProgressBar_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void OnRotationProgressBarValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             IsInProgress = e.NewValue > Minimum && e.NewValue < Maximum;
         }
@@ -50,7 +50,7 @@
 
         private static void OnIsInProgressChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            _log.Debug($"Progress status changed: { ((bool)e.NewValue ? "activated" : "ended") }");
+            Log.Debug($"Progress status changed: { ((bool)e.NewValue ? "activated" : "ended") }");
         }
 
         // Using a DependencyProperty as the backing store for IsInProgress.  This enables animation, styling, binding, etc...
