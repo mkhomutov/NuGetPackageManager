@@ -7,7 +7,37 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Button Width="180" Height="40"
-                Command="{Binding RunNuget}">Run Nuget Package Manager</Button>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/> <!-- right toolbar-->
+            <RowDefinition Height="10*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <TabControl Grid.RowSpan="2">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <!-- tools -->
+                        <TextBox Width="120" x:Name="SearchBox"/>
+                        <Button Width="40" x:Name="RefreshBtn"/>
+                    </StackPanel>
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+        </TabControl>
+        
+        <StackPanel Orientation="Horizontal"
+                    Grid.Column="1">
+            <Label Margin="6 0 6 0">Package Source:</Label>
+            <ComboBox Width="100"
+                      Margin="6 0 6 0"
+                      Height="30"></ComboBox>
+            <Button Width="80" Height="30"
+                    Margin="6 0 6 0"
+                    Command="{Binding RunNuget}">Settings</Button>
+        </StackPanel>
+        
     </Grid>
 </catel:DataWindow>
