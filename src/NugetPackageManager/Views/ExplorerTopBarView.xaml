@@ -1,0 +1,64 @@
+﻿<catel:UserControl x:Class="NuGetPackageManager.Views.ExplorerTopBarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:catel="http://schemas.catelproject.com"
+             xmlns:local="clr-namespace:NuGetPackageManager.Views"
+             xmlns:nugetc="clr-namespace:NuGetPackageManager.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="1300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="24"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- navigation panel-->
+        <StackPanel Grid.Column="0" 
+                    Orientation="Horizontal">
+            <nugetc:TabControllerButton x:Name="Browse"
+                TabSource="{Binding RelativeSource={RelativeSource AncestorType={x:Type catel:UserControl}},Path=UsedOn}"
+                Next="{Binding ElementName=Installed}">
+                Browse
+            </nugetc:TabControllerButton>
+            <nugetc:TabControllerButton x:Name="Installed" 
+                Next="{Binding ElementName=Updates}">
+                Installed
+            </nugetc:TabControllerButton>
+            <nugetc:TabControllerButton x:Name="Updates"
+                Next="{Binding ElementName=Consolidate}">
+                Updates
+            </nugetc:TabControllerButton>
+            <nugetc:TabControllerButton x:Name="Consolidate">
+                Consolidate
+            </nugetc:TabControllerButton>
+        </StackPanel>
+
+
+        <TextBlock Text="Manage Packages for Solution"
+                   Grid.Column="7"></TextBlock>
+        
+        <!-- tool bar -->
+        <TextBox Grid.Row="1"></TextBox>    <!--search box-->
+        <Button Grid.Row="1" Grid.Column="1">Refresh</Button>
+        <CheckBox Grid.Row="1" Grid.Column="2"></CheckBox>
+        <TextBlock Grid.Row="1" Grid.Column="3">Include prerelease</TextBlock>
+
+        <TextBlock Grid.Row="1" Grid.Column="5">Package source: </TextBlock>
+        <ComboBox Grid.Row="1" Grid.Column="6" 
+                  Width="120"></ComboBox>   <!--select source feed -->
+        <Button Grid.Row="1" Grid.Column="7"
+                Command="{Binding ShowPackageSourceSettings}">Settings</Button>
+    </Grid>
+</catel:UserControl>

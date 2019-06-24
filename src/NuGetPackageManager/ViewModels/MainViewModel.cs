@@ -4,6 +4,7 @@ namespace NuGetPackageManager.ViewModels
     using Catel.IoC;
     using Catel.MVVM;
     using Catel.Services;
+    using System.Collections.ObjectModel;
     using System.Threading.Tasks;
 
     public class MainViewModel : ViewModelBase
@@ -19,24 +20,34 @@ namespace NuGetPackageManager.ViewModels
 
             _uIVisualizerService = service;
             _typeFactory = typeFactory;
-
-            InitializeCommands();
         }
 
-        public TaskCommand RunNuget { get; set; }
-
-        private void InitializeCommands()
+        protected override Task InitializeAsync()
         {
-            RunNuget = new TaskCommand(OnRunNugetExecuteAsync);
+            ExplorerPages = new ObservableCollection<ExplorerPageViewModel>();
+            CreatePages();
+            return base.InitializeAsync();
         }
 
-        private async Task OnRunNugetExecuteAsync()
-        {
-            var nugetSettingsVm = _typeFactory.CreateInstanceWithParametersAndAutoCompletion<SettingsViewModel>();
+        public ObservableCollection<ExplorerPageViewModel> ExplorerPages { get; set; }
 
-            if (nugetSettingsVm != null)
+        private void CreatePages()
+        {
+            string[] pageNames = new string[] { "Browse", "Installed", "Updates", "Consolidate" };
+
+            for(int i=0; i<4; i++)
             {
-                await _uIVisualizerService.ShowDialogAsync(nugetSettingsVm);
+                var newPage = CreatePage(pageNames[i]);
+
+                if(newPage != null)
+                {
+                    ExplorerPages.Add(newPage);
+                }
+            }
+
+            ExplorerPageViewModel CreatePage(string title)
+            {
+                return _typeFactory.CreateInstanceWithParametersAndAutoCompletion<ExplorerPageViewModel>(title);
             }
         }
     }
