@@ -40,9 +40,16 @@ namespace NuGetPackageManager.ViewModels
             ShowPackageSourceSettings = new TaskCommand(OnShowPackageSourceSettingsExecuteAsync);
         }
 
+        public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; } = new ObservableCollection<NuGetFeed>();
+
+
+        #region commands
         public TaskCommand ShowPackageSourceSettings { get; set; }
 
-        public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; } = new ObservableCollection<NuGetFeed>();
+        /*placeholder, this probably should be application command inside separate Catel command container*/
+        public Command RefreshCurrentPage { get; set; }
+
+        #endregion
 
         private async Task OnShowPackageSourceSettingsExecuteAsync()
         {
@@ -53,6 +60,5 @@ namespace NuGetPackageManager.ViewModels
                 await _uIVisualizerService.ShowDialogAsync(nugetSettingsVm);
             }
         }
-
     }
 }

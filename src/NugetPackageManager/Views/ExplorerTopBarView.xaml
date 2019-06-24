@@ -15,7 +15,7 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="3*"/>
@@ -27,52 +27,72 @@
         <!-- navigation panel-->
         <StackPanel Grid.Column="0" 
                     Orientation="Horizontal">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type nugetc:TabControllerButton}" BasedOn="{StaticResource LabelButton}">
+                    <Setter Property="Margin" Value="10 0 10 0"/>
+                </Style>
+            </StackPanel.Resources>
             <nugetc:TabControllerButton x:Name="Browse"
                 TabSource="{Binding RelativeSource={RelativeSource AncestorType={x:Type catel:UserControl}}, Path=UsedOn}"
-                Next="{Binding ElementName=Installed}"
-                Style="{StaticResource LabelButton}">
+                Next="{Binding ElementName=Installed}">
                 Browse
             </nugetc:TabControllerButton>
             <nugetc:TabControllerButton x:Name="Installed" 
-                Next="{Binding ElementName=Updates}"
-                Style="{StaticResource LabelButton}">
+                Next="{Binding ElementName=Updates}">
                 Installed
             </nugetc:TabControllerButton>
             <nugetc:TabControllerButton x:Name="Updates"
-                Next="{Binding ElementName=Consolidate}"
-                Style="{StaticResource LabelButton}">
+                Next="{Binding ElementName=Consolidate}">
                 Updates
             </nugetc:TabControllerButton>
-            <nugetc:TabControllerButton x:Name="Consolidate"
-                Style="{StaticResource LabelButton}">
+            <nugetc:TabControllerButton x:Name="Consolidate">
                 Consolidate
             </nugetc:TabControllerButton>
         </StackPanel>
 
 
         <TextBlock Text="Manage Packages for Solution"
-                   Grid.Column="7"></TextBlock>
-        
+                   Grid.Column="7"
+                   Margin="0 0 10 0"/>
+
+
         <!-- tool bar -->
-        <TextBox Grid.Row="1"></TextBox>    <!--search box-->
-        <Button Grid.Row="1" Grid.Column="1">Refresh</Button>
+        <TextBox Grid.Row="1"
+                 Margin="10 0 0 0"/> <!--search box-->
+        
+        <Button Grid.Row="1" Grid.Column="1"
+                Command="{Binding RefreshCurrentPage}"
+                Height="16" Width="16"
+                Margin="3 0 3 0">
+            <Viewbox>
+                <Canvas Width="24" Height="24">
+                    <Path Data="{Binding Source={StaticResource Refresh}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
+                </Canvas>
+            </Viewbox>
+        </Button>
+        
         <CheckBox Grid.Row="1" Grid.Column="2"
-                  VerticalAlignment="Center"/>
+                  VerticalAlignment="Center"
+                  Margin="3 0 3 0"/>
         <TextBlock Grid.Row="1" Grid.Column="3"
-                   VerticalAlignment="Center">
+                   VerticalAlignment="Center"
+                   Margin="3 0 3 0">
             Include prerelease
         </TextBlock>
 
         <TextBlock Grid.Row="1" Grid.Column="5"
-                   VerticalAlignment="Center">
+                   VerticalAlignment="Center"
+                   Margin="3 0 3 0">
             Package source: 
         </TextBlock>
         <ComboBox Grid.Row="1" Grid.Column="6" 
                   Width="120"
-                  ItemsSource="{Binding ActiveFeeds}"/>
+                  ItemsSource="{Binding ActiveFeeds}"
+                  Margin="3 0 3 0"/>
         <!--select source feed -->
         <Button Grid.Row="1" Grid.Column="7"
-                Command="{Binding ShowPackageSourceSettings}">
+                Command="{Binding ShowPackageSourceSettings}"
+                Margin="0 0 10 0">
             Settings
         </Button>
     </Grid>

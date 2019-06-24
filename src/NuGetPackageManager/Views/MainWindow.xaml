@@ -10,7 +10,7 @@
     <Grid Width="1000">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/> <!-- right toolbar-->
-            <RowDefinition Height="8*"/>
+            <RowDefinition Height="7*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>

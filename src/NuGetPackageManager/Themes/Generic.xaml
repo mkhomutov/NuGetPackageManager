@@ -123,24 +123,18 @@
                             BorderBrush="{StaticResource TransparenBrush}"
                             Background="{TemplateBinding Panel.Background}"
                             Name="radioButtonBorder"
-                            Margin="1,1,2,1"
+                            Margin="0"
                             HorizontalAlignment="{TemplateBinding Control.HorizontalContentAlignment}"
                             VerticalAlignment="{TemplateBinding Control.VerticalContentAlignment}">
-                            <!--<Grid Name="markGrid"
-                                  Margin="2,2,2,2">
-                                <Ellipse Fill="#FF212121"
-                                    Name="optionMark"
-                                    MinWidth="6"
-                                    MinHeight="6"
-                                    Opacity="0" />
-                            </Grid>-->
+
+                            <!-- todo using template binding in margin? -->
                             <Grid Name="clickableContent">
                                 <ContentPresenter RecognizesAccessKey="True"
                                          Content="{TemplateBinding ContentControl.Content}"
                                          ContentTemplate="{TemplateBinding ContentControl.ContentTemplate}"
                                          ContentStringFormat="{TemplateBinding ContentControl.ContentStringFormat}"
-                                         Name="contentPresenter"
-                                         Margin="{TemplateBinding Control.Padding}"
+                                         Name="contentPresenter"  
+                                         Margin="0"
                                          HorizontalAlignment="{TemplateBinding Control.HorizontalContentAlignment}"
                                          VerticalAlignment="{TemplateBinding Control.VerticalContentAlignment}"
                                          SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}"
