@@ -56,35 +56,8 @@ namespace NuGetPackageManager.Controls
 
         // Using a DependencyProperty as the backing store for Next.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty NextProperty =
-            DependencyProperty.Register("Next", typeof(TabControllerButton), typeof(TabControllerButton), new PropertyMetadata(null,  OnNextChanged));
-
-        private static void OnNextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if(e.NewValue != null)
-            {
-                (d as TabControllerButton).RearrangeGroup(e.NewValue);
-            }
-        }
-
-        /*
-        public TabControllerButton Previous
-        {
-            get { return (TabControllerButton)GetValue(PreviousProperty); }
-            set { SetValue(PreviousProperty, value); }
-        }
-
-        // Using a DependencyProperty as the backing store for MyProperty.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty PreviousProperty =
-            DependencyProperty.Register("Previous", typeof(TabControllerButton), typeof(TabControllerButton), new PropertyMetadata(null, OnPreviousChanged));
-
-        private static void OnPreviousChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if(e.NewValue != null)
-            {
-                (d as TabControllerButton).RearrangeGroup(e.NewValue);
-            }
-        }
-        */
+            DependencyProperty.Register("Next", typeof(TabControllerButton), typeof(TabControllerButton),
+                new PropertyMetadata(null, (s, e) => ((TabControllerButton)s).OnNextChanged()));
 
         public bool IsFirst
         {
@@ -99,12 +72,15 @@ namespace NuGetPackageManager.Controls
 
         private void OnTabControllerButtonClicked(object sender, RoutedEventArgs e)
         {
-            ActivateTab();
+            if (group != null)
+            {
+                SelectTab();
+            }
         }
 
-        private void RearrangeGroup(object next)
+        private void OnNextChanged()
         {
-            var nextButton = next as TabControllerButton;
+            var nextButton = Next as TabControllerButton;
 
             if (nextButton != null)
             {
@@ -128,14 +104,6 @@ namespace NuGetPackageManager.Controls
         private int MyIndex()
         {
             return group.TakeWhile(node => node != this).Count();
-        }
-
-        private void ActivateTab()
-        {
-            if(group != null)
-            {
-                SelectTab();
-            }
         }
 
         private void SelectTab()
