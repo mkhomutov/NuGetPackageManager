@@ -31,9 +31,10 @@
     <None Remove="Resources\cross-removebg.png" />
     <None Remove="Resources\Download_grey_16x.png" />
     <None Remove="Resources\Upload_gray_16x.png" />
+    <None Remove="Themes\Brushes.xaml" />
     <None Remove="Themes\Generic.xaml" />
     <None Remove="Themes\MaterialIcons.xaml" />
-    <None Remove="Views\ExplorerPageView.xaml" />
+    <None Remove="Views\ExplorerTopBarView.xaml" />
     <None Remove="Views\FeedDetailView.xaml" />
     <None Remove="Views\MainWindow.xaml" />
     <None Remove="Views\SettingsControlView.xaml" />
@@ -41,6 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Catel.Core" Version="5.10.0" />
     <PackageReference Include="Catel.Fody" Version="4.0.0" />
     <PackageReference Include="Catel.MVVM" Version="5.10.0" />
     <PackageReference Include="Fody" Version="5.0.6">
