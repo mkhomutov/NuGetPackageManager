@@ -22,8 +22,13 @@
 
         <TabControl Name="ExplorerPagesTabControl"
                     Grid.Column="0" Grid.Row="1"
-                    MinHeight="1200"
-            ItemsSource="{Binding ExplorerPages}">
+                    MinHeight="800"
+                    ItemsSource="{Binding ExplorerPages}">
+            <TabControl.ItemContainerStyle>
+                <Style TargetType="{x:Type TabItem}">
+                    <Setter Property="Visibility" Value="Hidden"/>
+                </Style>
+            </TabControl.ItemContainerStyle>
             <TabControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type TabItem}">
                     <StackPanel>
@@ -31,6 +36,13 @@
                     </StackPanel>
                 </DataTemplate>
             </TabControl.ItemTemplate>
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <TextBlock Text="{Binding Title}"/>
+                    </StackPanel>                    
+                </DataTemplate>
+            </TabControl.ContentTemplate>
         </TabControl>
 
     </Grid>

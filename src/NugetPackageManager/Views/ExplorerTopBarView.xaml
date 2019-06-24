@@ -28,19 +28,23 @@
         <StackPanel Grid.Column="0" 
                     Orientation="Horizontal">
             <nugetc:TabControllerButton x:Name="Browse"
-                TabSource="{Binding RelativeSource={RelativeSource AncestorType={x:Type catel:UserControl}},Path=UsedOn}"
-                Next="{Binding ElementName=Installed}">
+                TabSource="{Binding RelativeSource={RelativeSource AncestorType={x:Type catel:UserControl}}, Path=UsedOn}"
+                Next="{Binding ElementName=Installed}"
+                Style="{StaticResource LabelButton}">
                 Browse
             </nugetc:TabControllerButton>
             <nugetc:TabControllerButton x:Name="Installed" 
-                Next="{Binding ElementName=Updates}">
+                Next="{Binding ElementName=Updates}"
+                Style="{StaticResource LabelButton}">
                 Installed
             </nugetc:TabControllerButton>
             <nugetc:TabControllerButton x:Name="Updates"
-                Next="{Binding ElementName=Consolidate}">
+                Next="{Binding ElementName=Consolidate}"
+                Style="{StaticResource LabelButton}">
                 Updates
             </nugetc:TabControllerButton>
-            <nugetc:TabControllerButton x:Name="Consolidate">
+            <nugetc:TabControllerButton x:Name="Consolidate"
+                Style="{StaticResource LabelButton}">
                 Consolidate
             </nugetc:TabControllerButton>
         </StackPanel>
@@ -52,13 +56,24 @@
         <!-- tool bar -->
         <TextBox Grid.Row="1"></TextBox>    <!--search box-->
         <Button Grid.Row="1" Grid.Column="1">Refresh</Button>
-        <CheckBox Grid.Row="1" Grid.Column="2"></CheckBox>
-        <TextBlock Grid.Row="1" Grid.Column="3">Include prerelease</TextBlock>
+        <CheckBox Grid.Row="1" Grid.Column="2"
+                  VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="1" Grid.Column="3"
+                   VerticalAlignment="Center">
+            Include prerelease
+        </TextBlock>
 
-        <TextBlock Grid.Row="1" Grid.Column="5">Package source: </TextBlock>
+        <TextBlock Grid.Row="1" Grid.Column="5"
+                   VerticalAlignment="Center">
+            Package source: 
+        </TextBlock>
         <ComboBox Grid.Row="1" Grid.Column="6" 
-                  Width="120"></ComboBox>   <!--select source feed -->
+                  Width="120"
+                  ItemsSource="{Binding ActiveFeeds}"/>
+        <!--select source feed -->
         <Button Grid.Row="1" Grid.Column="7"
-                Command="{Binding ShowPackageSourceSettings}">Settings</Button>
+                Command="{Binding ShowPackageSourceSettings}">
+            Settings
+        </Button>
     </Grid>
 </catel:UserControl>

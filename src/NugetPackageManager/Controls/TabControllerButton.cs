@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 
 namespace NuGetPackageManager.Controls
 {
@@ -14,7 +15,7 @@ namespace NuGetPackageManager.Controls
     /// which can be binded to tabcontrol
     /// and act as one of his tabitems
     /// </summary>
-    public class TabControllerButton : Button
+    public class TabControllerButton : RadioButton
     {
         private LinkedList<TabControllerButton> group = new LinkedList<TabControllerButton>();
         private static readonly ILog _log = LogManager.GetCurrentClassLogger();
@@ -101,7 +102,6 @@ namespace NuGetPackageManager.Controls
             ActivateTab();
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("WpfAnalyzers.DependencyProperty", "WPF0005:Name of PropertyChangedCallback should match registered name.", Justification = "<Pending>")]
         private void RearrangeGroup(object next)
         {
             var nextButton = next as TabControllerButton;

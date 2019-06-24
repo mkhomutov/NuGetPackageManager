@@ -20,8 +20,8 @@ namespace NuGetPackageManager.Views
             InitializeComponent();
             ShowInTaskbar = true;
 
-            //var control = Application.Current.FindResource(typeof(ProgressBar));
-            //var value = XamlExportHelper.Save(control);
+            var control = Application.Current.FindResource(typeof(RadioButton));
+            var value = XamlExportHelper.Save(control);
         }
     }
 }

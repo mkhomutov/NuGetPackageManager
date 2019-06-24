@@ -2,8 +2,10 @@
 using Catel.IoC;
 using Catel.MVVM;
 using Catel.Services;
+using NuGetPackageManager.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,8 +40,9 @@ namespace NuGetPackageManager.ViewModels
             ShowPackageSourceSettings = new TaskCommand(OnShowPackageSourceSettingsExecuteAsync);
         }
 
-
         public TaskCommand ShowPackageSourceSettings { get; set; }
+
+        public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; } = new ObservableCollection<NuGetFeed>();
 
         private async Task OnShowPackageSourceSettingsExecuteAsync()
         {
