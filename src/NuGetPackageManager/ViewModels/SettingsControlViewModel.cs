@@ -28,12 +28,15 @@ namespace NuGetPackageManager.ViewModels
 
         private readonly IModelProvider<NuGetFeed> _modelProvider;
 
-        public SettingsControlViewModel(IConfigurationService configurationService, INuGetFeedVerificationService feedVerificationService,
+        public SettingsControlViewModel(List<NuGetFeed> configredFeeds, IConfigurationService configurationService, INuGetFeedVerificationService feedVerificationService,
             IModelProvider<NuGetFeed> modelProvider)
         {
             Argument.IsNotNull(() => configurationService);
             Argument.IsNotNull(() => modelProvider);
             Argument.IsNotNull(() => feedVerificationService);
+            Argument.IsNotNull(() => configredFeeds);
+
+            ActiveFeeds = configredFeeds;
 
             _configurationService = configurationService as NugetConfigurationService;
             _feedVerificationService = feedVerificationService;
@@ -48,6 +51,11 @@ namespace NuGetPackageManager.ViewModels
 
         [Model]
         public NuGetFeed SelectedFeed { get; set; }
+
+        /// <summary>
+        /// Feeds which should be visible for NuGet Package Manager
+        /// </summary>
+        public List<NuGetFeed> ActiveFeeds { get; set; }
 
         public Command RemoveFeed { get; set; }
 
@@ -110,6 +118,10 @@ namespace NuGetPackageManager.ViewModels
             {
                 _configurationService.SetValue(ConfigurationContainer.Local, $"feed{i}", Feeds[i]);
             }
+
+            //send usable feeds (including failed)
+            ActiveFeeds.Clear();
+            ActiveFeeds.AddRange(Feeds.Where(x => x.IsActive));
 
             return base.SaveAsync();
         }

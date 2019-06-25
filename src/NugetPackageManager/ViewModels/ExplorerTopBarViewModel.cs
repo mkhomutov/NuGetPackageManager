@@ -1,4 +1,5 @@
 ﻿using Catel;
+using Catel.Fody;
 using Catel.IoC;
 using Catel.MVVM;
 using Catel.Services;
@@ -6,6 +7,7 @@ using NuGetPackageManager.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,8 +32,18 @@ namespace NuGetPackageManager.ViewModels
             InitializeCommands();
         }
 
+        [Model]
+        public ExplorerSettingsContainer Settings { get; set; }
+
+        [ViewModelToModel]
+        public bool IsPreReleaseIncluded { get; set; }
+
+        public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; } = new ObservableCollection<NuGetFeed>();
+
         protected override Task InitializeAsync()
         {
+            //todo save other flags, as using prereleases
+            Settings = new ExplorerSettingsContainer();
             return base.InitializeAsync();
         }
 
@@ -39,9 +51,6 @@ namespace NuGetPackageManager.ViewModels
         {
             ShowPackageSourceSettings = new TaskCommand(OnShowPackageSourceSettingsExecuteAsync);
         }
-
-        public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; } = new ObservableCollection<NuGetFeed>();
-
 
         #region commands
         public TaskCommand ShowPackageSourceSettings { get; set; }
@@ -53,11 +62,17 @@ namespace NuGetPackageManager.ViewModels
 
         private async Task OnShowPackageSourceSettingsExecuteAsync()
         {
-            var nugetSettingsVm = _typeFactory.CreateInstanceWithParametersAndAutoCompletion<SettingsViewModel>();
+            var nugetSettingsVm = _typeFactory.CreateInstanceWithParametersAndAutoCompletion<SettingsViewModel>(Settings);
 
             if (nugetSettingsVm != null)
             {
-                await _uIVisualizerService.ShowDialogAsync(nugetSettingsVm);
+                var result = await _uIVisualizerService.ShowDialogAsync(nugetSettingsVm);
+
+                if(result ?? false)
+                {
+                    //update available feeds
+                    ActiveFeeds = new ObservableCollection<NuGetFeed>(Settings.ActiveNuGetFeeds);
+                }
             }
         }
     }
