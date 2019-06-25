@@ -90,7 +90,9 @@
         <ComboBox Grid.Row="1" Grid.Column="6" 
                   Width="120"
                   ItemsSource="{Binding ActiveFeeds}"
-                  Margin="3 0 3 0"/>
+                  Margin="3 0 3 0"
+                  IsSynchronizedWithCurrentItem="True"
+                  SelectedIndex="0"/>
         <!--select source feed -->
         <Button Grid.Row="1" Grid.Column="7"
                 Command="{Binding ShowPackageSourceSettings}"

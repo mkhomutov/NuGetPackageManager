@@ -8,7 +8,7 @@ namespace NuGetPackageManager.Models
 {
     public class ExplorerSettingsContainer
     {
-        public List<NuGetFeed> ActiveNuGetFeeds { get; set; } = new List<NuGetFeed>();
+        public List<NuGetFeed> NuGetFeeds { get; set; } = new List<NuGetFeed>();
 
         public bool IsPreReleaseIncluded { get; set; }
     }

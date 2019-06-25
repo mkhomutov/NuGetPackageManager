@@ -10,10 +10,10 @@
     <Grid Width="1000">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/> <!-- right toolbar-->
-            <RowDefinition Height="7*"/>
+            <RowDefinition Height="5*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="1.6*"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
@@ -39,11 +39,14 @@
             <TabControl.ContentTemplate>
                 <DataTemplate>
                     <StackPanel>
-                        <TextBlock Text="{Binding Title}"/>
+                        <local:ExplorerPageView/>
                     </StackPanel>                    
                 </DataTemplate>
             </TabControl.ContentTemplate>
         </TabControl>
+        
+        <!--detail of current selected package -->
+        <local:PackageDetailsView Grid.Row="1" Grid.Column="1"/>
 
     </Grid>
 </catel:DataWindow>

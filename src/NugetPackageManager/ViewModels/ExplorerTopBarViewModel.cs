@@ -1,9 +1,12 @@
 ﻿using Catel;
+using Catel.Configuration;
 using Catel.Fody;
 using Catel.IoC;
+using Catel.Logging;
 using Catel.MVVM;
 using Catel.Services;
 using NuGetPackageManager.Models;
+using NuGetPackageManager.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,18 +22,23 @@ namespace NuGetPackageManager.ViewModels
     {
         private readonly ITypeFactory _typeFactory;
         private readonly IUIVisualizerService _uIVisualizerService;
+        private readonly NugetConfigurationService _configurationService;
+        private readonly ILog _log = LogManager.GetCurrentClassLogger();
 
-        public ExplorerTopBarViewModel(ITypeFactory typeFactory, IUIVisualizerService uIVisualizerService)
+        public ExplorerTopBarViewModel(ITypeFactory typeFactory, IUIVisualizerService uIVisualizerService, IConfigurationService configurationService)
         {
             Argument.IsNotNull(() => typeFactory);
             Argument.IsNotNull(() => uIVisualizerService);
+            Argument.IsNotNull(() => configurationService);
 
             _typeFactory = typeFactory;
             _uIVisualizerService = uIVisualizerService;
+            _configurationService = configurationService as NugetConfigurationService;
 
-            Title = "Nuget - Solution";
-            InitializeCommands();
+            Title = "Manage Packages";
+            CommandInitialize();
         }
+
 
         [Model]
         public ExplorerSettingsContainer Settings { get; set; }
@@ -38,18 +46,25 @@ namespace NuGetPackageManager.ViewModels
         [ViewModelToModel]
         public bool IsPreReleaseIncluded { get; set; }
 
-        public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; } = new ObservableCollection<NuGetFeed>();
+        public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; }
 
         protected override Task InitializeAsync()
         {
             //todo save other flags, as using prereleases
             Settings = new ExplorerSettingsContainer();
-            return base.InitializeAsync();
-        }
 
-        private void InitializeCommands()
-        {
-            ShowPackageSourceSettings = new TaskCommand(OnShowPackageSourceSettingsExecuteAsync);
+            if (_configurationService.IsValueAvailable(ConfigurationContainer.Local, $"feed{0}"))
+            {
+                ReadFeedsFromConfiguration(Settings);
+            }
+            else
+            {
+                AddDefaultFeeds(Settings);
+            }
+
+            ActiveFeeds = new ObservableCollection<NuGetFeed>(GetActiveFeedsFromSettings());
+
+            return base.InitializeAsync();
         }
 
         #region commands
@@ -59,6 +74,43 @@ namespace NuGetPackageManager.ViewModels
         public Command RefreshCurrentPage { get; set; }
 
         #endregion
+
+        protected void CommandInitialize()
+        {
+            ShowPackageSourceSettings = new TaskCommand(OnShowPackageSourceSettingsExecuteAsync);
+        }
+
+        private void ReadFeedsFromConfiguration(ExplorerSettingsContainer settings)
+        {
+            NuGetFeed temp = null; ;
+            int i = 0;
+
+            //restore values from configuration
+            while (_configurationService.IsLocalValueAvailable($"feed{i}"))
+            {
+                temp = _configurationService.GetValue(ConfigurationContainer.Local, $"feed{i}");
+
+                if (temp != null)
+                {
+                    settings.NuGetFeeds.Add(temp);
+                }
+                else
+                {
+                    _log.Error($"Configuration value under key {i} is broken and cannot be loaded");
+                }
+
+                i++;
+            }
+        }
+
+        private void AddDefaultFeeds(ExplorerSettingsContainer settings)
+        {
+             settings.NuGetFeeds.Add( 
+                 new NuGetFeed(
+                   Constants.DefaultNugetOrgName,
+                   Constants.DefaultNugetOrgUri
+               ));
+        }
 
         private async Task OnShowPackageSourceSettingsExecuteAsync()
         {
@@ -71,9 +123,14 @@ namespace NuGetPackageManager.ViewModels
                 if(result ?? false)
                 {
                     //update available feeds
-                    ActiveFeeds = new ObservableCollection<NuGetFeed>(Settings.ActiveNuGetFeeds);
+                    ActiveFeeds = new ObservableCollection<NuGetFeed>(GetActiveFeedsFromSettings());
                 }
             }
+        }
+
+        private IEnumerable<NuGetFeed> GetActiveFeedsFromSettings()
+        {
+            return Settings.NuGetFeeds.Where(x => x.IsActive);
         }
     }
 }

@@ -95,15 +95,6 @@ namespace NuGetPackageManager.ViewModels
 
         protected override Task InitializeAsync()
         {
-            if (_configurationService.IsValueAvailable(ConfigurationContainer.Local, $"feed{0}"))
-            {
-                ReadFeedsFromConfiguration();
-            }
-            else
-            {
-                AddDefaultFeeds();
-            }
-
             //handle manual model save on child viewmodel
             _modelProvider.PropertyChanged += OnModelProviderPropertyChanged;
             Feeds.CollectionChanged += OnFeedsCollectioChanged;
@@ -121,7 +112,7 @@ namespace NuGetPackageManager.ViewModels
 
             //send usable feeds (including failed)
             ActiveFeeds.Clear();
-            ActiveFeeds.AddRange(Feeds.Where(x => x.IsActive));
+            ActiveFeeds.AddRange(Feeds);
 
             return base.SaveAsync();
         }
@@ -176,29 +167,6 @@ namespace NuGetPackageManager.ViewModels
         }
 
 
-        private void ReadFeedsFromConfiguration()
-        {
-            NuGetFeed temp = null; ;
-            int i = 0;
-
-            //restore values from configuration
-            while (_configurationService.IsLocalValueAvailable($"feed{i}"))
-            {
-                temp = _configurationService.GetValue(ConfigurationContainer.Local, $"feed{i}");
-
-                if (temp != null)
-                {
-                    Feeds.Add(temp);
-                }
-                else
-                {
-                    _log.Error($"Configuration value under key {i} is broken and cannot be loaded");
-                }
-
-                i++;
-            }
-        }
-
         private void OnModelProviderPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             //should drop current selected row and add updated
@@ -234,15 +202,6 @@ namespace NuGetPackageManager.ViewModels
                     }
                 }
             }
-        }
-
-        private void AddDefaultFeeds()
-        {
-            Feeds.Add(
-                new NuGetFeed(
-                Constants.DefaultNugetOrgName,
-                Constants.DefaultNugetOrgUri)
-                );
         }
     }
 }

@@ -15,7 +15,7 @@ namespace NuGetPackageManager.ViewModels
         }
 
         [Model]
-        [Expose("ActiveNuGetFeeds")]
+        [Expose("NuGetFeeds")]
         public ExplorerSettingsContainer Settings { get; set; }
 
         

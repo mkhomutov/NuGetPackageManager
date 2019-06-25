@@ -34,9 +34,11 @@
     <None Remove="Themes\Brushes.xaml" />
     <None Remove="Themes\Generic.xaml" />
     <None Remove="Themes\MaterialIcons.xaml" />
+    <None Remove="Views\ExplorerPageView.xaml" />
     <None Remove="Views\ExplorerTopBarView.xaml" />
     <None Remove="Views\FeedDetailView.xaml" />
     <None Remove="Views\MainWindow.xaml" />
+    <None Remove="Views\PackageDetailsView.xaml" />
     <None Remove="Views\SettingsControlView.xaml" />
     <None Remove="Views\SettingsWindow.xaml" />
   </ItemGroup>
