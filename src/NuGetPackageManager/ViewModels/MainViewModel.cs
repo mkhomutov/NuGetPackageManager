@@ -35,11 +35,11 @@ namespace NuGetPackageManager.ViewModels
         {
             string[] pageNames = new string[] { "Browse", "Installed", "Updates", "Consolidate" };
 
-            for(int i=0; i<4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 var newPage = CreatePage(pageNames[i]);
 
-                if(newPage != null)
+                if (newPage != null)
                 {
                     ExplorerPages.Add(newPage);
                 }

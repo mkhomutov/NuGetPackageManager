@@ -1,13 +1,11 @@
 ﻿namespace NuGetPackageManager.Controls.Helpers
 {
     using System.Text;
-    using System.Windows;
     using System.Windows.Markup;
-    using System.Windows.Media;
     using System.Xml;
 
     public class XamlExportHelper
-    {    
+    {
         //useful for extracting control templates from ui elements
         public static string Save(object element)
         {

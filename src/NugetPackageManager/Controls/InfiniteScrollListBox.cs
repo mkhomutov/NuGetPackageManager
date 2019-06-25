@@ -69,7 +69,7 @@ namespace NuGetPackageManager.Controls
 
         public object CommandParameter
         {
-            get { return (object)GetValue(CommandParameterProperty); }
+            get { return GetValue(CommandParameterProperty); }
             set { SetValue(CommandParameterProperty, value); }
         }
 

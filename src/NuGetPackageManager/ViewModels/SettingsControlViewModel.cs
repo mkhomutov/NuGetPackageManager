@@ -6,16 +6,12 @@ namespace NuGetPackageManager.ViewModels
     using Catel.Data;
     using Catel.Logging;
     using Catel.MVVM;
-    using Catel.Services;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
-    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
-    using System.ComponentModel;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
 
     public class SettingsControlViewModel : ViewModelBase
@@ -129,7 +125,7 @@ namespace NuGetPackageManager.ViewModels
             {
                 if (IsNamesNotUniqueRule(out var names))
                 {
-                    foreach(var name in names)
+                    foreach (var name in names)
                     {
                         validationResults.Add(BusinessRuleValidationResult.CreateError($"Two or more feeds have same name '{name}'"));
                     }

@@ -1,12 +1,6 @@
-using Catel.Windows.Threading;
 using NuGetPackageManager.Controls.Helpers;
-using System;
-using System.ComponentModel;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 
 namespace NuGetPackageManager.Views
 {
