@@ -1,14 +1,11 @@
-using Catel.MVVM;
-using NuGetPackageManager.Controls.Helpers;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Automation.Peers;
-using System.Windows.Controls;
-using System.Windows.Media;
-
 namespace NuGetPackageManager.Controls
-{ 
+{
+    using Catel.MVVM;
+    using NuGetPackageManager.Controls.Helpers;
+    using System.Threading.Tasks;
+    using System.Windows;
+    using System.Windows.Controls;
+
     public class InfiniteScrollListBox : ListBox
     {
         private ScrollViewer _scrollViewer;
@@ -28,7 +25,7 @@ namespace NuGetPackageManager.Controls
             get { return _scrollViewer; }
             set
             {
-                if(value != _scrollViewer)
+                if (value != _scrollViewer)
                 {
                     if (_scrollViewer != null)
                     {
@@ -55,12 +52,10 @@ namespace NuGetPackageManager.Controls
             }
         }
 
-
         protected async Task ExecuteLoadingItemsCommandAsync()
         {
             Command?.Execute(CommandParameter);
         }
-
 
         public TaskCommand Command
         {
@@ -81,7 +76,5 @@ namespace NuGetPackageManager.Controls
         // Using a DependencyProperty as the backing store for CommandParameter.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty CommandParameterProperty =
             DependencyProperty.Register("CommandParameter", typeof(object), typeof(InfiniteScrollListBox), new PropertyMetadata(0));
-
-
     }
 }

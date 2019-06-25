@@ -1,21 +1,18 @@
-﻿using Catel.MVVM;
-using Catel.Threading;
-using NuGet.Configuration;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.ViewModels
+﻿namespace NuGetPackageManager.ViewModels
 {
+    using Catel.MVVM;
+    using NuGet.Configuration;
+    using NuGet.Protocol;
+    using NuGet.Protocol.Core.Types;
+    using System;
+    using System.Collections.ObjectModel;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class ExplorerPageViewModel : ViewModelBase
     {
         int pageSize = 17;
+
         int lastLoaded = 0;
 
         public ExplorerPageViewModel(string pageTitle)
@@ -44,17 +41,12 @@ namespace NuGetPackageManager.ViewModels
             }
         }
 
-        #region commands
-
         public TaskCommand LoadNextPackagePage { get; set; }
 
         private async Task LoadNextPackagePageExecute()
         {
             await LoadPackagesForTestAsync(lastLoaded + 1);
         }
-
-        #endregion
-
 
         private ObservableCollection<IPackageSearchMetadata> _packages { get; set; }
 
@@ -77,7 +69,7 @@ namespace NuGetPackageManager.ViewModels
                 //try to perform search
                 var packages = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, pageSize, new Loggers.DebugLogger(true), cancellationToken);
 
-                foreach(var p in packages)
+                foreach (var p in packages)
                 {
                     Packages.Add(p);
                 }

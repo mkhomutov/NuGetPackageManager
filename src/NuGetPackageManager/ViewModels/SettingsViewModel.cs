@@ -18,6 +18,5 @@ namespace NuGetPackageManager.ViewModels
         [Expose("NuGetFeeds")]
         public ExplorerSettingsContainer Settings { get; set; }
 
-        
     }
 }

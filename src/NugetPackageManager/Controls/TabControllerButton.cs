@@ -1,15 +1,11 @@
-﻿using Catel.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-
-namespace NuGetPackageManager.Controls
+﻿namespace NuGetPackageManager.Controls
 {
+    using Catel.Logging;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Windows;
+    using System.Windows.Controls;
+
     /// <summary>
     /// This is subtype of button
     /// which can be binded to tabcontrol
@@ -18,6 +14,7 @@ namespace NuGetPackageManager.Controls
     public class TabControllerButton : RadioButton
     {
         private LinkedList<TabControllerButton> group = new LinkedList<TabControllerButton>();
+
         private static readonly ILog _log = LogManager.GetCurrentClassLogger();
 
         public TabControllerButton()
@@ -69,7 +66,6 @@ namespace NuGetPackageManager.Controls
         public static readonly DependencyProperty IsFirstProperty =
             DependencyProperty.Register("IsFirst", typeof(bool), typeof(TabControllerButton), new PropertyMetadata(false));
 
-
         private void OnTabControllerButtonClicked(object sender, RoutedEventArgs e)
         {
             if (group != null)
@@ -91,7 +87,7 @@ namespace NuGetPackageManager.Controls
                 var current = group.Find(this);
 
                 //костыль
-                if(group.Count == 0 && current == null)
+                if (group.Count == 0 && current == null)
                 {
                     group.AddFirst(this);
                     current = group.Find(this);
@@ -112,7 +108,7 @@ namespace NuGetPackageManager.Controls
             var index = MyIndex();
 
             int i = 0;
-            foreach(var item in TabSource.ItemsSource)
+            foreach (var item in TabSource.ItemsSource)
             {
                 //try to get container from source
                 var tab = TabSource.ItemContainerGenerator.ContainerFromItem(item);

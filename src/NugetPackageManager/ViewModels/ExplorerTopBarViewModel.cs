@@ -1,28 +1,26 @@
-﻿using Catel;
-using Catel.Configuration;
-using Catel.Fody;
-using Catel.IoC;
-using Catel.Logging;
-using Catel.MVVM;
-using Catel.Services;
-using NuGetPackageManager.Models;
-using NuGetPackageManager.Services;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
-
-namespace NuGetPackageManager.ViewModels
+﻿namespace NuGetPackageManager.ViewModels
 {
+    using Catel;
+    using Catel.Configuration;
+    using Catel.IoC;
+    using Catel.Logging;
+    using Catel.MVVM;
+    using Catel.Services;
+    using NuGetPackageManager.Models;
+    using NuGetPackageManager.Services;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     public class ExplorerTopBarViewModel : ViewModelBase
     {
         private readonly ITypeFactory _typeFactory;
+
         private readonly IUIVisualizerService _uIVisualizerService;
+
         private readonly NugetConfigurationService _configurationService;
+
         private readonly ILog _log = LogManager.GetCurrentClassLogger();
 
         public ExplorerTopBarViewModel(ITypeFactory typeFactory, IUIVisualizerService uIVisualizerService, IConfigurationService configurationService)
@@ -38,7 +36,6 @@ namespace NuGetPackageManager.ViewModels
             Title = "Manage Packages";
             CommandInitialize();
         }
-
 
         [Model]
         public ExplorerSettingsContainer Settings { get; set; }
@@ -67,18 +64,31 @@ namespace NuGetPackageManager.ViewModels
             return base.InitializeAsync();
         }
 
-        #region commands
-        public TaskCommand ShowPackageSourceSettings { get; set; }
-
-        /*placeholder, this probably should be application command inside separate Catel command container*/
-        public Command RefreshCurrentPage { get; set; }
-
-        #endregion
-
         protected void CommandInitialize()
         {
             ShowPackageSourceSettings = new TaskCommand(OnShowPackageSourceSettingsExecuteAsync);
         }
+
+        public TaskCommand ShowPackageSourceSettings { get; set; }
+
+        private async Task OnShowPackageSourceSettingsExecuteAsync()
+        {
+            var nugetSettingsVm = _typeFactory.CreateInstanceWithParametersAndAutoCompletion<SettingsViewModel>(Settings);
+
+            if (nugetSettingsVm != null)
+            {
+                var result = await _uIVisualizerService.ShowDialogAsync(nugetSettingsVm);
+
+                if (result ?? false)
+                {
+                    //update available feeds
+                    ActiveFeeds = new ObservableCollection<NuGetFeed>(GetActiveFeedsFromSettings());
+                }
+            }
+        }
+
+        /*placeholder, this probably should be application command inside separate Catel command container*/
+        public Command RefreshCurrentPage { get; set; }
 
         private void ReadFeedsFromConfiguration(ExplorerSettingsContainer settings)
         {
@@ -105,27 +115,11 @@ namespace NuGetPackageManager.ViewModels
 
         private void AddDefaultFeeds(ExplorerSettingsContainer settings)
         {
-             settings.NuGetFeeds.Add( 
-                 new NuGetFeed(
-                   Constants.DefaultNugetOrgName,
-                   Constants.DefaultNugetOrgUri
-               ));
-        }
-
-        private async Task OnShowPackageSourceSettingsExecuteAsync()
-        {
-            var nugetSettingsVm = _typeFactory.CreateInstanceWithParametersAndAutoCompletion<SettingsViewModel>(Settings);
-
-            if (nugetSettingsVm != null)
-            {
-                var result = await _uIVisualizerService.ShowDialogAsync(nugetSettingsVm);
-
-                if(result ?? false)
-                {
-                    //update available feeds
-                    ActiveFeeds = new ObservableCollection<NuGetFeed>(GetActiveFeedsFromSettings());
-                }
-            }
+            settings.NuGetFeeds.Add(
+                new NuGetFeed(
+                  Constants.DefaultNugetOrgName,
+                  Constants.DefaultNugetOrgUri
+              ));
         }
 
         private IEnumerable<NuGetFeed> GetActiveFeedsFromSettings()
