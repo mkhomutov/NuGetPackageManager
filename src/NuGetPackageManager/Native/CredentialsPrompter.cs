@@ -7,14 +7,13 @@
 
 namespace NuGetPackageManager.Native
 {
-    using System;
-    using System.Runtime.InteropServices;
-    using System.Text;
     using Catel;
     using Catel.Configuration;
     using Catel.Logging;
     using NuGetPackageManager.Crypto;
-    using NuGetPackageManager.Native;
+    using System;
+    using System.Runtime.InteropServices;
+    using System.Text;
 
     internal class CredentialsPrompter
     {
@@ -210,7 +209,7 @@ namespace NuGetPackageManager.Native
         {
             var configurationKeyPostfix = $"{key}__{username}";
             configurationKeyPostfix = EncryptionHelper.GetMd5Hash(configurationKeyPostfix);
-            
+
             var configurationKey = $"NuGet.FeedInfo.{configurationKeyPostfix}";
             return configurationKey;
         }

@@ -6,16 +6,12 @@ namespace NuGetPackageManager.ViewModels
     using Catel.Data;
     using Catel.Logging;
     using Catel.MVVM;
-    using Catel.Services;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
-    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
-    using System.ComponentModel;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
 
     public class SettingsControlViewModel : ViewModelBase
@@ -28,12 +24,15 @@ namespace NuGetPackageManager.ViewModels
 
         private readonly IModelProvider<NuGetFeed> _modelProvider;
 
-        public SettingsControlViewModel(IConfigurationService configurationService, INuGetFeedVerificationService feedVerificationService,
+        public SettingsControlViewModel(List<NuGetFeed> configredFeeds, IConfigurationService configurationService, INuGetFeedVerificationService feedVerificationService,
             IModelProvider<NuGetFeed> modelProvider)
         {
             Argument.IsNotNull(() => configurationService);
             Argument.IsNotNull(() => modelProvider);
             Argument.IsNotNull(() => feedVerificationService);
+            Argument.IsNotNull(() => configredFeeds);
+
+            ActiveFeeds = configredFeeds;
 
             _configurationService = configurationService as NugetConfigurationService;
             _feedVerificationService = feedVerificationService;
@@ -48,6 +47,11 @@ namespace NuGetPackageManager.ViewModels
 
         [Model]
         public NuGetFeed SelectedFeed { get; set; }
+
+        /// <summary>
+        /// Feeds which should be visible for NuGet Package Manager
+        /// </summary>
+        public List<NuGetFeed> ActiveFeeds { get; set; }
 
         public Command RemoveFeed { get; set; }
 
@@ -87,15 +91,6 @@ namespace NuGetPackageManager.ViewModels
 
         protected override Task InitializeAsync()
         {
-            if (_configurationService.IsValueAvailable(ConfigurationContainer.Local, $"feed{0}"))
-            {
-                ReadFeedsFromConfiguration();
-            }
-            else
-            {
-                AddDefaultFeeds();
-            }
-
             //handle manual model save on child viewmodel
             _modelProvider.PropertyChanged += OnModelProviderPropertyChanged;
             Feeds.CollectionChanged += OnFeedsCollectioChanged;
@@ -110,6 +105,10 @@ namespace NuGetPackageManager.ViewModels
             {
                 _configurationService.SetValue(ConfigurationContainer.Local, $"feed{i}", Feeds[i]);
             }
+
+            //send usable feeds (including failed)
+            ActiveFeeds.Clear();
+            ActiveFeeds.AddRange(Feeds);
 
             return base.SaveAsync();
         }
@@ -126,7 +125,7 @@ namespace NuGetPackageManager.ViewModels
             {
                 if (IsNamesNotUniqueRule(out var names))
                 {
-                    foreach(var name in names)
+                    foreach (var name in names)
                     {
                         validationResults.Add(BusinessRuleValidationResult.CreateError($"Two or more feeds have same name '{name}'"));
                     }
@@ -164,29 +163,6 @@ namespace NuGetPackageManager.ViewModels
         }
 
 
-        private void ReadFeedsFromConfiguration()
-        {
-            NuGetFeed temp = null; ;
-            int i = 0;
-
-            //restore values from configuration
-            while (_configurationService.IsLocalValueAvailable($"feed{i}"))
-            {
-                temp = _configurationService.GetValue(ConfigurationContainer.Local, $"feed{i}");
-
-                if (temp != null)
-                {
-                    Feeds.Add(temp);
-                }
-                else
-                {
-                    _log.Error($"Configuration value under key {i} is broken and cannot be loaded");
-                }
-
-                i++;
-            }
-        }
-
         private void OnModelProviderPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             //should drop current selected row and add updated
@@ -222,15 +198,6 @@ namespace NuGetPackageManager.ViewModels
                     }
                 }
             }
-        }
-
-        private void AddDefaultFeeds()
-        {
-            Feeds.Add(
-                new NuGetFeed(
-                Constants.DefaultNugetOrgName,
-                Constants.DefaultNugetOrgUri)
-                );
         }
     }
 }

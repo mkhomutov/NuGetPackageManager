@@ -51,7 +51,7 @@
             {
                 var packageSource = new PackageSource(source);
 
-                var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root: null), Repository.Provider.GetCoreV3());
+                var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root: null), v3_providers);
 
                 var repository = new SourceRepository(packageSource, v3_providers);
 

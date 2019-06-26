@@ -13,7 +13,7 @@
 
     public class WindowsCredentialProvider : ICredentialProvider
     {
-        private ILog _log = LogManager.GetCurrentClassLogger();
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private IConfigurationService _configurationService;
 
@@ -30,11 +30,11 @@
         {
             if (isRetry)
             {
-                _log.Debug($"Retrying to request credentials for '{uri}'");
+                Log.Debug($"Retrying to request credentials for '{uri}'");
             }
             else
             {
-                _log.Debug($"Requesting credentials for '{uri}'");
+                Log.Debug($"Requesting credentials for '{uri}'");
             }
 
 
@@ -59,7 +59,7 @@
             {
                 //creating success response
 
-                _log.Debug("Successfully requested credentials for '{0}' using user '{1}'", uri, credentialsPrompter.UserName);
+                Log.Debug("Successfully requested credentials for '{0}' using user '{1}'", uri, credentialsPrompter.UserName);
 
                 //creating network credentials
                 var nugetCredentials = new NetworkCredential(credentialsPrompter.UserName, credentialsPrompter.Password);
@@ -70,7 +70,7 @@
             }
             else
             {
-                _log.Debug("Failed to request credentials for '{0}'", uri);
+                Log.Debug("Failed to request credentials for '{0}'", uri);
                 return new CredentialResponse(CredentialStatus.UserCanceled);
             }
         }

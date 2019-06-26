@@ -5,7 +5,7 @@
     using System.Xml;
 
     public class XamlExportHelper
-    {    
+    {
         //useful for extracting control templates from ui elements
         public static string Save(object element)
         {

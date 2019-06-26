@@ -1,12 +1,6 @@
-using Catel.Windows.Threading;
 using NuGetPackageManager.Controls.Helpers;
-using System;
-using System.ComponentModel;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 
 namespace NuGetPackageManager.Views
 {
@@ -20,8 +14,8 @@ namespace NuGetPackageManager.Views
             InitializeComponent();
             ShowInTaskbar = true;
 
-            //var control = Application.Current.FindResource(typeof(ProgressBar));
-            //var value = XamlExportHelper.Save(control);
+            var control = Application.Current.FindResource(typeof(RadioButton));
+            var value = XamlExportHelper.Save(control);
         }
     }
 }
