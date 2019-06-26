@@ -1,0 +1,33 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- list box item brushes -->
+    <SolidColorBrush x:Key="Item.MouseOver.Background" Color="{DynamicResource AccentColor4}"/>
+    <SolidColorBrush x:Key="Item.MouseOver.Border" Color="{DynamicResource AccentColor}"/>
+    <SolidColorBrush x:Key="Item.SelectedInactive.Background" Color="{DynamicResource AccentColor4}"/>
+    <SolidColorBrush x:Key="Item.SelectedInactive.Border" Color="{DynamicResource AccentColor2}"/>
+    <SolidColorBrush x:Key="Item.SelectedActive.Background" Color="{DynamicResource AccentColor3}"/>
+    <SolidColorBrush x:Key="Item.SelectedActive.Border" Color="{DynamicResource AccentColor}" />
+    
+    <!-- labeled tab items brushes-->
+    <SolidColorBrush x:Key="TabSelectedBrushKey" Color="{x:Static SystemColors.ActiveCaptionTextColor}"/>
+    <SolidColorBrush x:Key="TabPopupBrushKey" Color="{x:Static SystemColors.ActiveCaptionTextColor}"/>
+    <SolidColorBrush x:Key="TabPopupTextBrushKey" Color="{x:Static SystemColors.HighlightTextBrush}"/>
+    <SolidColorBrush x:Key="PopupText" Color="DarkGray"/>
+    <SolidColorBrush x:Key="TabSelectedTextBrushKey" Color="{x:Static SystemColors.ActiveCaptionTextColorKey}"/>
+    <SolidColorBrush x:Key="TabHoverBrushKey" Color="{x:Static SystemColors.HotTrackBrushKey}"/>
+
+
+
+    <!-- main accent theme brushes -->
+    <SolidColorBrush x:Key="AccentColorBrush" Color="Orange"/>
+    <SolidColorBrush x:Key="AccentColorBrush4" Color="{DynamicResource AccentColor4}"/>
+    <SolidColorBrush x:Key="AccentColorBrush2" Color="{DynamicResource AccentColor2}"/>
+    <SolidColorBrush x:Key="AccentColorBrush3" Color="{DynamicResource AccentColor3}"/>
+    
+    <!-- basic colors -->
+    <Color x:Key="AccentColor">#FFA500</Color>
+    <Color x:Key="AccentColor2">#ffd27f</Color>
+    <Color x:Key="AccentColor3">#ffe4b2</Color>
+    <Color x:Key="AccentColor4">#ffefd5</Color>
+</ResourceDictionary>
