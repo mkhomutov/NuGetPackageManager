@@ -15,7 +15,7 @@
     {
         private LinkedList<TabControllerButton> group = new LinkedList<TabControllerButton>();
 
-        private static readonly ILog _log = LogManager.GetCurrentClassLogger();
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         public TabControllerButton()
         {
@@ -31,19 +31,6 @@
         // Using a DependencyProperty as the backing store for TabSource.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty TabSourceProperty =
             DependencyProperty.Register("TabSource", typeof(TabControl), typeof(TabControllerButton), new PropertyMetadata(null, OnTabSourceChanged));
-
-        private static void OnTabSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var tabBtn = d as TabControllerButton;
-            if (tabBtn != null)
-            {
-                foreach (var t in tabBtn.group)
-                {
-                    t.SetCurrentValue(TabControllerButton.TabSourceProperty, tabBtn.TabSource);
-                    _log.Info($"Tab source property was set for button {t.Name}, original sender is {tabBtn.Name}");
-                }
-            }
-        }
 
         public TabControllerButton Next
         {
@@ -65,6 +52,19 @@
         // Using a DependencyProperty as the backing store for MyProperty.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsFirstProperty =
             DependencyProperty.Register("IsFirst", typeof(bool), typeof(TabControllerButton), new PropertyMetadata(false));
+
+        private static void OnTabSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var tabBtn = d as TabControllerButton;
+            if (tabBtn != null)
+            {
+                foreach (var t in tabBtn.group)
+                {
+                    t.SetCurrentValue(TabControllerButton.TabSourceProperty, tabBtn.TabSource);
+                    Log.Info($"Tab source property was set for button {t.Name}, original sender is {tabBtn.Name}");
+                }
+            }
+        }
 
         private void OnTabControllerButtonClicked(object sender, RoutedEventArgs e)
         {

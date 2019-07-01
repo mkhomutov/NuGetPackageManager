@@ -21,7 +21,7 @@
 
         private readonly NugetConfigurationService _configurationService;
 
-        private readonly ILog _log = LogManager.GetCurrentClassLogger();
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         public ExplorerTopBarViewModel(ITypeFactory typeFactory, IUIVisualizerService uIVisualizerService, IConfigurationService configurationService)
         {
@@ -106,7 +106,7 @@
                 }
                 else
                 {
-                    _log.Error($"Configuration value under key {i} is broken and cannot be loaded");
+                    Log.Error($"Configuration value under key {i} is broken and cannot be loaded");
                 }
 
                 i++;
