@@ -51,7 +51,7 @@
         </StackPanel>
 
 
-        <TextBlock Text="Manage Packages for Solution"
+        <TextBlock Text="Manage NuGet Packages"
                    Grid.Column="5" Grid.ColumnSpan="3"
                    HorizontalAlignment="Right"
                    FontSize="16"

@@ -1,6 +1,5 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:local="clr-namespace:NuGetPackageManager.Themes">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Path x:Key="Arrow-up-bold" Data="M15,20H9V12H4.16L12,4.16L19.84,12H15V20Z" Fill="Black"/>
 
     <Path x:Key="Arrow-down-bold" Data="M9,4H15V12H19.84L12,19.84L4.16,12H9V4Z" Fill="Black" />
