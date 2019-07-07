@@ -46,6 +46,9 @@
         [ViewModelToModel]
         public bool IsPreReleaseIncluded { get; set; }
 
+        [ViewModelToModel]
+        public string SearchString { get; set; }
+
         public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; }
 
         protected override Task InitializeAsync()

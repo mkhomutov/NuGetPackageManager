@@ -2,6 +2,7 @@
 {
     using Catel;
     using Catel.Collections;
+    using Catel.Logging;
     using Catel.MVVM;
     using NuGet.Configuration;
     using NuGet.Protocol;
@@ -19,6 +20,7 @@
     {
         private readonly IPackagesLoaderService _packagesLoaderService;
         private ExplorerSettingsContainer _settings;
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private FastObservableCollection<IPackageSearchMetadata> _packages { get; set; }
 
@@ -59,7 +61,7 @@
         //handle settings changes and force reloading if needed
         private async void OnSettingsPropertyPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == nameof(Settings.IsPreReleaseIncluded))
+            if(e.PropertyName == nameof(Settings.IsPreReleaseIncluded) || e.PropertyName == nameof(Settings.SearchString))
             {
                 //only if page is active
                 //for others update should be delayed until page selected
@@ -71,8 +73,6 @@
         }
 
         public bool IsActive { get; set; }
-
-        public string SearchString { get; set; } = String.Empty;
 
         protected async override Task InitializeAsync()
         {
@@ -108,9 +108,12 @@
 
             using (var cts = new CancellationTokenSource())
             {
-                var packages = await _packagesLoaderService.LoadAsync(PageInfo, new SearchFilter(Settings.IsPreReleaseIncluded), cts.Token);
+                var rs = new SearchFilter(Settings.IsPreReleaseIncluded);
+                var packages = await _packagesLoaderService.LoadAsync(Settings.SearchString, PageInfo, new SearchFilter(Settings.IsPreReleaseIncluded), cts.Token);
 
                 Packages.AddRange(packages);
+
+                Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString}'");
             }
         }
 

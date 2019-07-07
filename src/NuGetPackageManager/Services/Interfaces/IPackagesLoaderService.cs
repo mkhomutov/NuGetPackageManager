@@ -11,6 +11,6 @@ namespace NuGetPackageManager.Services
 {
     public interface IPackagesLoaderService
     {
-        Task<IEnumerable<IPackageSearchMetadata>> LoadAsync(PageContinuation pageContinuation, SearchFilter searchFilter, CancellationToken token);
+        Task<IEnumerable<IPackageSearchMetadata>> LoadAsync(string searchTerm, PageContinuation pageContinuation, SearchFilter searchFilter, CancellationToken token);
     }
 }

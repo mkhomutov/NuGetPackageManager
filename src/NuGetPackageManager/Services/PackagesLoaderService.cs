@@ -13,13 +13,13 @@ namespace NuGetPackageManager.Services
 {
     public class PackagesLoaderService : IPackagesLoaderService
     {
-        public async Task<IEnumerable<IPackageSearchMetadata>> LoadAsync(PageContinuation pageContinuation, SearchFilter searchFilter, CancellationToken token)
+        public async Task<IEnumerable<IPackageSearchMetadata>> LoadAsync(string searchTerm, PageContinuation pageContinuation, SearchFilter searchFilter, CancellationToken token)
         {
             var repository = new SourceRepository(pageContinuation.Source, Repository.Provider.GetCoreV3());
 
             var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
 
-            var packages = await searchResource.SearchAsync(String.Empty, searchFilter, pageContinuation.GetNext(), pageContinuation.Size, new Loggers.DebugLogger(true), token);
+            var packages = await searchResource.SearchAsync(searchTerm, searchFilter, pageContinuation.GetNext(), pageContinuation.Size, new Loggers.DebugLogger(true), token);
 
             return packages;
         }

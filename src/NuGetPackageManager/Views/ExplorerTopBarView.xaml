@@ -60,7 +60,8 @@
 
         <!-- tool bar -->
         <TextBox Grid.Row="1"
-                 Margin="10 0 0 0"/> <!--search box-->
+                 Margin="10 0 0 0"
+                 Text="{Binding SearchString}"/> <!--search box-->
         
         <Button Grid.Row="1" Grid.Column="1"
                 Command="{Binding RefreshCurrentPage}"

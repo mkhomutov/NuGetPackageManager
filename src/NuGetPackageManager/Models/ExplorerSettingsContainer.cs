@@ -8,5 +8,7 @@
         public List<NuGetFeed> NuGetFeeds { get; set; } = new List<NuGetFeed>();
 
         public bool IsPreReleaseIncluded { get; set; }
+
+        public string SearchString { get; set; }
     }
 }
