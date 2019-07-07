@@ -1,37 +1,92 @@
 ﻿namespace NuGetPackageManager.ViewModels
 {
+    using Catel;
+    using Catel.Collections;
     using Catel.MVVM;
     using NuGet.Configuration;
     using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Models;
+    using NuGetPackageManager.Pagination;
+    using NuGetPackageManager.Services;
     using System;
     using System.Collections.ObjectModel;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
     public class ExplorerPageViewModel : ViewModelBase
     {
-        int pageSize = 17;
+        private readonly IPackagesLoaderService _packagesLoaderService;
+        private ExplorerSettingsContainer _settings;
 
-        int lastLoaded = 0;
+        private FastObservableCollection<IPackageSearchMetadata> _packages { get; set; }
 
-        public ExplorerPageViewModel(string pageTitle)
+        public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService)
         {
             Title = pageTitle;
+
+            Argument.IsNotNull(() => packagesLoaderService);
+            Argument.IsNotNull(() => explorerSettings);
+
+            _packagesLoaderService = packagesLoaderService;
+
+            Settings = explorerSettings;
 
             LoadNextPackagePage = new TaskCommand(LoadNextPackagePageExecute);
         }
 
+        private PageContinuation PageInfo { get; set; }
+
+        public ExplorerSettingsContainer Settings
+        {
+            get { return _settings; }
+            set
+            {
+                if(_settings != null)
+                {
+                    _settings.PropertyChanged -= OnSettingsPropertyPropertyChanged;
+                }
+                _settings = value;
+
+                if (_settings != null)
+                {
+                    _settings.PropertyChanged += OnSettingsPropertyPropertyChanged;
+                }
+            }
+        }
+
+        //handle settings changes and force reloading if needed
+        private async void OnSettingsPropertyPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == nameof(Settings.IsPreReleaseIncluded))
+            {
+                //only if page is active
+                //for others update should be delayed until page selected
+                if (IsActive)
+                {
+                    await ResetLoaded();
+                }
+            }
+        }
+
+        public bool IsActive { get; set; }
+
+        public string SearchString { get; set; } = String.Empty;
+
         protected async override Task InitializeAsync()
         {
-            _packages = new ObservableCollection<IPackageSearchMetadata>();
-            await LoadPackagesForTestAsync(0);
+            _packages = new FastObservableCollection<IPackageSearchMetadata>();
+
+            PageInfo = new PageContinuation(17, "https://api.nuget.org/v3/index.json");
+
+            await LoadPackagesForTestAsync(PageInfo);
         }
 
         /// <summary>
         /// Example set of items
         /// </summary>
-        public ObservableCollection<IPackageSearchMetadata> Packages
+        public FastObservableCollection<IPackageSearchMetadata> Packages
         {
             get { return _packages; }
             set
@@ -45,37 +100,26 @@
 
         private async Task LoadNextPackagePageExecute()
         {
-            await LoadPackagesForTestAsync(lastLoaded + 1);
+            await LoadPackagesForTestAsync(PageInfo);
         }
 
-        private ObservableCollection<IPackageSearchMetadata> _packages { get; set; }
-
-        private async Task LoadPackagesForTestAsync(int start)
+        private async Task LoadPackagesForTestAsync(PageContinuation pageContinue)
         {
-            var v3_providers = Repository.Provider.GetCoreV3();
-
-            var packageSource = new PackageSource("https://api.nuget.org/v3/index.json");
-
-            var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root: null), v3_providers);
-
-            var repository = new SourceRepository(packageSource, v3_providers);
-
-            var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
 
             using (var cts = new CancellationTokenSource())
             {
-                var cancellationToken = cts.Token;
+                var packages = await _packagesLoaderService.LoadAsync(PageInfo, new SearchFilter(Settings.IsPreReleaseIncluded), cts.Token);
 
-                //try to perform search
-                var packages = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, pageSize, new Loggers.DebugLogger(true), cancellationToken);
-
-                foreach (var p in packages)
-                {
-                    Packages.Add(p);
-                }
-
-                lastLoaded = Packages.Count - 1;
+                Packages.AddRange(packages);
             }
+        }
+
+        private async Task ResetLoaded()
+        {
+            PageInfo.Reset();
+            Packages.Clear();
+
+            await LoadPackagesForTestAsync(PageInfo);
         }
     }
 }

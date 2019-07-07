@@ -75,7 +75,8 @@
         
         <CheckBox Grid.Row="1" Grid.Column="2"
                   VerticalAlignment="Center"
-                  Margin="3 0 3 0"/>
+                  Margin="3 0 3 0"
+                  IsChecked="{Binding IsPreReleaseIncluded}"/>
         <TextBlock Grid.Row="1" Grid.Column="3"
                    VerticalAlignment="Center"
                    Margin="3 0 3 0">

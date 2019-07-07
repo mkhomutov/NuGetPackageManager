@@ -23,15 +23,18 @@
 
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
-        public ExplorerTopBarViewModel(ITypeFactory typeFactory, IUIVisualizerService uIVisualizerService, IConfigurationService configurationService)
+        public ExplorerTopBarViewModel(ExplorerSettingsContainer settings, ITypeFactory typeFactory, IUIVisualizerService uIVisualizerService, IConfigurationService configurationService)
         {
             Argument.IsNotNull(() => typeFactory);
             Argument.IsNotNull(() => uIVisualizerService);
             Argument.IsNotNull(() => configurationService);
+            Argument.IsNotNull(() => settings);
 
             _typeFactory = typeFactory;
             _uIVisualizerService = uIVisualizerService;
             _configurationService = configurationService as NugetConfigurationService;
+
+            Settings = settings;
 
             Title = "Manage Packages";
             CommandInitialize();
@@ -47,9 +50,6 @@
 
         protected override Task InitializeAsync()
         {
-            //todo save other flags, as using prereleases
-            Settings = new ExplorerSettingsContainer();
-
             if (_configurationService.IsValueAvailable(ConfigurationContainer.Local, $"feed{0}"))
             {
                 ReadFeedsFromConfiguration(Settings);
