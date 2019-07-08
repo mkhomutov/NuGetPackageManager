@@ -36,6 +36,7 @@
             Settings = explorerSettings;
 
             LoadNextPackagePage = new TaskCommand(LoadNextPackagePageExecute);
+            CancelPageLoading = new TaskCommand(CancelPageLoadingExecute);
         }
 
         private PageContinuation PageInfo { get; set; }
@@ -74,6 +75,10 @@
 
         public bool IsActive { get; set; }
 
+        public bool IsCancellationTokenAlive { get; set; }
+
+        public CancellationTokenSource PageLoadingTokenSource { get; set; }
+
         protected async override Task InitializeAsync()
         {
             _packages = new FastObservableCollection<IPackageSearchMetadata>();
@@ -96,6 +101,7 @@
             }
         }
 
+        #region commands
         public TaskCommand LoadNextPackagePage { get; set; }
 
         private async Task LoadNextPackagePageExecute()
@@ -103,17 +109,42 @@
             await LoadPackagesForTestAsync(PageInfo);
         }
 
+        public TaskCommand CancelPageLoading { get; set; }
+
+        private async Task CancelPageLoadingExecute()
+        {
+            if(IsCancellationTokenAlive)
+            {
+                PageLoadingTokenSource.Cancel();
+            }
+        }
+
+        #endregion
+
         private async Task LoadPackagesForTestAsync(PageContinuation pageContinue)
         {
-
-            using (var cts = new CancellationTokenSource())
+            try
             {
-                var rs = new SearchFilter(Settings.IsPreReleaseIncluded);
-                var packages = await _packagesLoaderService.LoadAsync(Settings.SearchString, PageInfo, new SearchFilter(Settings.IsPreReleaseIncluded), cts.Token);
 
-                Packages.AddRange(packages);
+                using (PageLoadingTokenSource = new CancellationTokenSource())
+                {
+                    IsCancellationTokenAlive = true;
 
-                Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString}'");
+                    var packages = await _packagesLoaderService.LoadAsync(
+                        Settings.SearchString, PageInfo, new SearchFilter(Settings.IsPreReleaseIncluded), PageLoadingTokenSource.Token);
+
+                    Packages.AddRange(packages);
+
+                    Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString}'");
+                }
+            }
+            catch(OperationCanceledException e)
+            {
+                Log.Info($"Command {nameof(LoadPackagesForTestAsync)} was cancelled by {e}");
+            }
+            finally
+            {
+                IsCancellationTokenAlive = false;
             }
         }
 

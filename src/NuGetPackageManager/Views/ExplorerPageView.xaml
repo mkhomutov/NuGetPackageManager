@@ -6,13 +6,19 @@
              xmlns:local="clr-namespace:NuGetPackageManager.Views"
              xmlns:nugetc="clr-namespace:NuGetPackageManager.Controls"
              xmlns:catel="http://schemas.catelproject.com"
+             xmlns:mvvm="clr-namespace:NuGetPackageManager.MVVM"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <nugetc:InfiniteScrollListBox ItemsSource="{Binding Packages}"
+        <Grid.Resources>
+            <mvvm:BindingProxy Data="{Binding }" x:Key="ContextProxy"/>
+        </Grid.Resources>
+        <nugetc:InfiniteScrollListBox x:Name="infinitybox"
+                                      ItemsSource="{Binding Packages}"
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       Command="{Binding LoadNextPackagePage}"
+                                      IsCommandExecuting="{Binding IsCancellationTokenAlive}"
                                       HorizontalContentAlignment="Stretch"
                                       ItemContainerStyle="{StaticResource DefaultListBoxItemStyle}"
                                       Height="800">
@@ -36,5 +42,53 @@
                 </DataTemplate>
             </nugetc:InfiniteScrollListBox.ItemTemplate>
         </nugetc:InfiniteScrollListBox>
+        
+        <!--loading indication -->
+        <Border Panel.ZIndex="1" Height="80" VerticalAlignment="Bottom"
+                Background="{DynamicResource AccentColorBrush3}"
+                BorderBrush="{DynamicResource AccentColorBrush}"
+                BorderThickness="0 2 0 1"
+                Visibility="{Binding ElementName=infinitybox, Path=IsCommandExecuting, Converter={catel:BooleanToCollapsingVisibilityConverter}}">
+            <StackPanel>
+                <Button Command="{Binding Data.CancelPageLoading, Source={StaticResource ContextProxy}}" 
+                        Width="60" Height="20" 
+                        Margin="0 10 0 0">
+                    <Button.Content>
+                        <TextBlock>Cancel</TextBlock>
+                    </Button.Content>
+                </Button>
+
+                <Viewbox Height="30" Width="30"
+                         Margin="0 8 0 0">
+                    <Canvas Name="indicatorCanvas" Width="30" Height="30"
+                            RenderTransformOrigin="0.5, 0.5">
+                        <Canvas.RenderTransform>
+                            <RotateTransform CenterX="0.5" CenterY="0.5"/>
+                        </Canvas.RenderTransform>
+                        <Canvas.Resources/>
+                        <Ellipse    Canvas.Left="0" 
+                                    Width="30" Height="30"
+                                    StrokeThickness="2" 
+                                    Stroke="{DynamicResource AccentColorBrush}" 
+                                    StrokeStartLineCap="Round" 
+                                    StrokeDashArray="10 5"
+                                    StrokeEndLineCap="Round">
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard >
+                                            <DoubleAnimation Storyboard.TargetName="indicatorCanvas"
+                                                Storyboard.TargetProperty="(RenderTransform).(RotateTransform.Angle)"
+                                                                     To="-360" 
+                                                                     Duration="0:0:2" RepeatBehavior="Forever"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+                    </Canvas>
+                </Viewbox>
+            </StackPanel>
+        </Border>
     </Grid>
 </catel:UserControl>

@@ -12,13 +12,16 @@ namespace NuGetPackageManager.Pagination
     {
         int _lastNumber = -1;
         int _pageSize = 1;
+        int startNumber = 1;
 
         static readonly ILog Log = LogManager.GetCurrentClassLogger();
         
         public PageContinuation(int pageSize, string source)
         {
             _pageSize = pageSize;
-            _lastNumber = _lastNumber - pageSize;    //first GetNext() returns zero position
+            startNumber = _lastNumber - pageSize;    //first GetNext() returns zero position
+            _lastNumber = startNumber;
+
             Source = new PackageSource(source);
         }
 
@@ -45,7 +48,7 @@ namespace NuGetPackageManager.Pagination
 
         public void Reset()
         {
-            _lastNumber = -1;
+            _lastNumber = startNumber;
         }
     }
 }

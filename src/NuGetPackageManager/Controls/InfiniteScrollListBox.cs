@@ -76,5 +76,22 @@ namespace NuGetPackageManager.Controls
         // Using a DependencyProperty as the backing store for CommandParameter.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty CommandParameterProperty =
             DependencyProperty.Register("CommandParameter", typeof(object), typeof(InfiniteScrollListBox), new PropertyMetadata(0));
+
+
+
+        public bool IsCommandExecuting
+        {
+            get { return (bool)GetValue(IsCommandExecutingProperty); }
+            set { SetValue(IsCommandExecutingProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for IsCommandExecuting.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsCommandExecutingProperty =
+            DependencyProperty.Register("IsCommandExecuting", typeof(bool), typeof(InfiniteScrollListBox), 
+                new PropertyMetadata(false, (s,e ) => ((InfiniteScrollListBox)s).OnIsCommandExecutingChanged(e)));
+
+        private void OnIsCommandExecutingChanged(DependencyPropertyChangedEventArgs e)
+        {
+        }
     }
 }

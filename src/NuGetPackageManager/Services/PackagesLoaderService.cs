@@ -19,9 +19,17 @@ namespace NuGetPackageManager.Services
 
             var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
 
-            var packages = await searchResource.SearchAsync(searchTerm, searchFilter, pageContinuation.GetNext(), pageContinuation.Size, new Loggers.DebugLogger(true), token);
+            try
+            {
+                var packages = await searchResource.SearchAsync(searchTerm, searchFilter, pageContinuation.GetNext(), pageContinuation.Size, new Loggers.DebugLogger(true), token);
 
-            return packages;
+                return packages;
+            }
+            catch(FatalProtocolException ex) when (token.IsCancellationRequested)
+            {
+                //task is cancelled, supress
+                throw new OperationCanceledException("Search request was cancelled", ex, token);
+            }
         }
     }
 }
