@@ -36,14 +36,35 @@
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="40"/>
+                                <RowDefinition Height="32"/>
+                                <RowDefinition Height="28"/>
                                 <RowDefinition Height="40"/>
                             </Grid.RowDefinitions>
 
                             <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}}"/>
 
-                            <TextBlock Text="{Binding Identity}" Grid.Column="1"/>
-                            <TextBlock Text="{Binding Title }" Grid.Column="1" Grid.Row="1"/>
+                            <StackPanel Orientation="Horizontal" Grid.Column="1">
+                                <TextBlock Text="{Binding Identity}"/>
+                                <TextBlock Text="{Binding Auhors}"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal"
+                                        Grid.Column="1" Grid.Row="1">
+                                <StackPanel.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Margin" Value="0 0 8 0"/>
+                                    </Style>
+                                </StackPanel.Resources>
+                                <TextBlock Text="{Binding DownloadCount}"/>
+                                <TextBlock>total downloads</TextBlock>
+                                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                                <TextBlock>Latest version:</TextBlock>
+                                <TextBlock Text="{Binding Identity.Version}"/>
+                                <!--<TextBlock Text="{Binding Tags}" HorizontalAlignment="Right"/>-->
+                            </StackPanel>
+
+                           
+                            <TextBlock Text="{Binding Summary }" Grid.Column="1" Grid.Row="2"/>
                         </Grid>
                     </Border>
                 </DataTemplate>
