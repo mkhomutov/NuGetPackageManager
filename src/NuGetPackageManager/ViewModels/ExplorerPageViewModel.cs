@@ -11,6 +11,7 @@
     using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Services;
     using System;
+    using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
     using System.Threading;
@@ -19,19 +20,23 @@
     public class ExplorerPageViewModel : ViewModelBase
     {
         private readonly IPackagesLoaderService _packagesLoaderService;
+        private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
         private ExplorerSettingsContainer _settings;
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private FastObservableCollection<IPackageSearchMetadata> _packages { get; set; }
 
-        public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService)
+        public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService, 
+            IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService)
         {
             Title = pageTitle;
 
             Argument.IsNotNull(() => packagesLoaderService);
             Argument.IsNotNull(() => explorerSettings);
+            Argument.IsNotNull(() => packageMetadataMediaDownloadService);
 
             _packagesLoaderService = packagesLoaderService;
+            _packageMetadataMediaDownloadService = packageMetadataMediaDownloadService;
 
             Settings = explorerSettings;
 
@@ -133,6 +138,8 @@
                     var packages = await _packagesLoaderService.LoadAsync(
                         Settings.SearchString, PageInfo, new SearchFilter(Settings.IsPreReleaseIncluded), PageLoadingTokenSource.Token);
 
+                    //await DownloadAllPicturesForMetadataAsync(packages);
+
                     Packages.AddRange(packages);
 
                     Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString}'");
@@ -146,6 +153,21 @@
             {
                 IsCancellationTokenAlive = false;
             }
+        }
+
+        private async Task DownloadAllPicturesForMetadataAsync(IEnumerable<IPackageSearchMetadata> metadatas)
+        {
+            var tasklist = new List<Task>();
+
+            foreach(var metadata in metadatas)
+            {
+                if (metadata.IconUrl != null)
+                {
+                    tasklist.Add(_packageMetadataMediaDownloadService.DownloadFromAsync(metadata));
+                }
+            }
+
+            await Task.WhenAll(tasklist);
         }
 
         private async Task ResetLoaded()

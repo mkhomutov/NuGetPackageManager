@@ -7,8 +7,12 @@
              xmlns:nugetc="clr-namespace:NuGetPackageManager.Controls"
              xmlns:catel="http://schemas.catelproject.com"
              xmlns:mvvm="clr-namespace:NuGetPackageManager.MVVM"
+             xmlns:converters="clr-namespace:NuGetPackageManager.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <catel:UserControl.Resources>
+        <converters:UriToBitmapConverter x:Key="UriToBitmapConverter"/>
+    </catel:UserControl.Resources>
     <Grid>
         <Grid.Resources>
             <mvvm:BindingProxy Data="{Binding }" x:Key="ContextProxy"/>
@@ -35,6 +39,9 @@
                                 <RowDefinition Height="40"/>
                                 <RowDefinition Height="40"/>
                             </Grid.RowDefinitions>
+
+                            <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}}"/>
+
                             <TextBlock Text="{Binding Identity}" Grid.Column="1"/>
                             <TextBlock Text="{Binding Title }" Grid.Column="1" Grid.Row="1"/>
                         </Grid>

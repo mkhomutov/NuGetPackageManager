@@ -28,5 +28,10 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<ICredentialProviderLoaderService, CredentialProviderLoaderService>();
 
         serviceLocator.RegisterType<IPackagesLoaderService, PackagesLoaderService>();
+
+        var appCache = new ApplcationCacheProvider();
+
+        serviceLocator.RegisterInstance<IApplicationCacheProvider>(appCache);
+        serviceLocator.RegisterType<IPackageMetadataMediaDownloadService, PackageMetadataMediaDownloadService>();
     }
 }
