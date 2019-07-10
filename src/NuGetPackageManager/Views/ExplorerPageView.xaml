@@ -30,41 +30,60 @@
                 <DataTemplate>
                     <Border BorderThickness="1"
                             BorderBrush="Black">
-                        <Grid>
+                        <Grid Margin="0 8 0 0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="60"/>
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="32"/>
+                                <RowDefinition Height="18"/>
                                 <RowDefinition Height="28"/>
-                                <RowDefinition Height="40"/>
+                                <RowDefinition Height="50"/>
                             </Grid.RowDefinitions>
 
                             <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}}"/>
 
                             <StackPanel Orientation="Horizontal" Grid.Column="1">
-                                <TextBlock Text="{Binding Identity}"/>
-                                <TextBlock Text="{Binding Auhors}"/>
+                                <TextBlock Text="{Binding Identity}" FontSize="14"
+                                           FontWeight="DemiBold"/>
+                                <TextBlock Margin="8 0 2 0" 
+                                    Text="by:"
+                                    VerticalAlignment="Bottom"/>
+                                <TextBlock Text="{Binding Authors}"
+                                    VerticalAlignment="Bottom"/>
                             </StackPanel>
 
-                            <StackPanel Orientation="Horizontal"
-                                        Grid.Column="1" Grid.Row="1">
-                                <StackPanel.Resources>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Margin" Value="0 0 8 0"/>
+
+                            <Grid Grid.Column="1" Grid.Row="1"
+                                  Margin="0 4 0 0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="64"/>
+                                    <ColumnDefinition Width="90"/>
+                                    <ColumnDefinition Width="1"/>
+                                    <ColumnDefinition Width="86"/>
+                                    <ColumnDefinition Width="64"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.Resources>
+                                    <Style TargetType="Separator" BasedOn="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}">
+                                        <Setter Property="Padding" Value="0 2 0 2"/>
+                                        <Setter Property="Margin" Value="0"/>
+                                        <Setter Property="VerticalAlignment" Value="Top"/>
                                     </Style>
-                                </StackPanel.Resources>
-                                <TextBlock Text="{Binding DownloadCount}"/>
-                                <TextBlock>total downloads</TextBlock>
-                                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
-                                <TextBlock>Latest version:</TextBlock>
-                                <TextBlock Text="{Binding Identity.Version}"/>
-                                <!--<TextBlock Text="{Binding Tags}" HorizontalAlignment="Right"/>-->
-                            </StackPanel>
+                                </Grid.Resources>
 
+                                <TextBlock Text="{Binding DownloadCount}" Grid.Column="0"/>
+                                <TextBlock Grid.Column="1">total downloads</TextBlock>
+                                <Separator Grid.Column="2" Height="20"/>
+                                <TextBlock Grid.Column="3" 
+                                           Margin="4 0 0 0">Latest version:</TextBlock>
+                                <TextBlock Grid.Column="4" Text="{Binding Identity.Version}"/>
+                                <!--<TextBlock Text="{Binding Tags}" HorizontalAlignment="Right"/>-->
+                            </Grid>
                            
-                            <TextBlock Text="{Binding Summary }" Grid.Column="1" Grid.Row="2"/>
+                            <TextBlock Text="{Binding Summary }" TextWrapping="WrapWithOverflow"
+                                       Grid.Column="1" Grid.Row="2"/>
                         </Grid>
                     </Border>
                 </DataTemplate>
