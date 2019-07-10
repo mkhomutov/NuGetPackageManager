@@ -94,7 +94,7 @@
                   ItemsSource="{Binding ActiveFeeds}"
                   Margin="3 0 3 0"
                   IsSynchronizedWithCurrentItem="True"
-                  SelectedIndex="0"/>
+                  SelectedItem="{Binding ObservedFeed}"/>
         <!--select source feed -->
         <Button Grid.Row="1" Grid.Column="7"
                 Command="{Binding ShowPackageSourceSettings}"

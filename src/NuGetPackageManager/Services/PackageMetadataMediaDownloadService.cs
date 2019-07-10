@@ -1,17 +1,14 @@
-﻿using Catel;
-using NuGet.Protocol.Core.Types;
-using NuGetPackageManager.Cache;
-using NuGetPackageManager.Providers;
-using NuGetPackageManager.Web;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using Catel;
+    using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Cache;
+    using NuGetPackageManager.Providers;
+    using NuGetPackageManager.Web;
+    using System;
+    using System.IO;
+    using System.Threading.Tasks;
+
     public class PackageMetadataMediaDownloadService : IPackageMetadataMediaDownloadService
     {
         private static readonly IconDownloader iconDownloader = new IconDownloader();
@@ -45,7 +42,7 @@ namespace NuGetPackageManager.Services
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 var b = e;
                 throw;

@@ -1,25 +1,20 @@
-﻿using Catel.IoC;
-using Catel.MVVM.Converters;
-using NuGetPackageManager.Cache;
-using NuGetPackageManager.Providers;
-using NuGetPackageManager.Web;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-
-namespace NuGetPackageManager.Converters
+﻿namespace NuGetPackageManager.Converters
 {
+    using Catel.IoC;
+    using Catel.MVVM.Converters;
+    using NuGetPackageManager.Cache;
+    using NuGetPackageManager.Providers;
+    using System;
+    using System.Globalization;
+    using System.Windows;
+
     public class UriToBitmapConverter : IValueConverter
     {
         private static readonly IconCache iconCache;
 
         static UriToBitmapConverter()
         {
-            if(iconCache == null)
+            if (iconCache == null)
             {
                 var appCacheProvider = ServiceLocator.Default.ResolveType<IApplicationCacheProvider>();
 
@@ -29,11 +24,11 @@ namespace NuGetPackageManager.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if(value is null)
+            if (value is null)
             {
                 return DependencyProperty.UnsetValue;
             }
-            if(value is Uri)
+            if (value is Uri)
             {
                 var uri = (Uri)value;
 
@@ -42,7 +37,7 @@ namespace NuGetPackageManager.Converters
                 {
                     return iconCache.GetFromCache(uri);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     var b = e;
                     return DependencyProperty.UnsetValue;

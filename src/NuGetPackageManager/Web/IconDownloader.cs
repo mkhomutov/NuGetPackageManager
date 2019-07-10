@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Web
+﻿namespace NuGetPackageManager.Web
 {
+    using System;
+    using System.IO;
+    using System.Net;
+    using System.Threading.Tasks;
+
     public class IconDownloader
     {
         //readonly HttpSource httpSource = new HttpSource();
@@ -21,11 +16,9 @@ namespace NuGetPackageManager.Web
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
-
         public async Task<Stream> GetByUrlAsync(Uri uri)
         {
             var request = WebRequest.Create(uri);
-
 
             var response = await request.GetResponseAsync();
 

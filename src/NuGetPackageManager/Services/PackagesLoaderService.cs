@@ -1,16 +1,13 @@
-﻿using NuGet.Configuration;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
-using NuGetPackageManager.Pagination;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using NuGet.Protocol;
+    using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Pagination;
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class PackagesLoaderService : IPackagesLoaderService
     {
         public async Task<IEnumerable<IPackageSearchMetadata>> LoadAsync(string searchTerm, PageContinuation pageContinuation, SearchFilter searchFilter, CancellationToken token)
@@ -25,7 +22,7 @@ namespace NuGetPackageManager.Services
 
                 return packages;
             }
-            catch(FatalProtocolException ex) when (token.IsCancellationRequested)
+            catch (FatalProtocolException ex) when (token.IsCancellationRequested)
             {
                 //task is cancelled, supress
                 throw new OperationCanceledException("Search request was cancelled", ex, token);

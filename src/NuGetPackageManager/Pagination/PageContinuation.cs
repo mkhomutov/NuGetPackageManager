@@ -1,21 +1,18 @@
-﻿using Catel.Logging;
-using NuGet.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Pagination
+﻿namespace NuGetPackageManager.Pagination
 {
+    using Catel.Logging;
+    using NuGet.Configuration;
+
     public class PageContinuation
     {
         int _lastNumber = -1;
+
         int _pageSize = 1;
+
         int startNumber = 1;
 
         static readonly ILog Log = LogManager.GetCurrentClassLogger();
-        
+
         public PageContinuation(int pageSize, string source)
         {
             _pageSize = pageSize;
@@ -25,11 +22,7 @@ namespace NuGetPackageManager.Pagination
             Source = new PackageSource(source);
         }
 
-        public int LastNumber
-        {
-            get => _lastNumber;
-            private set => _lastNumber = value;
-        }
+        public int LastNumber { get => _lastNumber; private set => _lastNumber = value; }
 
         public int Size => _pageSize;
 

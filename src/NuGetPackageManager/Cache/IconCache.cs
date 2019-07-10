@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Runtime.Caching;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
-
-namespace NuGetPackageManager.Cache
+﻿namespace NuGetPackageManager.Cache
 {
+    using System;
+    using System.IO;
+    using System.Runtime.Caching;
+    using System.Windows.Media.Imaging;
+
     public class IconCache
     {
         MemoryCache Cache { get; set; } = new MemoryCache("Icon cache");
@@ -18,6 +13,10 @@ namespace NuGetPackageManager.Cache
         {
             StoringPolicy = cacheItemPolicy ?? DefaultStoringPolicy;
         }
+
+        public CacheItemPolicy StoringPolicy { get; private set; }
+
+        public static CacheItemPolicy DefaultStoringPolicy = new CacheItemPolicy();
 
         public void SaveToCache(Uri iconUri, byte[] streamContent)
         {
@@ -30,12 +29,12 @@ namespace NuGetPackageManager.Cache
             string key = iconUri.ToString();
             var cachedItem = Cache.Get(key) as byte[];
 
-            if(cachedItem == null)
+            if (cachedItem == null)
             {
                 throw new InvalidOperationException($"Key '{key}' not found in cache");
             }
 
-            using(var stream = new MemoryStream())
+            using (var stream = new MemoryStream())
             {
                 var image = new BitmapImage();
 
@@ -47,9 +46,5 @@ namespace NuGetPackageManager.Cache
                 return image;
             }
         }
-
-        public CacheItemPolicy StoringPolicy { get; private set; }
-
-        public static CacheItemPolicy DefaultStoringPolicy = new CacheItemPolicy();
     }
 }

@@ -4,15 +4,12 @@
     using Catel.Collections;
     using Catel.Logging;
     using Catel.MVVM;
-    using NuGet.Configuration;
-    using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Services;
     using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -20,13 +17,16 @@
     public class ExplorerPageViewModel : ViewModelBase
     {
         private readonly IPackagesLoaderService _packagesLoaderService;
+
         private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
+
         private ExplorerSettingsContainer _settings;
+
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private FastObservableCollection<IPackageSearchMetadata> _packages { get; set; }
 
-        public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService, 
+        public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
             IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService)
         {
             Title = pageTitle;
@@ -51,7 +51,7 @@
             get { return _settings; }
             set
             {
-                if(_settings != null)
+                if (_settings != null)
                 {
                     _settings.PropertyChanged -= OnSettingsPropertyPropertyChanged;
                 }
@@ -67,7 +67,7 @@
         //handle settings changes and force reloading if needed
         private async void OnSettingsPropertyPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == nameof(Settings.IsPreReleaseIncluded) || e.PropertyName == nameof(Settings.SearchString))
+            if (e.PropertyName == nameof(Settings.IsPreReleaseIncluded) || e.PropertyName == nameof(Settings.SearchString))
             {
                 //only if page is active
                 //for others update should be delayed until page selected
@@ -88,7 +88,7 @@
         {
             _packages = new FastObservableCollection<IPackageSearchMetadata>();
 
-            PageInfo = new PageContinuation(17, "https://api.nuget.org/v3/index.json");
+            PageInfo = new PageContinuation(17, Settings.ObservedFeed.Source);
 
             await LoadPackagesForTestAsync(PageInfo);
         }
@@ -106,7 +106,6 @@
             }
         }
 
-        #region commands
         public TaskCommand LoadNextPackagePage { get; set; }
 
         private async Task LoadNextPackagePageExecute()
@@ -118,13 +117,11 @@
 
         private async Task CancelPageLoadingExecute()
         {
-            if(IsCancellationTokenAlive)
+            if (IsCancellationTokenAlive)
             {
                 PageLoadingTokenSource.Cancel();
             }
         }
-
-        #endregion
 
         private async Task LoadPackagesForTestAsync(PageContinuation pageContinue)
         {
@@ -145,7 +142,7 @@
                     Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString}'");
                 }
             }
-            catch(OperationCanceledException e)
+            catch (OperationCanceledException e)
             {
                 Log.Info($"Command {nameof(LoadPackagesForTestAsync)} was cancelled by {e}");
             }
@@ -159,7 +156,7 @@
         {
             var tasklist = new List<Task>();
 
-            foreach(var metadata in metadatas)
+            foreach (var metadata in metadatas)
             {
                 if (metadata.IconUrl != null)
                 {

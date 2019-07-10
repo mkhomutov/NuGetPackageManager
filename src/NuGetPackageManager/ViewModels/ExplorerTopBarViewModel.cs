@@ -49,6 +49,9 @@
         [ViewModelToModel]
         public string SearchString { get; set; }
 
+        [ViewModelToModel]
+        public NuGetFeed ObservedFeed { get; set; }
+
         public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; }
 
         protected override Task InitializeAsync()
@@ -63,6 +66,9 @@
             }
 
             ActiveFeeds = new ObservableCollection<NuGetFeed>(GetActiveFeedsFromSettings());
+
+            //select top feed
+            ObservedFeed = ActiveFeeds.FirstOrDefault();
 
             return base.InitializeAsync();
         }

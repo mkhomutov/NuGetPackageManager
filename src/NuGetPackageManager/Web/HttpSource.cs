@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Web
+﻿namespace NuGetPackageManager.Web
 {
+    using System.Globalization;
+    using System.Net.Http;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class HttpSource
     {
         static HttpClient _httpClient;
