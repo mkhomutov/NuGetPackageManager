@@ -1,37 +1,102 @@
 ﻿namespace NuGetPackageManager.ViewModels
 {
+    using Catel;
+    using Catel.Collections;
+    using Catel.Logging;
     using Catel.MVVM;
-    using NuGet.Configuration;
-    using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Models;
+    using NuGetPackageManager.Pagination;
+    using NuGetPackageManager.Services;
     using System;
-    using System.Collections.ObjectModel;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
     public class ExplorerPageViewModel : ViewModelBase
     {
-        int pageSize = 17;
+        private readonly IPackagesLoaderService _packagesLoaderService;
 
-        int lastLoaded = 0;
+        private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
 
-        public ExplorerPageViewModel(string pageTitle)
+        private ExplorerSettingsContainer _settings;
+
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
+        private FastObservableCollection<IPackageSearchMetadata> _packages { get; set; }
+
+        public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
+            IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService)
         {
             Title = pageTitle;
 
+            Argument.IsNotNull(() => packagesLoaderService);
+            Argument.IsNotNull(() => explorerSettings);
+            Argument.IsNotNull(() => packageMetadataMediaDownloadService);
+
+            _packagesLoaderService = packagesLoaderService;
+            _packageMetadataMediaDownloadService = packageMetadataMediaDownloadService;
+
+            Settings = explorerSettings;
+
             LoadNextPackagePage = new TaskCommand(LoadNextPackagePageExecute);
+            CancelPageLoading = new TaskCommand(CancelPageLoadingExecute);
         }
+
+        private PageContinuation PageInfo { get; set; }
+
+        public ExplorerSettingsContainer Settings
+        {
+            get { return _settings; }
+            set
+            {
+                if (_settings != null)
+                {
+                    _settings.PropertyChanged -= OnSettingsPropertyPropertyChanged;
+                }
+                _settings = value;
+
+                if (_settings != null)
+                {
+                    _settings.PropertyChanged += OnSettingsPropertyPropertyChanged;
+                }
+            }
+        }
+
+        //handle settings changes and force reloading if needed
+        private async void OnSettingsPropertyPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Settings.IsPreReleaseIncluded) || e.PropertyName == nameof(Settings.SearchString))
+            {
+                //only if page is active
+                //for others update should be delayed until page selected
+                if (IsActive)
+                {
+                    await ResetLoaded();
+                }
+            }
+        }
+
+        public bool IsActive { get; set; }
+
+        public bool IsCancellationTokenAlive { get; set; }
+
+        public CancellationTokenSource PageLoadingTokenSource { get; set; }
 
         protected async override Task InitializeAsync()
         {
-            _packages = new ObservableCollection<IPackageSearchMetadata>();
-            await LoadPackagesForTestAsync(0);
+            _packages = new FastObservableCollection<IPackageSearchMetadata>();
+
+            PageInfo = new PageContinuation(17, Settings.ObservedFeed.Source);
+
+            await LoadPackagesForTestAsync(PageInfo);
         }
 
         /// <summary>
         /// Example set of items
         /// </summary>
-        public ObservableCollection<IPackageSearchMetadata> Packages
+        public FastObservableCollection<IPackageSearchMetadata> Packages
         {
             get { return _packages; }
             set
@@ -45,37 +110,69 @@
 
         private async Task LoadNextPackagePageExecute()
         {
-            await LoadPackagesForTestAsync(lastLoaded + 1);
+            await LoadPackagesForTestAsync(PageInfo);
         }
 
-        private ObservableCollection<IPackageSearchMetadata> _packages { get; set; }
+        public TaskCommand CancelPageLoading { get; set; }
 
-        private async Task LoadPackagesForTestAsync(int start)
+        private async Task CancelPageLoadingExecute()
         {
-            var v3_providers = Repository.Provider.GetCoreV3();
-
-            var packageSource = new PackageSource("https://api.nuget.org/v3/index.json");
-
-            var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root: null), v3_providers);
-
-            var repository = new SourceRepository(packageSource, v3_providers);
-
-            var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
-
-            using (var cts = new CancellationTokenSource())
+            if (IsCancellationTokenAlive)
             {
-                var cancellationToken = cts.Token;
-
-                //try to perform search
-                var packages = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, pageSize, new Loggers.DebugLogger(true), cancellationToken);
-
-                foreach (var p in packages)
-                {
-                    Packages.Add(p);
-                }
-
-                lastLoaded = Packages.Count - 1;
+                PageLoadingTokenSource.Cancel();
             }
+        }
+
+        private async Task LoadPackagesForTestAsync(PageContinuation pageContinue)
+        {
+            try
+            {
+
+                using (PageLoadingTokenSource = new CancellationTokenSource())
+                {
+                    IsCancellationTokenAlive = true;
+
+                    var packages = await _packagesLoaderService.LoadAsync(
+                        Settings.SearchString, PageInfo, new SearchFilter(Settings.IsPreReleaseIncluded), PageLoadingTokenSource.Token);
+
+                    //await DownloadAllPicturesForMetadataAsync(packages);
+
+                    Packages.AddRange(packages);
+
+                    Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString}'");
+                }
+            }
+            catch (OperationCanceledException e)
+            {
+                Log.Info($"Command {nameof(LoadPackagesForTestAsync)} was cancelled by {e}");
+            }
+            finally
+            {
+                IsCancellationTokenAlive = false;
+            }
+        }
+
+        private async Task DownloadAllPicturesForMetadataAsync(IEnumerable<IPackageSearchMetadata> metadatas)
+        {
+            var tasklist = new List<Task>();
+
+            foreach (var metadata in metadatas)
+            {
+                if (metadata.IconUrl != null)
+                {
+                    tasklist.Add(_packageMetadataMediaDownloadService.DownloadFromAsync(metadata));
+                }
+            }
+
+            await Task.WhenAll(tasklist);
+        }
+
+        private async Task ResetLoaded()
+        {
+            PageInfo.Reset();
+            Packages.Clear();
+
+            await LoadPackagesForTestAsync(PageInfo);
         }
     }
 }

@@ -20,9 +20,18 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<IConfigurationService, NugetConfigurationService>();
         serviceLocator.RegisterType<IModelProvider<NuGetFeed>, ModelProvider<NuGetFeed>>();
 
+        serviceLocator.RegisterType<IModelProvider<ExplorerSettingsContainer>, ModelProvider<ExplorerSettingsContainer>>();
+
         serviceLocator.RegisterType<INuGetFeedVerificationService, NuGetFeedVerificationService>();
 
         serviceLocator.RegisterType<ICredentialProvider, WindowsCredentialProvider>();
         serviceLocator.RegisterType<ICredentialProviderLoaderService, CredentialProviderLoaderService>();
+
+        serviceLocator.RegisterType<IPackagesLoaderService, PackagesLoaderService>();
+
+        var appCache = new ApplcationCacheProvider();
+
+        serviceLocator.RegisterInstance<IApplicationCacheProvider>(appCache);
+        serviceLocator.RegisterType<IPackageMetadataMediaDownloadService, PackageMetadataMediaDownloadService>();
     }
 }

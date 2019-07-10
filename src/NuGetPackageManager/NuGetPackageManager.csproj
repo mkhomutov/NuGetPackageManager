@@ -62,6 +62,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="System.Runtime.Caching" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Resources\Add_8x_16x.png" />
     <Resource Include="Resources\cross-removebg.png" />
     <Resource Include="Resources\Download_grey_16x.png" />

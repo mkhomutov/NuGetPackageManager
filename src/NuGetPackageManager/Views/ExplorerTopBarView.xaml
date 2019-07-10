@@ -51,7 +51,7 @@
         </StackPanel>
 
 
-        <TextBlock Text="Manage Packages for Solution"
+        <TextBlock Text="Manage NuGet Packages"
                    Grid.Column="5" Grid.ColumnSpan="3"
                    HorizontalAlignment="Right"
                    FontSize="16"
@@ -60,7 +60,8 @@
 
         <!-- tool bar -->
         <TextBox Grid.Row="1"
-                 Margin="10 0 0 0"/> <!--search box-->
+                 Margin="10 0 0 0"
+                 Text="{Binding SearchString}"/> <!--search box-->
         
         <Button Grid.Row="1" Grid.Column="1"
                 Command="{Binding RefreshCurrentPage}"
@@ -75,7 +76,8 @@
         
         <CheckBox Grid.Row="1" Grid.Column="2"
                   VerticalAlignment="Center"
-                  Margin="3 0 3 0"/>
+                  Margin="3 0 3 0"
+                  IsChecked="{Binding IsPreReleaseIncluded}"/>
         <TextBlock Grid.Row="1" Grid.Column="3"
                    VerticalAlignment="Center"
                    Margin="3 0 3 0">
@@ -92,7 +94,7 @@
                   ItemsSource="{Binding ActiveFeeds}"
                   Margin="3 0 3 0"
                   IsSynchronizedWithCurrentItem="True"
-                  SelectedIndex="0"/>
+                  SelectedItem="{Binding ObservedFeed}"/>
         <!--select source feed -->
         <Button Grid.Row="1" Grid.Column="7"
                 Command="{Binding ShowPackageSourceSettings}"

@@ -1,4 +1,4 @@
-﻿<catel:DataWindow x:Class="NuGetPackageManager.Views.MainWindow"
+﻿ <catel:DataWindow x:Class="NuGetPackageManager.Views.MainWindow"
         xmlns:catel="http://schemas.catelproject.com"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -18,15 +18,19 @@
         </Grid.ColumnDefinitions>
 
 
-        <local:ExplorerTopBarView Grid.ColumnSpan="2"  UsedOn="{Binding ElementName=ExplorerPagesTabControl}"/>
+        <local:ExplorerTopBarView Grid.ColumnSpan="2" x:Name="TopBar"
+                                  UsedOn="{Binding ElementName=ExplorerPagesTabControl}"
+                                  DataContext="{Binding Settings}"/>
 
         <TabControl Name="ExplorerPagesTabControl"
                     Grid.Column="0" Grid.Row="1"
                     MinHeight="800"
+                    Margin="10 0 0 0"
                     ItemsSource="{Binding ExplorerPages}">
             <TabControl.ItemContainerStyle>
                 <Style TargetType="{x:Type TabItem}">
                     <Setter Property="Visibility" Value="Hidden"/>
+                    <Setter Property="IsSelected" Value="{Binding IsActive}"/>
                 </Style>
             </TabControl.ItemContainerStyle>
             <TabControl.ItemTemplate>

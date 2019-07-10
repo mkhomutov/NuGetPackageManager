@@ -21,17 +21,20 @@
 
         private readonly NugetConfigurationService _configurationService;
 
-        private readonly ILog _log = LogManager.GetCurrentClassLogger();
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
-        public ExplorerTopBarViewModel(ITypeFactory typeFactory, IUIVisualizerService uIVisualizerService, IConfigurationService configurationService)
+        public ExplorerTopBarViewModel(ExplorerSettingsContainer settings, ITypeFactory typeFactory, IUIVisualizerService uIVisualizerService, IConfigurationService configurationService)
         {
             Argument.IsNotNull(() => typeFactory);
             Argument.IsNotNull(() => uIVisualizerService);
             Argument.IsNotNull(() => configurationService);
+            Argument.IsNotNull(() => settings);
 
             _typeFactory = typeFactory;
             _uIVisualizerService = uIVisualizerService;
             _configurationService = configurationService as NugetConfigurationService;
+
+            Settings = settings;
 
             Title = "Manage Packages";
             CommandInitialize();
@@ -43,13 +46,16 @@
         [ViewModelToModel]
         public bool IsPreReleaseIncluded { get; set; }
 
+        [ViewModelToModel]
+        public string SearchString { get; set; }
+
+        [ViewModelToModel]
+        public NuGetFeed ObservedFeed { get; set; }
+
         public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; }
 
         protected override Task InitializeAsync()
         {
-            //todo save other flags, as using prereleases
-            Settings = new ExplorerSettingsContainer();
-
             if (_configurationService.IsValueAvailable(ConfigurationContainer.Local, $"feed{0}"))
             {
                 ReadFeedsFromConfiguration(Settings);
@@ -60,6 +66,9 @@
             }
 
             ActiveFeeds = new ObservableCollection<NuGetFeed>(GetActiveFeedsFromSettings());
+
+            //select top feed
+            ObservedFeed = ActiveFeeds.FirstOrDefault();
 
             return base.InitializeAsync();
         }
@@ -106,7 +115,7 @@
                 }
                 else
                 {
-                    _log.Error($"Configuration value under key {i} is broken and cannot be loaded");
+                    Log.Error($"Configuration value under key {i} is broken and cannot be loaded");
                 }
 
                 i++;

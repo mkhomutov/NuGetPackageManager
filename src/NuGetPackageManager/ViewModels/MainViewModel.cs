@@ -4,6 +4,7 @@ namespace NuGetPackageManager.ViewModels
     using Catel.IoC;
     using Catel.MVVM;
     using Catel.Services;
+    using NuGetPackageManager.Models;
     using System.Collections.ObjectModel;
     using System.Threading.Tasks;
 
@@ -25,9 +26,12 @@ namespace NuGetPackageManager.ViewModels
         protected override Task InitializeAsync()
         {
             ExplorerPages = new ObservableCollection<ExplorerPageViewModel>();
+            
             CreatePages();
             return base.InitializeAsync();
         }
+
+        public ExplorerSettingsContainer Settings { get; set; } = new ExplorerSettingsContainer();
 
         public ObservableCollection<ExplorerPageViewModel> ExplorerPages { get; set; }
 
@@ -47,7 +51,7 @@ namespace NuGetPackageManager.ViewModels
 
             ExplorerPageViewModel CreatePage(string title)
             {
-                return _typeFactory.CreateInstanceWithParametersAndAutoCompletion<ExplorerPageViewModel>(title);
+                return _typeFactory.CreateInstanceWithParametersAndAutoCompletion<ExplorerPageViewModel>(Settings,title);
             }
         }
     }

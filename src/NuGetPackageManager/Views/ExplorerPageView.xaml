@@ -6,13 +6,23 @@
              xmlns:local="clr-namespace:NuGetPackageManager.Views"
              xmlns:nugetc="clr-namespace:NuGetPackageManager.Controls"
              xmlns:catel="http://schemas.catelproject.com"
+             xmlns:mvvm="clr-namespace:NuGetPackageManager.MVVM"
+             xmlns:converters="clr-namespace:NuGetPackageManager.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <catel:UserControl.Resources>
+        <converters:UriToBitmapConverter x:Key="UriToBitmapConverter"/>
+    </catel:UserControl.Resources>
     <Grid>
-        <nugetc:InfiniteScrollListBox ItemsSource="{Binding Packages}"
+        <Grid.Resources>
+            <mvvm:BindingProxy Data="{Binding }" x:Key="ContextProxy"/>
+        </Grid.Resources>
+        <nugetc:InfiniteScrollListBox x:Name="infinitybox"
+                                      ItemsSource="{Binding Packages}"
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       Command="{Binding LoadNextPackagePage}"
+                                      IsCommandExecuting="{Binding IsCancellationTokenAlive}"
                                       HorizontalContentAlignment="Stretch"
                                       ItemContainerStyle="{StaticResource DefaultListBoxItemStyle}"
                                       Height="800">
@@ -20,21 +30,112 @@
                 <DataTemplate>
                     <Border BorderThickness="1"
                             BorderBrush="Black">
-                        <Grid>
+                        <Grid Margin="0 8 0 0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="60"/>
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="40"/>
-                                <RowDefinition Height="40"/>
+                                <RowDefinition Height="18"/>
+                                <RowDefinition Height="28"/>
+                                <RowDefinition Height="50"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Text="{Binding Identity}" Grid.Column="1"/>
-                            <TextBlock Text="{Binding Title }" Grid.Column="1" Grid.Row="1"/>
+
+                            <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}}"/>
+
+                            <StackPanel Orientation="Horizontal" Grid.Column="1">
+                                <TextBlock Text="{Binding Identity}" FontSize="14"
+                                           FontWeight="DemiBold"/>
+                                <TextBlock Margin="8 0 2 0" 
+                                    Text="by:"
+                                    VerticalAlignment="Bottom"/>
+                                <TextBlock Text="{Binding Authors}"
+                                    VerticalAlignment="Bottom"/>
+                            </StackPanel>
+
+
+                            <Grid Grid.Column="1" Grid.Row="1"
+                                  Margin="0 4 0 0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="64"/>
+                                    <ColumnDefinition Width="90"/>
+                                    <ColumnDefinition Width="1"/>
+                                    <ColumnDefinition Width="86"/>
+                                    <ColumnDefinition Width="64"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.Resources>
+                                    <Style TargetType="Separator" BasedOn="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}">
+                                        <Setter Property="Padding" Value="0 2 0 2"/>
+                                        <Setter Property="Margin" Value="0"/>
+                                        <Setter Property="VerticalAlignment" Value="Top"/>
+                                    </Style>
+                                </Grid.Resources>
+
+                                <TextBlock Text="{Binding DownloadCount}" Grid.Column="0"/>
+                                <TextBlock Grid.Column="1">total downloads</TextBlock>
+                                <Separator Grid.Column="2" Height="20"/>
+                                <TextBlock Grid.Column="3" 
+                                           Margin="4 0 0 0">Latest version:</TextBlock>
+                                <TextBlock Grid.Column="4" Text="{Binding Identity.Version}"/>
+                                <!--<TextBlock Text="{Binding Tags}" HorizontalAlignment="Right"/>-->
+                            </Grid>
+                           
+                            <TextBlock Text="{Binding Summary }" TextWrapping="WrapWithOverflow"
+                                       Grid.Column="1" Grid.Row="2"/>
                         </Grid>
                     </Border>
                 </DataTemplate>
             </nugetc:InfiniteScrollListBox.ItemTemplate>
         </nugetc:InfiniteScrollListBox>
+        
+        <!--loading indication -->
+        <Border Panel.ZIndex="1" Height="80" VerticalAlignment="Bottom"
+                Background="{DynamicResource AccentColorBrush3}"
+                BorderBrush="{DynamicResource AccentColorBrush}"
+                BorderThickness="0 2 0 1"
+                Visibility="{Binding ElementName=infinitybox, Path=IsCommandExecuting, Converter={catel:BooleanToCollapsingVisibilityConverter}}">
+            <StackPanel>
+                <Button Command="{Binding Data.CancelPageLoading, Source={StaticResource ContextProxy}}" 
+                        Width="60" Height="20" 
+                        Margin="0 10 0 0">
+                    <Button.Content>
+                        <TextBlock>Cancel</TextBlock>
+                    </Button.Content>
+                </Button>
+
+                <Viewbox Height="30" Width="30"
+                         Margin="0 8 0 0">
+                    <Canvas Name="indicatorCanvas" Width="30" Height="30"
+                            RenderTransformOrigin="0.5, 0.5">
+                        <Canvas.RenderTransform>
+                            <RotateTransform CenterX="0.5" CenterY="0.5"/>
+                        </Canvas.RenderTransform>
+                        <Canvas.Resources/>
+                        <Ellipse    Canvas.Left="0" 
+                                    Width="30" Height="30"
+                                    StrokeThickness="2" 
+                                    Stroke="{DynamicResource AccentColorBrush}" 
+                                    StrokeStartLineCap="Round" 
+                                    StrokeDashArray="10 5"
+                                    StrokeEndLineCap="Round">
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard >
+                                            <DoubleAnimation Storyboard.TargetName="indicatorCanvas"
+                                                Storyboard.TargetProperty="(RenderTransform).(RotateTransform.Angle)"
+                                                                     To="-360" 
+                                                                     Duration="0:0:2" RepeatBehavior="Forever"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+                    </Canvas>
+                </Viewbox>
+            </StackPanel>
+        </Border>
     </Grid>
 </catel:UserControl>
