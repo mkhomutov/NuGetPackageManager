@@ -1,6 +1,7 @@
 ﻿namespace NuGetPackageManager.Models
 {
     using Catel.Data;
+    using Catel.Logging;
     using System;
     using System.ComponentModel;
 
@@ -8,6 +9,8 @@
     {
         public NuGetFeed()
         {
+            VerificationResult = FeedVerificationResult.Unknown;
+            Error = String.Empty;
         }
 
         public NuGetFeed(string name, string source)
@@ -26,11 +29,11 @@
 
         public int TestCount { get; set; }
 
-        public FeedVerificationResult VerificationResult { get; set; } = FeedVerificationResult.Valid;
+        public FeedVerificationResult VerificationResult { get; set; }
 
-        public bool IsNameValid => !String.IsNullOrEmpty(Name);
+        public bool IsNameValid { get; private set; }
 
-        public bool IsAccessible => VerificationResult == FeedVerificationResult.Valid;
+        public bool IsAccessible { get; set; }
 
         public override string ToString()
         {
@@ -76,10 +79,13 @@
         {
             return new NuGetFeed(
                 this.Name, this.Source)
-            { IsActive = this.IsActive };
+            {
+                IsActive = this.IsActive,
+                VerificationResult = this.VerificationResult
+            };
         }
 
-        public string Error { get; private set; } = String.Empty;
+        public string Error { get; private set; }
 
 
         public string this[string columnName]
@@ -108,5 +114,25 @@
                 return String.Empty;
             }
         }
+
+        protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == nameof(Source))
+            {
+                //reset verification
+                VerificationResult = FeedVerificationResult.Unknown;
+            }
+            if(e.PropertyName == nameof(VerificationResult))
+            {
+                IsAccessible = VerificationResult == FeedVerificationResult.Valid;
+            }
+            if(e.PropertyName == nameof(Name))
+            {
+                IsNameValid =  !String.IsNullOrEmpty(Name);
+            }
+            base.OnPropertyChanged(e);
+        }
+
+        private static readonly ILog log = LogManager.GetCurrentClassLogger();
     }
 }

@@ -72,10 +72,5 @@ namespace NuGetPackageManager.ViewModels
         {
             return Task.FromResult(true);
         }
-
-        //private void OnModelProviderPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        //{
-        //    Feed = _modelProvider.Model.Clone();
-        //}
     }
 }

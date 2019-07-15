@@ -45,7 +45,7 @@ namespace NuGetPackageManager.ViewModels
 
         public ObservableCollection<NuGetFeed> Feeds { get; set; } = new ObservableCollection<NuGetFeed>();
 
-        [Model]
+        //[Model]
         public NuGetFeed SelectedFeed { get; set; }
 
         /// <summary>
@@ -165,19 +165,11 @@ namespace NuGetPackageManager.ViewModels
 
         private void OnModelProviderPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            //should drop current selected row and add updated
-            Feeds.Remove(SelectedFeed);
-            Feeds.Add(_modelProvider.Model);
+            var index = Feeds.IndexOf(SelectedFeed);
+
+            Feeds[index] = _modelProvider.Model;
 
             SelectedFeed = _modelProvider.Model;
-
-            //keep selection
-            //SelectedFeed = _modelProvider.Model;
-
-            ////copy values from edited clone
-            //_modelProvider.Model.CopyTo(SelectedFeed);
-
-            //_modelProvider.Model = SelectedFeed;
         }
 
 
@@ -185,13 +177,13 @@ namespace NuGetPackageManager.ViewModels
         {
             //verify all new feeds in collection
             //because of feed edit is simple re-insertion we should'nt handle property change inside model
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add || e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
             {
                 if (e.NewItems != null)
                 {
                     foreach (NuGetFeed item in e.NewItems)
                     {
-                        if (!item.IsLocal())
+                        if (!item.IsLocal() && item.VerificationResult == FeedVerificationResult.Unknown)
                         {
                             await VerifyFeedAsync(item);
                         }
