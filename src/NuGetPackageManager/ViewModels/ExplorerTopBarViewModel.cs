@@ -98,9 +98,6 @@
             }
         }
 
-        /*placeholder, this probably should be application command inside separate Catel command container*/
-        public Command RefreshCurrentPage { get; set; }
-
         private void ReadFeedsFromConfiguration(ExplorerSettingsContainer settings)
         {
             NuGetFeed temp = null; ;

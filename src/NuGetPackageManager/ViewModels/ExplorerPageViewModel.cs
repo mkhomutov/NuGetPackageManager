@@ -4,6 +4,7 @@
     using Catel.Collections;
     using Catel.Logging;
     using Catel.MVVM;
+    using Catel.Windows.Input;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Pagination;
@@ -13,10 +14,13 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Windows.Input;
 
     public class ExplorerPageViewModel : ViewModelBase
     {
         private readonly IPackagesLoaderService _packagesLoaderService;
+
+        private readonly ICommandManager _commandManager;
 
         private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
 
@@ -26,22 +30,29 @@
 
         private FastObservableCollection<IPackageSearchMetadata> _packages { get; set; }
 
+        private static readonly int pageSize = 17;
+
         public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
-            IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService)
+            IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService, ICommandManager commandManager)
         {
             Title = pageTitle;
 
             Argument.IsNotNull(() => packagesLoaderService);
             Argument.IsNotNull(() => explorerSettings);
             Argument.IsNotNull(() => packageMetadataMediaDownloadService);
+            Argument.IsNotNull(() => commandManager);
 
             _packagesLoaderService = packagesLoaderService;
             _packageMetadataMediaDownloadService = packageMetadataMediaDownloadService;
+            _commandManager = commandManager;
 
             Settings = explorerSettings;
 
             LoadNextPackagePage = new TaskCommand(LoadNextPackagePageExecute);
             CancelPageLoading = new TaskCommand(CancelPageLoadingExecute);
+            RefreshCurrentPage = new TaskCommand(RefreshCurrentPageExecute);
+
+            commandManager.RegisterCommand(nameof(RefreshCurrentPage), RefreshCurrentPage, this);
         }
 
         private PageContinuation PageInfo { get; set; }
@@ -67,13 +78,23 @@
         //handle settings changes and force reloading if needed
         private async void OnSettingsPropertyPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(Settings.IsPreReleaseIncluded) || e.PropertyName == nameof(Settings.SearchString))
+            if (e.PropertyName == nameof(Settings.IsPreReleaseIncluded) 
+                || e.PropertyName == nameof(Settings.SearchString) || e.PropertyName == nameof(Settings.ObservedFeed))
             {
-                //only if page is active
-                //for others update should be delayed until page selected
-                if (IsActive)
+                if (Settings.ObservedFeed != null)
                 {
-                    await ResetLoaded();
+                    if (e.PropertyName == nameof(Settings.ObservedFeed))
+                    {
+                        //recreate pageinfo
+                        PageInfo = new PageContinuation(pageSize, Settings.ObservedFeed.Source);
+                    }
+
+                    //only if page is active
+                    //for others update should be delayed until page selected
+                    if (IsActive)
+                    {
+                        await RefreshPageWithNewParameters();
+                    }
                 }
             }
         }
@@ -88,16 +109,27 @@
 
         protected async override Task InitializeAsync()
         {
-            _packages = new FastObservableCollection<IPackageSearchMetadata>();
+            try
+            {
+                _packages = new FastObservableCollection<IPackageSearchMetadata>();
 
-            PageInfo = new PageContinuation(17, Settings.ObservedFeed.Source);
+                if (Settings.ObservedFeed != null)
+                {
+                    PageInfo = new PageContinuation(pageSize, Settings.ObservedFeed.Source);
 
-            await LoadPackagesForTestAsync(PageInfo);
+                    await LoadPackagesForTestAsync(PageInfo);
+                }
+                else
+                {
+                    Log.Info("None of the source feeds configured");
+                }
+            }
+            catch(Exception)
+            {
+                throw;
+            }
         }
 
-        /// <summary>
-        /// Example set of items
-        /// </summary>
         public FastObservableCollection<IPackageSearchMetadata> Packages
         {
             get { return _packages; }
@@ -109,7 +141,7 @@
         }
 
         public TaskCommand LoadNextPackagePage { get; set; }
-
+        
         private async Task LoadNextPackagePageExecute()
         {
             await LoadPackagesForTestAsync(PageInfo);
@@ -125,6 +157,16 @@
             }
         }
 
+        public TaskCommand RefreshCurrentPage { get; set; }
+
+        private async Task RefreshCurrentPageExecute()
+        {
+            if(IsActive)
+            {
+                await RefreshPageWithNewParameters();
+            }
+        }
+
         private async Task LoadPackagesForTestAsync(PageContinuation pageContinue)
         {
             try
@@ -137,7 +179,7 @@
                     var packages = await _packagesLoaderService.LoadAsync(
                         Settings.SearchString, PageInfo, new SearchFilter(Settings.IsPreReleaseIncluded), PageLoadingTokenSource.Token);
 
-                    await DownloadAllPicturesForMetadataAsync(packages);
+                    //await DownloadAllPicturesForMetadataAsync(packages);
 
                     Packages.AddRange(packages);
 
@@ -173,7 +215,7 @@
             await Task.WhenAll(tasklist);
         }
 
-        private async Task ResetLoaded()
+        private async Task RefreshPageWithNewParameters()
         {
             PageInfo.Reset();
             Packages.Clear();

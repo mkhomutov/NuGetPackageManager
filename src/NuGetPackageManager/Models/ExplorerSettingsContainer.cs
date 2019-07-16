@@ -2,6 +2,7 @@
 {
     using Catel.Data;
     using System.Collections.Generic;
+    using System.Linq;
 
     public class ExplorerSettingsContainer : ModelBase
     {
@@ -18,5 +19,14 @@
         public bool IsPreReleaseIncluded { get; set; }
 
         public string SearchString { get; set; }
+
+        protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == nameof(NuGetFeed))
+            {
+                ObservedFeed = NuGetFeeds.FirstOrDefault();
+            }
+            base.OnPropertyChanged(e);
+        }
     }
 }

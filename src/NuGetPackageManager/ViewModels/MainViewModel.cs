@@ -8,6 +8,7 @@ namespace NuGetPackageManager.ViewModels
     using NuGetPackageManager.Models;
     using System.Collections.ObjectModel;
     using System.Threading.Tasks;
+    using System.Windows.Input;
 
     public class MainViewModel : ViewModelBase
     {
@@ -15,13 +16,16 @@ namespace NuGetPackageManager.ViewModels
 
         private readonly ITypeFactory _typeFactory;
 
-        public MainViewModel(ITypeFactory typeFactory, IUIVisualizerService service)
+        public MainViewModel(ITypeFactory typeFactory, IUIVisualizerService service, ICommandManager commandManager)
         {
             Argument.IsNotNull(() => service);
             Argument.IsNotNull(() => typeFactory);
+            Argument.IsNotNull(() => commandManager);
 
             _uIVisualizerService = service;
             _typeFactory = typeFactory;
+
+            CreateApplicationWideCommands(commandManager);
         }
 
         protected override Task InitializeAsync()
@@ -56,6 +60,12 @@ namespace NuGetPackageManager.ViewModels
             {
                 return _typeFactory.CreateInstanceWithParametersAndAutoCompletion<ExplorerPageViewModel>(Settings,title);
             }
+        }
+
+        private void CreateApplicationWideCommands(ICommandManager cm)
+        {
+            //move to initializer
+            cm.CreateCommand("RefreshCurrentPage", new Catel.Windows.Input.InputGesture(Key.F5));
         }
     }
 }
