@@ -84,6 +84,8 @@
 
         public CancellationTokenSource PageLoadingTokenSource { get; set; }
 
+        public IPackageSearchMetadata SelectedPackage { get; set; }
+
         protected async override Task InitializeAsync()
         {
             _packages = new FastObservableCollection<IPackageSearchMetadata>();
@@ -135,7 +137,7 @@
                     var packages = await _packagesLoaderService.LoadAsync(
                         Settings.SearchString, PageInfo, new SearchFilter(Settings.IsPreReleaseIncluded), PageLoadingTokenSource.Token);
 
-                    //await DownloadAllPicturesForMetadataAsync(packages);
+                    await DownloadAllPicturesForMetadataAsync(packages);
 
                     Packages.AddRange(packages);
 
@@ -145,6 +147,10 @@
             catch (OperationCanceledException e)
             {
                 Log.Info($"Command {nameof(LoadPackagesForTestAsync)} was cancelled by {e}");
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
             finally
             {

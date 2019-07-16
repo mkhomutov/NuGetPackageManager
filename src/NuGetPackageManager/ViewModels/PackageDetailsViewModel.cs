@@ -1,4 +1,5 @@
-﻿using Catel.MVVM;
+﻿using Catel.Fody;
+using Catel.MVVM;
 using NuGet.Protocol.Core.Types;
 using NuGetPackageManager.Models;
 using System;
@@ -16,11 +17,13 @@ namespace NuGetPackageManager.ViewModels
             //create package from metadata
             if(packageMetadata != null)
             {
-                Package = new NuGetPackage();
+                Package = new NuGetPackage(packageMetadata);
             }
         }
 
         [Model]
+        [Expose("Title")]
+        [Expose("Description")]
         public NuGetPackage Package { get; set; }
     }
 }

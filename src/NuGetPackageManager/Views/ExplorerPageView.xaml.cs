@@ -13,7 +13,6 @@ namespace NuGetPackageManager.Views
         public ExplorerPageView()
         {
             //prevent closing view models
-            ViewModelLifetimeManagement = Catel.MVVM.ViewModelLifetimeManagement.PartlyManual;
             InitializeComponent();
         }
 

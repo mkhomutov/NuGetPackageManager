@@ -42,7 +42,8 @@
                                 <RowDefinition Height="50"/>
                             </Grid.RowDefinitions>
 
-                            <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}}"/>
+                            <!-- todo show package logo-->
+                            <!--<Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}}"/>-->
 
                             <StackPanel Orientation="Horizontal" Grid.Column="1">
                                 <TextBlock Text="{Binding Identity}" FontSize="14"
@@ -80,7 +81,6 @@
                                 <TextBlock Grid.Column="3" 
                                            Margin="4 0 0 0">Latest version:</TextBlock>
                                 <TextBlock Grid.Column="4" Text="{Binding Identity.Version}"/>
-                                <!--<TextBlock Text="{Binding Tags}" HorizontalAlignment="Right"/>-->
                             </Grid>
                            
                             <TextBlock Text="{Binding Summary }" TextWrapping="WrapWithOverflow"
