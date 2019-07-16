@@ -33,6 +33,7 @@ namespace NuGetPackageManager.ViewModels
             Argument.IsNotNull(() => configredFeeds);
 
             ActiveFeeds = configredFeeds;
+            Feeds = new ObservableCollection<NuGetFeed>(ActiveFeeds);
 
             _configurationService = configurationService as NugetConfigurationService;
             _feedVerificationService = feedVerificationService;
@@ -43,7 +44,7 @@ namespace NuGetPackageManager.ViewModels
             DeferValidationUntilFirstSaveCall = true;
         }
 
-        public ObservableCollection<NuGetFeed> Feeds { get; set; } = new ObservableCollection<NuGetFeed>();
+        public ObservableCollection<NuGetFeed> Feeds { get; set; }
 
         //[Model]
         public NuGetFeed SelectedFeed { get; set; }

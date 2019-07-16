@@ -52,6 +52,8 @@
         [ViewModelToModel]
         public NuGetFeed ObservedFeed { get; set; }
 
+        public bool SelectFirstPageOnLoad { get; set; } = true;
+
         public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; }
 
         protected override Task InitializeAsync()

@@ -25,6 +25,7 @@
                                       IsCommandExecuting="{Binding IsCancellationTokenAlive}"
                                       HorizontalContentAlignment="Stretch"
                                       ItemContainerStyle="{StaticResource DefaultListBoxItemStyle}"
+                                      SelectedItem="{Binding SelectedPackage}"
                                       Height="800">
             <nugetc:InfiniteScrollListBox.ItemTemplate>
                 <DataTemplate>

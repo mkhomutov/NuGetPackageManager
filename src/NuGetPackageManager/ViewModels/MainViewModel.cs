@@ -4,6 +4,7 @@ namespace NuGetPackageManager.ViewModels
     using Catel.IoC;
     using Catel.MVVM;
     using Catel.Services;
+    using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Models;
     using System.Collections.ObjectModel;
     using System.Threading.Tasks;
@@ -32,6 +33,8 @@ namespace NuGetPackageManager.ViewModels
         }
 
         public ExplorerSettingsContainer Settings { get; set; } = new ExplorerSettingsContainer();
+
+        public IPackageSearchMetadata SelectedPackageMetadata { get; set; } 
 
         public ObservableCollection<ExplorerPageViewModel> ExplorerPages { get; set; }
 

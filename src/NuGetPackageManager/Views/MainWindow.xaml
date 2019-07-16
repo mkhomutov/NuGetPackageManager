@@ -43,14 +43,15 @@
             <TabControl.ContentTemplate>
                 <DataTemplate>
                     <StackPanel>
-                        <local:ExplorerPageView/>
+                        <local:ExplorerPageView SelectedItemOnPage="{Binding ...}"/>
                     </StackPanel>                    
                 </DataTemplate>
             </TabControl.ContentTemplate>
         </TabControl>
         
         <!--detail of current selected package -->
-        <local:PackageDetailsView Grid.Row="1" Grid.Column="1"/>
+        <local:PackageDetailsView DataContext="{Binding SelectedPackageMetadata}" 
+                                  Grid.Row="1" Grid.Column="1"/>
 
     </Grid>
 </catel:DataWindow>
