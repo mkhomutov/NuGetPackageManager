@@ -11,6 +11,7 @@
         {
             VerificationResult = FeedVerificationResult.Unknown;
             Error = String.Empty;
+            IsActive = true;
         }
 
         public NuGetFeed(string name, string source)
