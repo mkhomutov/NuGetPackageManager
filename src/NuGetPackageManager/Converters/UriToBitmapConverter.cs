@@ -24,28 +24,17 @@
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is null)
-            {
-                return DependencyProperty.UnsetValue;
-            }
-            if (value is Uri)
-            {
-                var uri = (Uri)value;
+            var uri = value != null ? (Uri)value : null;
 
-                //get bitmap from stream cache
-                try
-                {
-                    return iconCache.GetFromCache(uri);
-                }
-                catch (Exception e)
-                {
-                    var b = e;
-                    return DependencyProperty.UnsetValue;
-                }
-            }
-            else
+            //get bitmap from stream cache
+            try
             {
-                throw new ArgumentException($"Converter used on value '{value}' of unsupported type");
+                return iconCache.GetFromCache(uri);
+            }
+            catch (Exception e)
+            {
+                var b = e;
+                return DependencyProperty.UnsetValue;
             }
         }
 

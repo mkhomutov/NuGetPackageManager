@@ -42,11 +42,13 @@
                                 <RowDefinition Height="50"/>
                             </Grid.RowDefinitions>
 
-                            <!-- todo show package logo-->
-                            <!--<Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}}"/>-->
+                            <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}, IsAsync=True}"
+                                   RenderOptions.BitmapScalingMode="Fant"
+                                   Height="32" Width="32" Grid.RowSpan="2"
+                                   VerticalAlignment="Top" Margin="0 4 2 0"/>
 
                             <DockPanel Grid.Column="1">
-                                <TextBlock Text="{Binding Identity}" FontSize="14"
+                                <TextBlock Text="{Binding Title}" FontSize="14"
                                            FontWeight="DemiBold"/>
                                 <TextBlock Margin="8 0 2 0" 
                                     Text="by:"
@@ -77,7 +79,7 @@
                                 </Grid.Resources>
 
                                 <TextBlock Text="{Binding DownloadCount}" Grid.Column="0"/>
-                                <TextBlock Grid.Column="1">total downloads</TextBlock>
+                                <TextBlock Grid.Column="1" Margin="4 0 0 0">total downloads</TextBlock>
                             </Grid>
                            
                             <TextBlock Text="{Binding Summary }" TextWrapping="WrapWithOverflow"

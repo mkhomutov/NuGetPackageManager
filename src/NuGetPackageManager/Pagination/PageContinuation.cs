@@ -5,19 +5,19 @@
 
     public class PageContinuation
     {
-        int _lastNumber = -1;
+        private int _lastNumber = -1;
 
-        int _pageSize = 1;
+        private int _pageSize = 1;
 
-        int startNumber = 1;
+        private int _startNumber = 1;
 
-        static readonly ILog Log = LogManager.GetCurrentClassLogger();
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         public PageContinuation(int pageSize, string source)
         {
             _pageSize = pageSize;
-            startNumber = _lastNumber - pageSize;    //first GetNext() returns zero position
-            _lastNumber = startNumber;
+            _startNumber = _lastNumber - pageSize;    //first GetNext() returns zero position
+            _lastNumber = _startNumber;
 
             Source = new PackageSource(source);
         }
@@ -41,7 +41,7 @@
 
         public void Reset()
         {
-            _lastNumber = startNumber;
+            _lastNumber = _startNumber;
         }
     }
 }

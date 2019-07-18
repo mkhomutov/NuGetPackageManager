@@ -18,19 +18,17 @@
 
     public class ExplorerPageViewModel : ViewModelBase
     {
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+        private static readonly int _pageSize = 17;
+
         private readonly IPackagesLoaderService _packagesLoaderService;
-
         private readonly ICommandManager _commandManager;
-
         private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
 
         private ExplorerSettingsContainer _settings;
 
-        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
-
         private FastObservableCollection<IPackageSearchMetadata> _packages { get; set; }
 
-        private static readonly int pageSize = 17;
 
         public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
             IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService, ICommandManager commandManager)
@@ -78,15 +76,15 @@
         //handle settings changes and force reloading if needed
         private async void OnSettingsPropertyPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(Settings.IsPreReleaseIncluded) 
-                || e.PropertyName == nameof(Settings.SearchString) || e.PropertyName == nameof(Settings.ObservedFeed))
+            if (e.PropertyName.Equals(nameof(Settings.IsPreReleaseIncluded))
+                || e.PropertyName.Equals(nameof(Settings.SearchString)) || e.PropertyName.Equals(nameof(Settings.ObservedFeed)))
             {
                 if (Settings.ObservedFeed != null)
                 {
                     if (e.PropertyName == nameof(Settings.ObservedFeed))
                     {
                         //recreate pageinfo
-                        PageInfo = new PageContinuation(pageSize, Settings.ObservedFeed.Source);
+                        PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.Source);
                     }
 
                     //only if page is active
@@ -115,7 +113,7 @@
 
                 if (Settings.ObservedFeed != null)
                 {
-                    PageInfo = new PageContinuation(pageSize, Settings.ObservedFeed.Source);
+                    PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.Source);
 
                     await LoadPackagesForTestAsync(PageInfo);
                 }
@@ -171,7 +169,6 @@
         {
             try
             {
-
                 using (PageLoadingTokenSource = new CancellationTokenSource())
                 {
                     IsCancellationTokenAlive = true;
@@ -179,7 +176,7 @@
                     var packages = await _packagesLoaderService.LoadAsync(
                         Settings.SearchString, PageInfo, new SearchFilter(Settings.IsPreReleaseIncluded), PageLoadingTokenSource.Token);
 
-                    //await DownloadAllPicturesForMetadataAsync(packages);
+                    await DownloadAllPicturesForMetadataAsync(packages);
 
                     Packages.AddRange(packages);
 
@@ -202,17 +199,22 @@
 
         private async Task DownloadAllPicturesForMetadataAsync(IEnumerable<IPackageSearchMetadata> metadatas)
         {
-            var tasklist = new List<Task>();
-
             foreach (var metadata in metadatas)
             {
                 if (metadata.IconUrl != null)
                 {
-                    tasklist.Add(_packageMetadataMediaDownloadService.DownloadFromAsync(metadata));
+                    try
+                    {
+                        await _packageMetadataMediaDownloadService.DownloadFromAsync(metadata);
+                    }
+                    catch(Exception)
+                    {
+                        throw;
+                    }
                 }
             }
 
-            await Task.WhenAll(tasklist);
+            await Task.CompletedTask;
         }
 
         private async Task RefreshPageWithNewParameters()

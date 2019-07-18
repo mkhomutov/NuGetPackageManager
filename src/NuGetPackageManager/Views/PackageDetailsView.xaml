@@ -26,6 +26,7 @@
 
         <TextBlock Margin="10 13 0 0"
                    FontSize="24"
+                   Grid.ColumnSpan="3"
                    Text="{Binding Title}">
         </TextBlock>
 

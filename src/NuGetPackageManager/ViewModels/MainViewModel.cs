@@ -44,9 +44,9 @@ namespace NuGetPackageManager.ViewModels
 
         private void CreatePages()
         {
-            string[] pageNames = new string[] { "Browse", "Installed", "Updates", "Consolidate" };
+            string[] pageNames = new string[] { "Browse", "Installed", "Updates" };
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < pageNames.Length; i++)
             {
                 var newPage = CreatePage(pageNames[i]);
 
