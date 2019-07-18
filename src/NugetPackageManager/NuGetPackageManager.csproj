@@ -29,6 +29,7 @@
     <None Remove="Controls\RotationProgressBar.xaml" />
     <None Remove="Resources\Add_8x_16x.png" />
     <None Remove="Resources\cross-removebg.png" />
+    <None Remove="Resources\default-package-icon.png" />
     <None Remove="Resources\Download_grey_16x.png" />
     <None Remove="Resources\Upload_gray_16x.png" />
     <None Remove="Themes\Brushes.xaml" />
@@ -69,6 +70,7 @@
   <ItemGroup>
     <Resource Include="Resources\Add_8x_16x.png" />
     <Resource Include="Resources\cross-removebg.png" />
+    <Resource Include="Resources\default-package-icon.png" />
     <Resource Include="Resources\Download_grey_16x.png" />
     <Resource Include="Resources\Upload_gray_16x.png" />
   </ItemGroup>
