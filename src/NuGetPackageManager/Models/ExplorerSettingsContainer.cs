@@ -14,7 +14,7 @@
         /// <summary>
         /// Feed currently used by explorer
         /// </summary>
-        public NuGetFeed ObservedFeed { get; set; }
+        public INuGetSource ObservedFeed { get; set; }
 
         public bool IsPreReleaseIncluded { get; set; }
 

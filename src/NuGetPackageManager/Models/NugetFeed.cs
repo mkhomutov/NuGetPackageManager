@@ -5,7 +5,7 @@
     using System;
     using System.ComponentModel;
 
-    public class NuGetFeed : ModelBase, ICloneable<NuGetFeed>, IDataErrorInfo
+    public class NuGetFeed : ModelBase, ICloneable<NuGetFeed>, IDataErrorInfo, INuGetSource
     {
         public NuGetFeed()
         {
@@ -28,13 +28,13 @@
 
         public bool IsVerifiedNow { get; set; }
 
-        public int TestCount { get; set; }
-
         public FeedVerificationResult VerificationResult { get; set; }
 
         public bool IsNameValid { get; private set; }
 
         public bool IsAccessible { get; set; }
+
+        public bool MultipleSource => false;
 
         public override string ToString()
         {
@@ -87,7 +87,6 @@
         }
 
         public string Error { get; private set; }
-
 
         public string this[string columnName]
         {

@@ -50,11 +50,11 @@
         public string SearchString { get; set; }
 
         [ViewModelToModel]
-        public NuGetFeed ObservedFeed { get; set; }
+        public INuGetSource ObservedFeed { get; set; }
 
         public bool SelectFirstPageOnLoad { get; set; } = true;
 
-        public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; }
+        public ObservableCollection<INuGetSource> ActiveFeeds { get; set; }
 
         protected override Task InitializeAsync()
         {
@@ -67,7 +67,7 @@
                 AddDefaultFeeds(Settings);
             }
 
-            ActiveFeeds = new ObservableCollection<NuGetFeed>(GetActiveFeedsFromSettings());
+            ActiveFeeds = new ObservableCollection<INuGetSource>(GetActiveFeedsFromSettings());
 
             //select top feed
             ObservedFeed = ActiveFeeds.FirstOrDefault();
@@ -93,7 +93,7 @@
                 if (result ?? false)
                 {
                     //update available feeds
-                    ActiveFeeds = new ObservableCollection<NuGetFeed>(GetActiveFeedsFromSettings());
+                    ActiveFeeds = new ObservableCollection<INuGetSource>(GetActiveFeedsFromSettings());
                 }
             }
         }
@@ -130,9 +130,14 @@
               ));
         }
 
-        private IEnumerable<NuGetFeed> GetActiveFeedsFromSettings()
+        private IEnumerable<INuGetSource> GetActiveFeedsFromSettings()
         {
-            return Settings.NuGetFeeds.Where(x => x.IsActive);
+            var activefeeds = Settings.NuGetFeeds.Where(x => x.IsActive).ToList<INuGetSource>();
+            var allInOneSource = new CombinedNuGetSource(activefeeds);
+
+            activefeeds.Insert(0, allInOneSource);
+
+            return activefeeds;
         }
     }
 }

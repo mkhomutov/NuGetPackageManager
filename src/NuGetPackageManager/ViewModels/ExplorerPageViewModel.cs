@@ -4,7 +4,7 @@
     using Catel.Collections;
     using Catel.Logging;
     using Catel.MVVM;
-    using Catel.Windows.Input;
+    using NuGet.Configuration;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Pagination;
@@ -14,7 +14,6 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Windows.Input;
 
     public class ExplorerPageViewModel : ViewModelBase
     {
@@ -84,7 +83,10 @@
                     if (e.PropertyName == nameof(Settings.ObservedFeed))
                     {
                         //recreate pageinfo
-                        PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.Source);
+                        if (!Settings.ObservedFeed.MultipleSource)
+                        {
+                            PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.Source);
+                        }
                     }
 
                     //only if page is active
@@ -115,7 +117,7 @@
                 {
                     PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.Source);
 
-                    await LoadPackagesForTestAsync(PageInfo);
+                    await LoadPackagesForTestAsync();
                 }
                 else
                 {
@@ -142,7 +144,7 @@
         
         private async Task LoadNextPackagePageExecute()
         {
-            await LoadPackagesForTestAsync(PageInfo);
+            await LoadPackagesForTestAsync();
         }
 
         public TaskCommand CancelPageLoading { get; set; }
@@ -165,7 +167,7 @@
             }
         }
 
-        private async Task LoadPackagesForTestAsync(PageContinuation pageContinue)
+        private async Task LoadPackagesForTestAsync()
         {
             try
             {
@@ -222,7 +224,7 @@
             PageInfo.Reset();
             Packages.Clear();
 
-            await LoadPackagesForTestAsync(PageInfo);
+            await LoadPackagesForTestAsync();
         }
     }
 }
