@@ -28,6 +28,8 @@
 
         public bool IsVerifiedNow { get; set; }
 
+        public Guid SerializationIdentifier { get; set; } 
+
         public FeedVerificationResult VerificationResult { get; set; }
 
         public bool IsNameValid { get; private set; }

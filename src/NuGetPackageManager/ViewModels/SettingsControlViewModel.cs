@@ -34,6 +34,7 @@ namespace NuGetPackageManager.ViewModels
 
             ActiveFeeds = configredFeeds;
             Feeds = new ObservableCollection<NuGetFeed>(ActiveFeeds);
+            RemovedFeeds = new List<NuGetFeed>();
 
             _configurationService = configurationService as NugetConfigurationService;
             _feedVerificationService = feedVerificationService;
@@ -54,10 +55,13 @@ namespace NuGetPackageManager.ViewModels
         /// </summary>
         public List<NuGetFeed> ActiveFeeds { get; set; }
 
+        public List<NuGetFeed> RemovedFeeds { get; set; }
+
         public Command RemoveFeed { get; set; }
 
         private void OnRemoveFeedExecute()
         {
+            RemovedFeeds.Add(SelectedFeed);
             Feeds.Remove(SelectedFeed);
         }
 
@@ -104,12 +108,16 @@ namespace NuGetPackageManager.ViewModels
             //store all feed inside configuration
             for (int i = 0; i < Feeds.Count; i++)
             {
-                _configurationService.SetValue(ConfigurationContainer.Local, $"feed{i}", Feeds[i]);
+                _configurationService.SetRoamingValueWithDefaultIdGenerator(Feeds[i]);
             }
 
             //send usable feeds (including failed)
             ActiveFeeds.Clear();
             ActiveFeeds.AddRange(Feeds);
+
+            //feeds removal
+            _configurationService.RemoveValues(ConfigurationContainer.Local, RemovedFeeds);
+            RemovedFeeds.Clear();
 
             return base.SaveAsync();
         }

@@ -14,6 +14,7 @@ namespace NuGetPackageManager.Models
         {
             Title = packageMetadata.Title;
             Description = packageMetadata.Description;
+            
         }
 
         public string Title { get; private set; }

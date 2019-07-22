@@ -58,14 +58,10 @@
 
         protected override Task InitializeAsync()
         {
-            if (_configurationService.IsValueAvailable(ConfigurationContainer.Local, $"feed{0}"))
-            {
-                ReadFeedsFromConfiguration(Settings);
-            }
-            else
-            {
-                AddDefaultFeeds(Settings);
-            }
+            ReadFeedsFromConfiguration(Settings);
+
+            //Log.Info("No feeds stored in configuration");
+            //AddDefaultFeeds(Settings);
 
             ActiveFeeds = new ObservableCollection<INuGetSource>(GetActiveFeedsFromSettings());
 
@@ -101,12 +97,12 @@
         private void ReadFeedsFromConfiguration(ExplorerSettingsContainer settings)
         {
             NuGetFeed temp = null; ;
-            int i = 0;
 
-            //restore values from configuration
-            while (_configurationService.IsLocalValueAvailable($"feed{i}"))
+            var keyCollection = _configurationService.GetAllKeys(ConfigurationContainer.Roaming);
+
+            for (int i = 0; i< keyCollection.Count; i++)
             {
-                temp = _configurationService.GetValue(ConfigurationContainer.Local, $"feed{i}");
+                temp = _configurationService.GetRoamingValue(keyCollection[i]);
 
                 if (temp != null)
                 {
@@ -116,8 +112,6 @@
                 {
                     Log.Error($"Configuration value under key {i} is broken and cannot be loaded");
                 }
-
-                i++;
             }
         }
 

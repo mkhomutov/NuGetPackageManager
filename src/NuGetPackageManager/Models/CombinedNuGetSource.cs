@@ -16,10 +16,10 @@ namespace NuGetPackageManager.Models
 
         public bool MultipleSource => true;
 
-        public CombinedNuGetSource(IEnumerable<INuGetSource> feedList)
+        public CombinedNuGetSource(IReadOnlyList<INuGetSource> feedList)
         {
             feedList.ForEach(x => sourceList.Add(x.Source));
-            Source = feedList.FirstOrDefault().Source;
+            Source = feedList.FirstOrDefault()?.Source ?? String.Empty;
         }
 
         public void AddFeed(NuGetFeed source)
