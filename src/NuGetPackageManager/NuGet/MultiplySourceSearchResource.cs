@@ -13,7 +13,7 @@ namespace NuGetPackageManager
     {
         private PackageSearchResource[] combinedResources;
 
-        private MultiplySourceSearchResource(SourceRepository[] sourceRepositories)
+        private MultiplySourceSearchResource()
         {
         }
 
@@ -26,7 +26,7 @@ namespace NuGetPackageManager
 
         public async static Task<MultiplySourceSearchResource> CreateAsync(SourceRepository[] sourceRepositories)
         {
-            var searchRes = new MultiplySourceSearchResource(sourceRepositories);
+            var searchRes = new MultiplySourceSearchResource();
             await searchRes.LoadResources(sourceRepositories);
 
             return searchRes;
@@ -42,11 +42,35 @@ namespace NuGetPackageManager
 
                 var combinedResults = results.SelectMany(x => x.Select(i => i));
 
-                return combinedResults;
+                return  await MergeVersionsAsync(combinedResults);
             }
             catch (FatalProtocolException ex) when (cancellationToken.IsCancellationRequested)
             {
                 throw new OperationCanceledException("Search request was cancelled", ex, cancellationToken);
+            }
+        }
+
+        private async Task<IEnumerable<IPackageSearchMetadata>> MergeVersionsAsync(IEnumerable<IPackageSearchMetadata> metadatas)
+        {
+            var identityGroups = metadatas.GroupBy(x => x.Identity.Id)
+                .OrderByDescending(x => x.Max(e => e.DownloadCount))
+                .Select(g => g.OrderByDescending(e => e.Identity.Version))
+                .SelectMany(g => g).Distinct(new PackageIdentityEqualityComparer());
+
+
+            return identityGroups.ToList();
+        }
+
+        private class PackageIdentityEqualityComparer : IEqualityComparer<IPackageSearchMetadata>
+        {
+            public bool Equals(IPackageSearchMetadata x, IPackageSearchMetadata y)
+            {
+                return x.Identity.Equals(y.Identity);
+            }
+
+            public int GetHashCode(IPackageSearchMetadata obj)
+            {
+                return obj.Identity.GetHashCode();
             }
         }
     }
