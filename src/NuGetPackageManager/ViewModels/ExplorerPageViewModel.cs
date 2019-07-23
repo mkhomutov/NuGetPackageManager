@@ -112,7 +112,7 @@
                 _packages = new FastObservableCollection<IPackageSearchMetadata>();
 
                 //todo validation
-                if (Settings.ObservedFeed != null && !Settings.ObservedFeed.Source.Equals(String.Empty))
+                if (Settings.ObservedFeed != null && !String.IsNullOrEmpty(Settings.ObservedFeed.Source))
                 {
                     PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.GetPackageSource());
 

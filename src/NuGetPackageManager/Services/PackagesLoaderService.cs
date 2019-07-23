@@ -16,20 +16,30 @@
         {
             Argument.IsValid(nameof(pageContinuation), pageContinuation, pageContinuation.IsValid);
 
-            var repository = new SourceRepository(pageContinuation.Source.PackageSources.SingleOrDefault(), Repository.Provider.GetCoreV3());
-
-            var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
-
-            try
+            if (pageContinuation.Source.PackageSources.Count > 0) // < 2
             {
-                var packages = await searchResource.SearchAsync(searchTerm, searchFilter, pageContinuation.GetNext(), pageContinuation.Size, new Loggers.DebugLogger(true), token);
+                var repository = new SourceRepository(pageContinuation.Source.PackageSources.FirstOrDefault(), Repository.Provider.GetCoreV3());
+
+
+                var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
+
+                try
+                {
+                    var packages = await searchResource.SearchAsync(searchTerm, searchFilter, pageContinuation.GetNext(), pageContinuation.Size, new Loggers.DebugLogger(true), token);
+
+                    return packages;
+                }
+                catch (FatalProtocolException ex) when (token.IsCancellationRequested)
+                {
+                    //task is cancelled, supress
+                    throw new OperationCanceledException("Search request was cancelled", ex, token);
+                }
+            }
+            else
+            {
+                var packages = await LoadAsyncFromSources(searchTerm, pageContinuation, searchFilter, token);
 
                 return packages;
-            }
-            catch (FatalProtocolException ex) when (token.IsCancellationRequested)
-            {
-                //task is cancelled, supress
-                throw new OperationCanceledException("Search request was cancelled", ex, token);
             }
         }
 

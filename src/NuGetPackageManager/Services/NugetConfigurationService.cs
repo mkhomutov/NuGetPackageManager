@@ -44,7 +44,7 @@ namespace NuGetPackageManager.Services
             {
                 var serializedFeed = serializedModel as NuGetFeed;
 
-                Guid guid = Guid.Parse(key);
+                Guid guid = KeyFromString(key);
 
                 if (serializedFeed != null)
                 {
@@ -67,7 +67,7 @@ namespace NuGetPackageManager.Services
 
         public NuGetFeed GetRoamingValue(Guid key)
         {
-            return GetValue(ConfigurationContainer.Roaming, key.ToString());
+            return GetValue(ConfigurationContainer.Roaming, KeyToString(key));
         }
 
         public IReadOnlyList<Guid> GetAllKeys(ConfigurationContainer container)
@@ -76,7 +76,7 @@ namespace NuGetPackageManager.Services
 
             var keyList = feedKeys.Split(new string[] { KeySeparator }, StringSplitOptions.RemoveEmptyEntries);
 
-            return keyList.Select(key => Guid.Parse(key)).ToList();
+            return keyList.Select(key => KeyFromString(key)).ToList();
         }
 
         public void SetValue(ConfigurationContainer container, string key, NuGetFeed value)
@@ -109,12 +109,22 @@ namespace NuGetPackageManager.Services
                 value.SerializationIdentifier = ConfigurationIdGenerator.GetUniqueIdentifier();
             }
 
-            SetValue(container, value.SerializationIdentifier.ToString(), value);
+            SetValue(container, KeyToString(value.SerializationIdentifier), value);
         }
 
         public void SetRoamingValueWithDefaultIdGenerator(NuGetFeed value)
         {
             SetValueWithDefaultIdGenerator(ConfigurationContainer.Roaming, value);
+        }
+
+        protected string KeyToString(Guid guid)
+        {
+            return $"_{guid}";
+        }
+
+        protected Guid KeyFromString(string key)
+        {
+            return Guid.Parse(key.Substring(1));
         }
 
         public void RemoveValues(ConfigurationContainer container, IReadOnlyList<NuGetFeed> feedList)
@@ -127,11 +137,11 @@ namespace NuGetPackageManager.Services
                 {
                     guid = ConfigurationIdGenerator.IsCollision(guid) ? ConfigurationIdGenerator.GetOriginalIdentifier(guid) : guid;
 
-                    if (ValueExists(container, guid.ToString()))
+                    if (ValueExists(container, KeyToString(guid)))
                     {
-                        SetValue(container, guid.ToString(), null);
+                        SetValue(container, KeyToString(guid), String.Empty);
 
-                        UpdateSectionKeyList(container, ConfigurationSections.Feeds, guid.ToString(), true);
+                        UpdateSectionKeyList(container, ConfigurationSections.Feeds, KeyToString(guid), true);
                     }
                 }
             }
@@ -146,7 +156,7 @@ namespace NuGetPackageManager.Services
 
         private void UpdateSectionKeyList(ConfigurationContainer container, ConfigurationSections confSection, string key, bool isRemove = false)
         {
-            var keyList = masterKeys[confSection];
+            var keyList = GetValueFromStore(container, masterKeys[confSection]);
             string updatedKeys = String.Empty;
 
             if(isRemove)
@@ -160,7 +170,7 @@ namespace NuGetPackageManager.Services
             else
             {
                 //updatedKeys = String.Join(keyList, keys);
-                updatedKeys = String.Join(keyList, key);
+                updatedKeys = String.Join(KeySeparator, key, keyList);
             }
 
             SetValueToStore(container, masterKeys[confSection], updatedKeys);
