@@ -4,6 +4,7 @@
     using Catel.Logging;
     using System;
     using System.ComponentModel;
+    using System.Xml.Serialization;
 
     public class NuGetFeed : ModelBase, ICloneable<NuGetFeed>, IDataErrorInfo, INuGetSource
     {
@@ -26,16 +27,22 @@
 
         public bool IsActive { get; set; }
 
+        [XmlIgnore]
         public bool IsVerifiedNow { get; set; }
 
-        public Guid SerializationIdentifier { get; set; } 
+        [XmlIgnore]
+        public Guid SerializationIdentifier { get; set; }
 
+        [XmlIgnore]
         public FeedVerificationResult VerificationResult { get; set; }
 
+        [XmlIgnore]
         public bool IsNameValid { get; private set; }
 
+        [XmlIgnore]
         public bool IsAccessible { get; set; }
 
+        [XmlIgnore]
         public bool MultipleSource => false;
 
         public override string ToString()
@@ -78,13 +85,19 @@
             }
         }
 
+        public PackageSourceWrapper GetPackageSource()
+        {
+            return new PackageSourceWrapper(Source);
+        }
+
         public NuGetFeed Clone()
         {
             return new NuGetFeed(
                 this.Name, this.Source)
             {
                 IsActive = this.IsActive,
-                VerificationResult = this.VerificationResult
+                VerificationResult = this.VerificationResult,
+                SerializationIdentifier = this.SerializationIdentifier  
             };
         }
 
@@ -130,11 +143,18 @@
             }
             if(e.PropertyName == nameof(Name))
             {
-                IsNameValid =  !String.IsNullOrEmpty(Name);
+                IsNameValid = !String.IsNullOrEmpty(Name);
             }
             base.OnPropertyChanged(e);
         }
 
-        private static readonly ILog log = LogManager.GetCurrentClassLogger();
+        /// <summary>
+        /// Called from configuration service
+        /// </summary>
+        public void Initialize()
+        {
+            IsNameValid = !String.IsNullOrEmpty(Name);
+            IsAccessible = VerificationResult == FeedVerificationResult.Valid;
+        }
     }
 }

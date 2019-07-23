@@ -44,12 +44,20 @@ namespace NuGetPackageManager.Services
             {
                 var serializedFeed = serializedModel as NuGetFeed;
 
+                Guid guid = Guid.Parse(key);
+
                 if (serializedFeed != null)
                 {
-                    if(!ConfigurationIdGenerator.TryTakeUniqueIdentifier(serializedFeed.SerializationIdentifier, out Guid newGUid))
+                    if(!ConfigurationIdGenerator.TryTakeUniqueIdentifier(guid, out Guid newGUid))
                     {
                         serializedFeed.SerializationIdentifier = newGUid;
                     }
+                    else
+                    {
+                        serializedFeed.SerializationIdentifier = guid;
+                    }
+
+                    serializedFeed.Initialize();
 
                     return serializedFeed;
                 }

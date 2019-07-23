@@ -83,15 +83,13 @@
                     if (e.PropertyName == nameof(Settings.ObservedFeed))
                     {
                         //recreate pageinfo
-                        if (!Settings.ObservedFeed.MultipleSource)
-                        {
-                            PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.Source);
-                        }
+
+                         PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.GetPackageSource());
                     }
 
                     //only if page is active
                     //for others update should be delayed until page selected
-                    if (IsActive)
+                    if (IsActive && PageInfo.IsValid)
                     {
                         await RefreshPageWithNewParameters();
                     }
@@ -116,7 +114,7 @@
                 //todo validation
                 if (Settings.ObservedFeed != null && !Settings.ObservedFeed.Source.Equals(String.Empty))
                 {
-                    PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.Source);
+                    PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.GetPackageSource());
 
                     await LoadPackagesForTestAsync();
                 }

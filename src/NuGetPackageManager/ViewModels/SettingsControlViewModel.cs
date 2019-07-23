@@ -94,13 +94,13 @@ namespace NuGetPackageManager.ViewModels
             AddFeed = new Command(OnAddFeedExecute);
         }
 
-        protected override Task InitializeAsync()
+        protected override async Task InitializeAsync()
         {
             //handle manual model save on child viewmodel
             _modelProvider.PropertyChanged += OnModelProviderPropertyChanged;
             Feeds.CollectionChanged += OnFeedsCollectioChanged;
 
-            return base.InitializeAsync();
+            Feeds.ForEach(async x =>  await VerifyFeedAsync(x));
         }
 
         protected override Task<bool> SaveAsync()

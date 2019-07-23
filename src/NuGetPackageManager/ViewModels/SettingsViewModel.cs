@@ -13,7 +13,7 @@ namespace NuGetPackageManager.ViewModels
             Settings = settings;
         }
 
-        [Model]
+        [Model(SupportIEditableObject = false)]
         [Expose("NuGetFeeds")]
         public ExplorerSettingsContainer Settings { get; set; }
 

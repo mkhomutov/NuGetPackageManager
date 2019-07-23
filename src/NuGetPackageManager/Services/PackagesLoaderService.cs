@@ -1,5 +1,6 @@
 ﻿namespace NuGetPackageManager.Services
 {
+    using Catel;
     using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Pagination;
@@ -13,7 +14,9 @@
     {
         public async Task<IEnumerable<IPackageSearchMetadata>> LoadAsync(string searchTerm, PageContinuation pageContinuation, SearchFilter searchFilter, CancellationToken token)
         {
-            var repository = new SourceRepository(pageContinuation.Source.SingleOrDefault(), Repository.Provider.GetCoreV3());
+            Argument.IsValid(nameof(pageContinuation), pageContinuation, pageContinuation.IsValid);
+
+            var repository = new SourceRepository(pageContinuation.Source.PackageSources.SingleOrDefault(), Repository.Provider.GetCoreV3());
 
             var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
 
@@ -34,11 +37,12 @@
             SearchFilter searchFilter, CancellationToken token)
         {
             var searchResource = await MultiplySourceSearchResource.CreateAsync(
-                pageContinuation.Source.Select(s => new SourceRepository(s, Repository.Provider.GetCoreV3())).ToArray());
+                pageContinuation.Source.PackageSources.Select(s => new SourceRepository(s, Repository.Provider.GetCoreV3())).ToArray());
 
             try
             {
-                var packages = await searchResource.SearchAsync(searchTerm, searchFilter, pageContinuation.GetNext(), pageContinuation.Size, new Loggers.DebugLogger(true), token);
+                var packages = await searchResource.SearchAsync(searchTerm, searchFilter, 
+                    pageContinuation.GetNext(), pageContinuation.Size, new Loggers.DebugLogger(true), token);
 
                 return packages;
             }

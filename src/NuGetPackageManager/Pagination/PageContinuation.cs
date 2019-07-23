@@ -14,13 +14,13 @@
 
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
-        public PageContinuation(int pageSize, params string[] sources)
+        public PageContinuation(int pageSize, PackageSourceWrapper packageSourceWrapper)
         {
             _pageSize = pageSize;
             _startNumber = _lastNumber - pageSize;    //first GetNext() returns zero position
             _lastNumber = _startNumber;
 
-            Source = sources.Select(s => new PackageSource(s)).ToArray();
+            Source = packageSourceWrapper;
         }
 
         public int LastNumber { get => _lastNumber; private set => _lastNumber = value; }
@@ -29,7 +29,9 @@
 
         public int Next => LastNumber + 1;
 
-        public PackageSource[] Source { get; private set; }
+        public bool IsValid => Source.PackageSources.Any();
+
+        public PackageSourceWrapper Source { get; private set; }
 
         public int GetNext()
         {

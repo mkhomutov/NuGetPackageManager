@@ -12,14 +12,11 @@ namespace NuGetPackageManager.Models
         private List<string> sourceList = new List<string>();
 
         public string Name => "All";
-        public string Source { get; set; }
-
-        public bool MultipleSource => true;
+        public string Source => sourceList.FirstOrDefault();//returns top source
 
         public CombinedNuGetSource(IReadOnlyList<INuGetSource> feedList)
         {
             feedList.ForEach(x => sourceList.Add(x.Source));
-            Source = feedList.FirstOrDefault()?.Source ?? String.Empty;
         }
 
         public void AddFeed(NuGetFeed source)
@@ -35,6 +32,11 @@ namespace NuGetPackageManager.Models
         public override string ToString()
         {
             return Name;
+        }
+
+        public PackageSourceWrapper GetPackageSource()
+        {
+            return new PackageSourceWrapper(sourceList);
         }
     }
 }

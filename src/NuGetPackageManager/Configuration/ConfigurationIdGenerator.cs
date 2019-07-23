@@ -49,7 +49,7 @@ namespace NuGetPackageManager.Configuration
 
                 var actualGuid = guid;
 
-                isFree = _remappedValues.TryGetValue(guid, out collisionResolve);
+                isFree = !_remappedValues.TryGetValue(guid, out collisionResolve);
 
                 if(_occupiedIdenitfiers.Contains(isFree ? guid : collisionResolve))
                 {
