@@ -137,7 +137,7 @@ namespace NuGetPackageManager.Services
                 {
                     guid = ConfigurationIdGenerator.IsCollision(guid) ? ConfigurationIdGenerator.GetOriginalIdentifier(guid) : guid;
 
-                    if (ValueExists(container, KeyToString(guid)))
+                    if (IsValueAvailable(container, KeyToString(guid)))
                     {
                         SetValue(container, KeyToString(guid), String.Empty);
 

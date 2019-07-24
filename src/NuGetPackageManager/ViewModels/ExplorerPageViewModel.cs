@@ -116,7 +116,7 @@
                 {
                     PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.GetPackageSource());
 
-                    await LoadPackagesForTestAsync();
+                    await LoadPackagesAsync();
                 }
                 else
                 {
@@ -143,7 +143,7 @@
         
         private async Task LoadNextPackagePageExecute()
         {
-            await LoadPackagesForTestAsync();
+            await LoadPackagesAsync();
         }
 
         public TaskCommand CancelPageLoading { get; set; }
@@ -166,7 +166,7 @@
             }
         }
 
-        private async Task LoadPackagesForTestAsync()
+        private async Task LoadPackagesAsync()
         {
             try
             {
@@ -186,7 +186,7 @@
             }
             catch (OperationCanceledException e)
             {
-                Log.Info($"Command {nameof(LoadPackagesForTestAsync)} was cancelled by {e}");
+                Log.Info($"Command {nameof(LoadPackagesAsync)} was cancelled by {e}");
             }
             catch (Exception ex)
             {
@@ -223,7 +223,7 @@
             PageInfo.Reset();
             Packages.Clear();
 
-            await LoadPackagesForTestAsync();
+            await LoadPackagesAsync();
         }
     }
 }

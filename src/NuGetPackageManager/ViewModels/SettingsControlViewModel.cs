@@ -116,7 +116,7 @@ namespace NuGetPackageManager.ViewModels
             ActiveFeeds.AddRange(Feeds);
 
             //feeds removal
-            _configurationService.RemoveValues(ConfigurationContainer.Local, RemovedFeeds);
+            _configurationService.RemoveValues(ConfigurationContainer.Roaming, RemovedFeeds);
             RemovedFeeds.Clear();
 
             return base.SaveAsync();
