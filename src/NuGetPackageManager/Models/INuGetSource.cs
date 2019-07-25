@@ -6,7 +6,10 @@
 
         string Source { get; }
 
-
         PackageSourceWrapper GetPackageSource();
+
+        bool IsAccessible { get; }
+
+        bool IsVerified { get; }
     }
 }

@@ -21,5 +21,10 @@ namespace NuGetPackageManager
         {
             PackageSources = new List<PackageSource>(sources.Select(x => new PackageSource(x)));
         }
+
+        public override string ToString()
+        {
+            return String.Join<PackageSource>("; ", PackageSources.ToArray());
+        }
     }
 }

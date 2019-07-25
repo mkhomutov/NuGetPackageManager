@@ -12,6 +12,7 @@ namespace NuGetPackageManager.ViewModels
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public class SettingsControlViewModel : ViewModelBase
@@ -164,9 +165,11 @@ namespace NuGetPackageManager.ViewModels
 
             feed.IsVerifiedNow = true;
 
-            var result = await _feedVerificationService.VerifyFeedAsync(feed.Source, true);
-
-            feed.VerificationResult = result;
+            using (var cts = new CancellationTokenSource())
+            {
+                var result = await _feedVerificationService.VerifyFeedAsync(feed.Source, cts.Token, true);
+                feed.VerificationResult = result;
+            }
 
             feed.IsVerifiedNow = false;
         }

@@ -22,7 +22,7 @@
 
         protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
         {
-            if(e.PropertyName == nameof(NuGetFeed))
+            if(e.PropertyName == nameof(NuGetFeeds))
             {
                 ObservedFeed = NuGetFeeds.FirstOrDefault();
             }

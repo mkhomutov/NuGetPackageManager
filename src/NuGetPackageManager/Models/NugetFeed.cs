@@ -43,7 +43,7 @@
         public bool IsAccessible { get; set; }
 
         [XmlIgnore]
-        public bool MultipleSource => false;
+        public bool IsVerified { get; private set; }
 
         public override string ToString()
         {
@@ -139,7 +139,8 @@
             }
             if(e.PropertyName == nameof(VerificationResult))
             {
-                IsAccessible = VerificationResult == FeedVerificationResult.Valid;
+                IsAccessible = VerificationResult == FeedVerificationResult.Valid || VerificationResult == FeedVerificationResult.AuthorizationRequired;
+                IsVerified = VerificationResult != FeedVerificationResult.Unknown;
             }
             if(e.PropertyName == nameof(Name))
             {
@@ -154,7 +155,8 @@
         public void Initialize()
         {
             IsNameValid = !String.IsNullOrEmpty(Name);
-            IsAccessible = VerificationResult == FeedVerificationResult.Valid;
+            IsAccessible = VerificationResult == FeedVerificationResult.Valid || VerificationResult == FeedVerificationResult.AuthorizationRequired;
+            IsVerified = VerificationResult != FeedVerificationResult.Unknown;
         }
     }
 }

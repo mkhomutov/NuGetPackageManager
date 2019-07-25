@@ -29,6 +29,8 @@
 
         public int Next => LastNumber + 1;
 
+        public int Current => _lastNumber;
+
         public bool IsValid => Source.PackageSources.Any();
 
         public PackageSourceWrapper Source { get; private set; }
@@ -41,12 +43,5 @@
 
             return Next;
         }
-
-        public void Reset()
-        {
-            _lastNumber = _startNumber;
-        }
-
-
     }
 }

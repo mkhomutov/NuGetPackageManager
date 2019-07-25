@@ -1,6 +1,7 @@
 ﻿namespace NuGetPackageManager.Services
 {
     using Catel;
+    using Catel.Logging;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Cache;
     using NuGetPackageManager.Providers;
@@ -12,6 +13,8 @@
 
     public class PackageMetadataMediaDownloadService : IPackageMetadataMediaDownloadService
     {
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         private static readonly IconDownloader iconDownloader = new IconDownloader();
 
         private readonly IconCache iconCache;
@@ -40,9 +43,9 @@
                 //store to cache
                 iconCache.SaveToCache(packageMetadata.IconUrl, data);
             }
-            catch(WebException)
+            catch(WebException ex)
             {
-                //todo handle isdownload error
+                Log.Error(ex);
                 return;
             }
             catch (Exception e)

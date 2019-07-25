@@ -10,6 +10,7 @@
     using NuGetPackageManager.Loggers;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
     using System.Text;
     using System.Threading;
@@ -35,7 +36,7 @@
                 );
         }
 
-        public async Task<FeedVerificationResult> VerifyFeedAsync(string source, bool authenticateIfRequired = true)
+        public async Task<FeedVerificationResult> VerifyFeedAsync(string source, CancellationToken ct, bool authenticateIfRequired = true)
         {
             Argument.IsNotNull(() => source);
 
@@ -50,24 +51,28 @@
             try
             {
                 var packageSource = new PackageSource(source);
-
+                
                 var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root: null), v3_providers);
 
-                var repository = new SourceRepository(packageSource, v3_providers);
+                var repository = repoProvider.CreateRepository(packageSource);
 
-                var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
+                var searchResource3 = await repository.GetResourceAsync<PackageSearchResource>();
 
-                using (var cts = new CancellationTokenSource())
-                {
-                    var cancellationToken = cts.Token;
+                //maybe use Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token) insted
 
-                    //try to perform search
-                    var metadata = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, cancellationToken);
-                }
+                //try to perform search
+                var metadata = await searchResource3.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, ct);
 
             }
             catch (FatalProtocolException ex)
             {
+                if(ct.IsCancellationRequested)
+                {
+                    result = FeedVerificationResult.Unknown;
+
+                    //cancel operation
+                    throw new OperationCanceledException("Verification was canceled", ex, ct);
+                }
                 result = HandleNugetProtocolException(ex, source);
             }
             catch (WebException ex)
@@ -81,7 +86,7 @@
 
                 result = FeedVerificationResult.Invalid;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!ct.IsCancellationRequested)
             {
                 _log.Debug(ex, errorMessage.ToString());
 

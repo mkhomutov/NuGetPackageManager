@@ -32,7 +32,7 @@
                 catch (FatalProtocolException ex) when (token.IsCancellationRequested)
                 {
                     //task is cancelled, supress
-                    throw new OperationCanceledException("Search request was cancelled", ex, token);
+                    throw new OperationCanceledException("Search request was canceled", ex, token);
                 }
             }
             else

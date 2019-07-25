@@ -19,18 +19,20 @@
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
         private static readonly int _pageSize = 17;
+        private static readonly int singleTasksDelayMs = 1000;
 
         private readonly IPackagesLoaderService _packagesLoaderService;
         private readonly ICommandManager _commandManager;
         private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
+        private readonly INuGetFeedVerificationService _nuGetFeedVerificationService;
 
         private ExplorerSettingsContainer _settings;
 
         private FastObservableCollection<IPackageSearchMetadata> _packages { get; set; }
 
-
         public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
-            IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService, ICommandManager commandManager)
+            IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService, INuGetFeedVerificationService nuGetFeedVerificationService,
+            ICommandManager commandManager)
         {
             Title = pageTitle;
 
@@ -38,10 +40,12 @@
             Argument.IsNotNull(() => explorerSettings);
             Argument.IsNotNull(() => packageMetadataMediaDownloadService);
             Argument.IsNotNull(() => commandManager);
+            Argument.IsNotNull(() => nuGetFeedVerificationService);
 
             _packagesLoaderService = packagesLoaderService;
             _packageMetadataMediaDownloadService = packageMetadataMediaDownloadService;
             _commandManager = commandManager;
+            _nuGetFeedVerificationService = nuGetFeedVerificationService;
 
             Settings = explorerSettings;
 
@@ -52,7 +56,11 @@
             commandManager.RegisterCommand(nameof(RefreshCurrentPage), RefreshCurrentPage, this);
         }
 
+        public static CancellationTokenSource VerificationTokenSource { get; set; } = new CancellationTokenSource();
+
         private PageContinuation PageInfo { get; set; }
+
+        private PageContinuation AwaitedPageInfo { get; set; }
 
         public ExplorerSettingsContainer Settings
         {
@@ -82,16 +90,21 @@
                 {
                     if (e.PropertyName == nameof(Settings.ObservedFeed))
                     {
-                        //recreate pageinfo
+                        if (IsActive)
+                        {
+                            if (SingleDelayTimer.Enabled)
+                            {
+                                SingleDelayTimer.Stop();
 
-                         PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.GetPackageSource());
-                    }
+                                Log.Info($"Restart timer, {e.PropertyName} property changed");
 
-                    //only if page is active
-                    //for others update should be delayed until page selected
-                    if (IsActive && PageInfo.IsValid)
-                    {
-                        await RefreshPageWithNewParameters();
+                                SingleDelayTimer.Start();
+
+                                return;
+                            }
+
+                            SingleDelayTimer.Start();
+                        }
                     }
                 }
             }
@@ -101,6 +114,9 @@
 
         public bool IsCancellationTokenAlive { get; set; }
 
+        public static System.Timers.Timer SingleDelayTimer { get; set; } = new System.Timers.Timer(singleTasksDelayMs);
+        public static CancellationTokenSource DelayCancellationTokenSource { get; set; } = new CancellationTokenSource();
+
         public CancellationTokenSource PageLoadingTokenSource { get; set; }
 
         public IPackageSearchMetadata SelectedPackage { get; set; }
@@ -109,14 +125,28 @@
         {
             try
             {
+                //execution delay
+                SingleDelayTimer.Elapsed += SingleDelayTimer_Elapsed;
+                SingleDelayTimer.AutoReset = false;
+
                 _packages = new FastObservableCollection<IPackageSearchMetadata>();
 
                 //todo validation
                 if (Settings.ObservedFeed != null && !String.IsNullOrEmpty(Settings.ObservedFeed.Source))
                 {
+                    if (!Settings.ObservedFeed.IsVerified)
+                    {
+                        using (var cts = new CancellationTokenSource())
+                        {
+                            //await CheckFeedCanBeLoadedAsync(cts.Token);
+                        }
+                    }
                     PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.GetPackageSource());
 
-                    await LoadPackagesAsync();
+                    if (IsActive && PageInfo.IsValid)
+                    {
+                       // await LoadPackagesAsync();
+                    }
                 }
                 else
                 {
@@ -124,6 +154,54 @@
                 }
             }
             catch(Exception)
+            {
+                throw;
+            }
+        }
+
+        private async void SingleDelayTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            var currentFeed = Settings.ObservedFeed;
+            PageInfo = new PageContinuation(_pageSize, currentFeed.GetPackageSource());
+            await VerifySourceAndLoadPackagesAsync(PageInfo, currentFeed);
+        }
+
+        private async Task VerifySourceAndLoadPackagesAsync(PageContinuation pageinfo, INuGetSource currentSource)
+        {
+            try
+            {
+                if (IsActive)
+                {
+                    if (!currentSource.IsVerified)
+                    {
+                        try
+                        {
+                            await CheckFeedCanBeLoadedAsync(VerificationTokenSource.Token, currentSource);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            return;
+                        }
+                    }
+
+                    if(!Settings.ObservedFeed.IsAccessible)
+                    {
+                        return;
+                    }
+
+                    if (!IsCancellationTokenAlive)
+                    {
+
+                        await LoadPackagesAsync();
+                    }
+                    else
+                    {
+                        AwaitedPageInfo = PageInfo;
+                        PageLoadingTokenSource.Cancel();
+                    }
+                }
+            }
+            catch (Exception)
             {
                 throw;
             }
@@ -170,23 +248,45 @@
         {
             try
             {
+                IsCancellationTokenAlive = true;
+
+                if(PageInfo.Current < 0)
+                {
+                    Packages.Clear();
+                }
+
                 using (PageLoadingTokenSource = new CancellationTokenSource())
                 {
-                    IsCancellationTokenAlive = true;
 
                     var packages = await _packagesLoaderService.LoadAsync(
                         Settings.SearchString, PageInfo, new SearchFilter(Settings.IsPreReleaseIncluded), PageLoadingTokenSource.Token);
 
-                    await DownloadAllPicturesForMetadataAsync(packages);
+                    //await DownloadAllPicturesForMetadataAsync(packages);
+                    await Task.Delay(8000, PageLoadingTokenSource.Token);
+
+                    PageLoadingTokenSource.Token.ThrowIfCancellationRequested();
 
                     Packages.AddRange(packages);
 
-                    Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString}'");
+                    Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString} from {PageInfo.Source}'");
+
+                    IsCancellationTokenAlive = false;
                 }
+
             }
             catch (OperationCanceledException e)
             {
                 Log.Info($"Command {nameof(LoadPackagesAsync)} was cancelled by {e}");
+
+                IsCancellationTokenAlive = false;
+
+                //restart
+                if (AwaitedPageInfo != null)
+                {
+                    var pageinfo = AwaitedPageInfo;
+                    AwaitedPageInfo = null;
+                    await VerifySourceAndLoadPackagesAsync(pageinfo, Settings.ObservedFeed);
+                }
             }
             catch (Exception ex)
             {
@@ -220,10 +320,48 @@
 
         private async Task RefreshPageWithNewParameters()
         {
-            PageInfo.Reset();
-            Packages.Clear();
+        }
 
-            await LoadPackagesAsync();
+        private async Task CheckFeedCanBeLoadedAsync(CancellationToken cancelToken, INuGetSource source)
+        {
+            try
+            {
+                Log.Info($"{source} is verified");
+
+                if (source is NuGetFeed)
+                {
+                    var singleSource = source as NuGetFeed;
+
+                    singleSource.VerificationResult = singleSource.IsLocal() ? FeedVerificationResult.Valid
+                        : await _nuGetFeedVerificationService.VerifyFeedAsync(source.Source, cancelToken);
+                }
+                else if (source is CombinedNuGetSource)
+                {
+                    var combinedSource = source as CombinedNuGetSource;
+                    var unaccessibleFeeds = new List<NuGetFeed>();
+
+                    foreach (var feed in combinedSource.GetAllSources())
+                    {
+                        feed.VerificationResult = feed.IsLocal() ? FeedVerificationResult.Valid
+                        : await _nuGetFeedVerificationService.VerifyFeedAsync(feed.Source, cancelToken);
+
+                        if (!feed.IsAccessible)
+                        {
+                            unaccessibleFeeds.Add(feed);
+                            Log.Warning($"{feed} is unaccessible. It won't be used when 'All' option selected");
+                            //todo isAccessible be true for feed with credentials
+                        }
+                    }
+
+                    unaccessibleFeeds.ForEach(x => combinedSource.RemoveFeed(x));
+                }
+                else Log.Error($"Parameter {source} has invalid type");
+            }
+            catch(Exception ex)
+            {
+                Log.Error(ex);
+                throw;
+            }
         }
     }
 }
