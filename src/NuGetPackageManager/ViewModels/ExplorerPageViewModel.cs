@@ -11,6 +11,7 @@
     using NuGetPackageManager.Services;
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,13 +19,14 @@
     public class ExplorerPageViewModel : ViewModelBase
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
-        private static readonly int _pageSize = 17;
-        private static readonly int singleTasksDelayMs = 1000;
+        private static readonly int PageSize = 17;
+        private static readonly int SingleTasksDelayMs = 1000;
 
         private readonly IPackagesLoaderService _packagesLoaderService;
-        private readonly ICommandManager _commandManager;
         private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
         private readonly INuGetFeedVerificationService _nuGetFeedVerificationService;
+
+        private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
 
         private ExplorerSettingsContainer _settings;
 
@@ -44,7 +46,6 @@
 
             _packagesLoaderService = packagesLoaderService;
             _packageMetadataMediaDownloadService = packageMetadataMediaDownloadService;
-            _commandManager = commandManager;
             _nuGetFeedVerificationService = nuGetFeedVerificationService;
 
             Settings = explorerSettings;
@@ -81,32 +82,33 @@
         }
 
         //handle settings changes and force reloading if needed
-        private async void OnSettingsPropertyPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private async void OnSettingsPropertyPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName.Equals(nameof(Settings.IsPreReleaseIncluded))
-                || e.PropertyName.Equals(nameof(Settings.SearchString)) || e.PropertyName.Equals(nameof(Settings.ObservedFeed)))
+            if(Settings.ObservedFeed == null)
             {
-                if (Settings.ObservedFeed != null)
+                return;
+            }
+
+            if (String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
+            {
+                if (IsActive)
                 {
-                    if (e.PropertyName == nameof(Settings.ObservedFeed))
+                    if (SingleDelayTimer.Enabled)
                     {
-                        if (IsActive)
-                        {
-                            if (SingleDelayTimer.Enabled)
-                            {
-                                SingleDelayTimer.Stop();
+                        SingleDelayTimer.Stop();
 
-                                Log.Info($"Restart timer, {e.PropertyName} property changed");
+                        Log.Info($"Restart timer, {e.PropertyName} property changed");
 
-                                SingleDelayTimer.Start();
-
-                                return;
-                            }
-
-                            SingleDelayTimer.Start();
-                        }
                     }
+
+                    SingleDelayTimer.Start();
                 }
+            }
+
+            if (String.Equals(e.PropertyName, nameof(Settings.IsPreReleaseIncluded)) ||
+                String.Equals(e.PropertyName, nameof(Settings.SearchString)) ||  String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
+            {
+               //todo
             }
         }
 
@@ -114,7 +116,6 @@
 
         public bool IsCancellationTokenAlive { get; set; }
 
-        public static System.Timers.Timer SingleDelayTimer { get; set; } = new System.Timers.Timer(singleTasksDelayMs);
         public static CancellationTokenSource DelayCancellationTokenSource { get; set; } = new CancellationTokenSource();
 
         public CancellationTokenSource PageLoadingTokenSource { get; set; }
@@ -126,7 +127,7 @@
             try
             {
                 //execution delay
-                SingleDelayTimer.Elapsed += SingleDelayTimer_Elapsed;
+                SingleDelayTimer.Elapsed += OnTimerElapsed;
                 SingleDelayTimer.AutoReset = false;
 
                 _packages = new FastObservableCollection<IPackageSearchMetadata>();
@@ -134,35 +135,25 @@
                 //todo validation
                 if (Settings.ObservedFeed != null && !String.IsNullOrEmpty(Settings.ObservedFeed.Source))
                 {
-                    if (!Settings.ObservedFeed.IsVerified)
-                    {
-                        using (var cts = new CancellationTokenSource())
-                        {
-                            //await CheckFeedCanBeLoadedAsync(cts.Token);
-                        }
-                    }
-                    PageInfo = new PageContinuation(_pageSize, Settings.ObservedFeed.GetPackageSource());
-
-                    if (IsActive && PageInfo.IsValid)
-                    {
-                       // await LoadPackagesAsync();
-                    }
+                    var currentFeed = Settings.ObservedFeed;
+                    PageInfo = new PageContinuation(PageSize, Settings.ObservedFeed.GetPackageSource());
+                    await VerifySourceAndLoadPackagesAsync(PageInfo, currentFeed);
                 }
                 else
                 {
                     Log.Info("None of the source feeds configured");
                 }
             }
-            catch(Exception)
+            catch(Exception ex)
             {
-                throw;
+                Log.Error(ex);
             }
         }
 
-        private async void SingleDelayTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private async void OnTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             var currentFeed = Settings.ObservedFeed;
-            PageInfo = new PageContinuation(_pageSize, currentFeed.GetPackageSource());
+            PageInfo = new PageContinuation(PageSize, currentFeed.GetPackageSource());
             await VerifySourceAndLoadPackagesAsync(PageInfo, currentFeed);
         }
 
@@ -170,13 +161,14 @@
         {
             try
             {
+                //todo check is active, interrupt if active changed?
                 if (IsActive)
                 {
                     if (!currentSource.IsVerified)
                     {
                         try
                         {
-                            await CheckFeedCanBeLoadedAsync(VerificationTokenSource.Token, currentSource);
+                            await CanFeedBeLoadedAsync(VerificationTokenSource.Token, currentSource);
                         }
                         catch (OperationCanceledException)
                         {
@@ -322,7 +314,7 @@
         {
         }
 
-        private async Task CheckFeedCanBeLoadedAsync(CancellationToken cancelToken, INuGetSource source)
+        private async Task CanFeedBeLoadedAsync(CancellationToken cancelToken, INuGetSource source)
         {
             try
             {
@@ -360,7 +352,6 @@
             catch(Exception ex)
             {
                 Log.Error(ex);
-                throw;
             }
         }
     }

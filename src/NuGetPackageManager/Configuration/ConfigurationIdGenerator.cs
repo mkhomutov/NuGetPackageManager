@@ -21,9 +21,6 @@ namespace NuGetPackageManager.Configuration
         /// <summary>
         /// Gets a unique identifier for the specified type.
         /// </summary>
-        /// <param name="type">The type to retrieve the unique identifier for.</param>
-        /// <returns>A new unique identifier for the type.</returns>
-        /// <exception cref="ArgumentNullException">The <paramref name="type"/> is <c>null</c>.</exception>
         public static Guid GetUniqueIdentifier()
         {
             lock (_lockObject)

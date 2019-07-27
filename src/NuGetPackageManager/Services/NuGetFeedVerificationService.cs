@@ -8,6 +8,7 @@
     using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Loggers;
+    using NuGetPackageManager.Web;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -137,11 +138,11 @@
                 if (innerException == null)
                 {
                     //handle based on protocol error messages
-                    if (exception.Message.Contains("returned an unexpected status code '401 Unauthorized'"))
+                    if (exception.HidesForbiddenError())
                     {
                         return FeedVerificationResult.AuthenticationRequired;
                     }
-                    if (exception.Message.Contains("returned an unexpected status code '403 Forbidden'"))
+                    if (exception.HidesAuthorizationError())
                     {
                         return FeedVerificationResult.AuthorizationRequired;
                     }
