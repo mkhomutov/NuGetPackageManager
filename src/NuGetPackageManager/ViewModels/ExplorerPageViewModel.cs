@@ -193,6 +193,10 @@
                     }
                 }
             }
+            catch(FatalProtocolException)
+            {
+
+            }            
             catch (Exception)
             {
                 throw;

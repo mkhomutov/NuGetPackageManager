@@ -21,6 +21,9 @@
     {
         private static readonly ILog _log = LogManager.GetCurrentClassLogger();
 
+        private static readonly IHttpExceptionHandler<WebException> webExceptionHandler = new HttpWebExceptionHandler();
+        private static readonly IHttpExceptionHandler<FatalProtocolException> fatalProtocolExceptionHandler = new FatalProtocolExceptionHandler();
+
         private readonly ICredentialProviderLoaderService _credentialProviderLoaderService;
 
         public NuGetFeedVerificationService(ICredentialProviderLoaderService credentialProviderLoaderService)
@@ -74,11 +77,11 @@
                     //cancel operation
                     throw new OperationCanceledException("Verification was canceled", ex, ct);
                 }
-                result = HandleNugetProtocolException(ex, source);
+                result = fatalProtocolExceptionHandler.HandleException(ex, source);
             }
             catch (WebException ex)
             {
-                result = HandleWebException(ex, source);
+                result = webExceptionHandler.HandleException(ex, source);
             }
             catch (UriFormatException ex)
             {
@@ -97,71 +100,6 @@
             _log.Debug("Verified feed '{0}', result is '{1}'", source, result);
 
             return result;
-        }
-
-        private static FeedVerificationResult HandleWebException(WebException exception, string source)
-        {
-            try
-            {
-                var httpWebResponse = (HttpWebResponse)exception.Response;
-                if (ReferenceEquals(httpWebResponse, null))
-                {
-                    return FeedVerificationResult.Invalid;
-                }
-
-                //403 error
-                if (httpWebResponse.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return FeedVerificationResult.AuthorizationRequired;
-                }
-
-                //401 error
-                if (httpWebResponse.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    return FeedVerificationResult.AuthenticationRequired;
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.Debug(ex, "Failed to verify feed '{0}'", source);
-            }
-
-            return FeedVerificationResult.Invalid;
-        }
-
-        private static FeedVerificationResult HandleNugetProtocolException(FatalProtocolException exception, string source)
-        {
-            try
-            {
-                var innerException = exception.InnerException;
-
-                if (innerException == null)
-                {
-                    //handle based on protocol error messages
-                    if (exception.HidesForbiddenError())
-                    {
-                        return FeedVerificationResult.AuthenticationRequired;
-                    }
-                    if (exception.HidesAuthorizationError())
-                    {
-                        return FeedVerificationResult.AuthorizationRequired;
-                    }
-                }
-                else
-                {
-                    if (innerException is WebException)
-                    {
-                        HandleWebException(innerException as WebException, source);
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                _log.Debug(ex, "Failed to verify feed '{0}'", source);
-            }
-
-            return FeedVerificationResult.Invalid;
         }
 
         [ObsoleteEx]
@@ -215,11 +153,11 @@
             }
             catch (FatalProtocolException ex)
             {
-                result = HandleNugetProtocolException(ex, source);
+                result = fatalProtocolExceptionHandler.HandleException(ex, source);
             }
             catch (WebException ex)
             {
-                result = HandleWebException(ex, source);
+                result = webExceptionHandler.HandleException(ex, source);
             }
             catch (UriFormatException ex)
             {
