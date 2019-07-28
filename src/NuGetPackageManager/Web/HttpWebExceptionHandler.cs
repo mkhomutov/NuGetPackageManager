@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Catel.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -9,6 +10,8 @@ namespace NuGetPackageManager.Web
 {
     public class HttpWebExceptionHandler : IHttpExceptionHandler<WebException>
     {
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         public FeedVerificationResult HandleException(WebException exception, string source)
         {
             try
@@ -33,7 +36,7 @@ namespace NuGetPackageManager.Web
             }
             catch (Exception ex)
             {
-                _log.Debug(ex, "Failed to verify feed '{0}'", source);
+                Log.Debug(ex, "Failed to verify feed '{0}'", source);
             }
 
             return FeedVerificationResult.Invalid;

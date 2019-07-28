@@ -23,11 +23,11 @@ namespace NuGetPackageManager.Web
                 if (innerException == null)
                 {
                     //handle based on protocol error messages
-                    if (exception.HidesForbiddenError())
+                    if (exception.HidesUnauthorizedError())
                     {
                         return FeedVerificationResult.AuthenticationRequired;
                     }
-                    if (exception.HidesAuthorizationError())
+                    if (exception.HidesForbiddenError())
                     {
                         return FeedVerificationResult.AuthorizationRequired;
                     }

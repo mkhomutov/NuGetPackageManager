@@ -9,6 +9,7 @@
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Services;
+    using NuGetPackageManager.Web;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
@@ -21,6 +22,7 @@
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
         private static readonly int PageSize = 17;
         private static readonly int SingleTasksDelayMs = 1000;
+        private static readonly IHttpExceptionHandler<FatalProtocolException> packageLoadingExceptionHandler = new FatalProtocolExceptionHandler();
 
         private readonly IPackagesLoaderService _packagesLoaderService;
         private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
@@ -192,14 +194,19 @@
                         PageLoadingTokenSource.Cancel();
                     }
                 }
-            }
-            catch(FatalProtocolException)
+            }      
+            catch (FatalProtocolException ex) 
             {
+                var result = packageLoadingExceptionHandler.HandleException(ex, currentSource.Source);
 
-            }            
-            catch (Exception)
+                if(result == FeedVerificationResult.AuthenticationRequired)
+                {
+                    Log.Error($"Authentication credentials required. Cannot load packages from source '{currentSource.Source}'");
+                }
+            }
+            catch (Exception ex)
             {
-                throw;
+                Log.Error(ex);
             }
         }
 
@@ -353,9 +360,9 @@
                 }
                 else Log.Error($"Parameter {source} has invalid type");
             }
-            catch(Exception ex)
+            catch(Exception)
             {
-                Log.Error(ex);
+                throw;
             }
         }
     }
