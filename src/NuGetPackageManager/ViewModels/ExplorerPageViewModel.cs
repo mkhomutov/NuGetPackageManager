@@ -4,6 +4,7 @@
     using Catel.Collections;
     using Catel.Logging;
     using Catel.MVVM;
+    using Catel.Services;
     using NuGet.Configuration;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Models;
@@ -21,12 +22,13 @@
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
         private static readonly int PageSize = 17;
-        private static readonly int SingleTasksDelayMs = 1000;
+        private static readonly int SingleTasksDelayMs = 800;
         private static readonly IHttpExceptionHandler<FatalProtocolException> packageLoadingExceptionHandler = new FatalProtocolExceptionHandler();
 
         private readonly IPackagesLoaderService _packagesLoaderService;
         private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
         private readonly INuGetFeedVerificationService _nuGetFeedVerificationService;
+        private readonly IDispatcherService _dispatcherService;
 
         private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
 
@@ -36,7 +38,7 @@
 
         public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
             IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService, INuGetFeedVerificationService nuGetFeedVerificationService,
-            ICommandManager commandManager)
+            ICommandManager commandManager, IDispatcherService dispatcherService)
         {
             Title = pageTitle;
 
@@ -45,8 +47,10 @@
             Argument.IsNotNull(() => packageMetadataMediaDownloadService);
             Argument.IsNotNull(() => commandManager);
             Argument.IsNotNull(() => nuGetFeedVerificationService);
+            Argument.IsNotNull(() => dispatcherService);
 
             _packagesLoaderService = packagesLoaderService;
+            _dispatcherService = dispatcherService;
             _packageMetadataMediaDownloadService = packageMetadataMediaDownloadService;
             _nuGetFeedVerificationService = nuGetFeedVerificationService;
 
@@ -64,6 +68,8 @@
         private PageContinuation PageInfo { get; set; }
 
         private PageContinuation AwaitedPageInfo { get; set; }
+
+        private PackageSearchParameters AwaitedSearchParameters { get; set; }
 
         public ExplorerSettingsContainer Settings
         {
@@ -83,6 +89,16 @@
             }
         }
 
+        public FastObservableCollection<IPackageSearchMetadata> Packages
+        {
+            get { return _packages; }
+            set
+            {
+                _packages = value;
+                RaisePropertyChanged(() => Packages);
+            }
+        }
+
         //handle settings changes and force reloading if needed
         private async void OnSettingsPropertyPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -91,32 +107,23 @@
                 return;
             }
 
-            if (String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
+            if (String.Equals(e.PropertyName, nameof(Settings.IsPreReleaseIncluded)) ||
+                String.Equals(e.PropertyName, nameof(Settings.SearchString)) || String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
             {
                 if (IsActive)
                 {
-                    if (SingleDelayTimer.Enabled)
-                    {
-                        SingleDelayTimer.Stop();
-
-                        Log.Info($"Restart timer, {e.PropertyName} property changed");
-
-                    }
-
-                    SingleDelayTimer.Start();
+                    StartLoadingTimer();
                 }
-            }
-
-            if (String.Equals(e.PropertyName, nameof(Settings.IsPreReleaseIncluded)) ||
-                String.Equals(e.PropertyName, nameof(Settings.SearchString)) ||  String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
-            {
-               //todo
             }
         }
 
         public bool IsActive { get; set; }
 
         public bool IsCancellationTokenAlive { get; set; }
+
+        public bool IsLoadingInProcess { get; set; }
+
+        public bool IsCancellationForced { get; set; }
 
         public static CancellationTokenSource DelayCancellationTokenSource { get; set; } = new CancellationTokenSource();
 
@@ -139,7 +146,8 @@
                 {
                     var currentFeed = Settings.ObservedFeed;
                     PageInfo = new PageContinuation(PageSize, Settings.ObservedFeed.GetPackageSource());
-                    await VerifySourceAndLoadPackagesAsync(PageInfo, currentFeed);
+                    var searchParams = new PackageSearchParameters(Settings.IsPreReleaseIncluded, Settings.SearchString);
+                    await VerifySourceAndLoadPackagesAsync(PageInfo, currentFeed, searchParams);
                 }
                 else
                 {
@@ -154,87 +162,148 @@
 
         private async void OnTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
+            Log.Info("Timer elapsed");
             var currentFeed = Settings.ObservedFeed;
+            //reset page
             PageInfo = new PageContinuation(PageSize, currentFeed.GetPackageSource());
-            await VerifySourceAndLoadPackagesAsync(PageInfo, currentFeed);
+            var searchParams = new PackageSearchParameters(Settings.IsPreReleaseIncluded, Settings.SearchString);
+            await VerifySourceAndLoadPackagesAsync(PageInfo, currentFeed, searchParams);
         }
 
-        private async Task VerifySourceAndLoadPackagesAsync(PageContinuation pageinfo, INuGetSource currentSource)
+        private void StartLoadingTimer()
+        {
+            if (SingleDelayTimer.Enabled)
+            {
+                SingleDelayTimer.Stop();
+            }
+
+            SingleDelayTimer.Start();
+        }
+
+        private async Task VerifySourceAndLoadPackagesAsync(PageContinuation pageinfo, INuGetSource currentSource, PackageSearchParameters searchParams)
         {
             try
             {
-                //todo check is active, interrupt if active changed?
                 if (IsActive)
                 {
-                    if (!currentSource.IsVerified)
+                    IsCancellationTokenAlive = true;
+                    Log.Info("You can now cancel search from gui");
+                    using (PageLoadingTokenSource = CreateCanclellationTokenSource())
                     {
-                        try
+                        if (!currentSource.IsVerified)
                         {
+
                             await CanFeedBeLoadedAsync(VerificationTokenSource.Token, currentSource);
                         }
-                        catch (OperationCanceledException)
+
+                        if (!Settings.ObservedFeed.IsAccessible)
                         {
                             return;
                         }
-                    }
 
-                    if(!Settings.ObservedFeed.IsAccessible)
-                    {
-                        return;
-                    }
+                        if (!IsLoadingInProcess)
+                        {
 
-                    if (!IsCancellationTokenAlive)
-                    {
-
-                        await LoadPackagesAsync();
+                            await LoadPackagesAsync(pageinfo, PageLoadingTokenSource.Token, searchParams);
+                        }
+                        else
+                        {
+                            if (IsCancellationForced)
+                            {
+                                AwaitedPageInfo = null;
+                            }
+                            else
+                            {
+                                AwaitedPageInfo = PageInfo;
+                                AwaitedSearchParameters = searchParams;
+                            }
+                            PageLoadingTokenSource.Cancel();
+                        }
                     }
-                    else
-                    {
-                        AwaitedPageInfo = PageInfo;
-                        PageLoadingTokenSource.Cancel();
-                    }
+                    IsCancellationTokenAlive = false;
+                    PageLoadingTokenSource = null;
                 }
-            }      
+            }
+            catch (OperationCanceledException e)
+            {
+                Log.Info($"Command {nameof(LoadPackagesAsync)} was cancelled by {e}");
+
+                IsCancellationTokenAlive = false;
+
+                //backward page if needed
+                if(PageInfo.LastNumber > PageSize)
+                {
+                    PageInfo.GetPrevious();
+                }
+
+                //restart
+                if (AwaitedPageInfo != null)
+                {
+                    var awaitedPageinfo = AwaitedPageInfo;
+                    var awaitedSeachParams = AwaitedSearchParameters;
+                    AwaitedPageInfo = null;
+                    AwaitedSearchParameters = null;
+                    await VerifySourceAndLoadPackagesAsync(awaitedPageinfo, Settings.ObservedFeed, awaitedSeachParams);
+                }
+                else
+                {
+                    Log.Info("Search operation was canceled (interrupted by next user request");
+                }
+            }
             catch (FatalProtocolException ex) 
             {
+                IsCancellationTokenAlive = false;
                 var result = packageLoadingExceptionHandler.HandleException(ex, currentSource.Source);
 
-                if(result == FeedVerificationResult.AuthenticationRequired)
+                if (result == FeedVerificationResult.AuthenticationRequired)
                 {
                     Log.Error($"Authentication credentials required. Cannot load packages from source '{currentSource.Source}'");
                 }
+                else Log.Error(ex);
             }
             catch (Exception ex)
             {
+                IsCancellationTokenAlive = false;
                 Log.Error(ex);
             }
         }
 
-        public FastObservableCollection<IPackageSearchMetadata> Packages
+        private CancellationTokenSource CreateCanclellationTokenSource()
         {
-            get { return _packages; }
-            set
+            if(PageLoadingTokenSource == null)
             {
-                _packages = value;
-                RaisePropertyChanged(() => Packages);
+                return new CancellationTokenSource();
             }
+
+            if(PageLoadingTokenSource.IsCancellationRequested)
+            {
+                return new CancellationTokenSource();
+            }
+
+            return PageLoadingTokenSource;
         }
 
         public TaskCommand LoadNextPackagePage { get; set; }
         
         private async Task LoadNextPackagePageExecute()
         {
-            await LoadPackagesAsync();
+            var pageInfo = PageInfo;
+            var searchParams = new PackageSearchParameters(Settings.IsPreReleaseIncluded, Settings.SearchString);
+            await VerifySourceAndLoadPackagesAsync(pageInfo, Settings.ObservedFeed, searchParams);
         }
 
         public TaskCommand CancelPageLoading { get; set; }
 
         private async Task CancelPageLoadingExecute()
         {
+            IsCancellationForced = true;
+            //force cancel all operations
             if (IsCancellationTokenAlive)
             {
                 PageLoadingTokenSource.Cancel();
             }
+
+            IsCancellationForced = false;
         }
 
         public TaskCommand RefreshCurrentPage { get; set; }
@@ -247,49 +316,34 @@
             }
         }
 
-        private async Task LoadPackagesAsync()
+        private async Task LoadPackagesAsync(PageContinuation pageInfo ,CancellationToken cancellationToken, PackageSearchParameters searchParameters)
         {
             try
             {
-                IsCancellationTokenAlive = true;
+                IsLoadingInProcess = true;
 
-                if(PageInfo.Current < 0)
+                if (PageInfo.Current < 0)
                 {
                     Packages.Clear();
                 }
 
-                using (PageLoadingTokenSource = new CancellationTokenSource())
-                {
+                var packages = await _packagesLoaderService.LoadAsync(
+                    searchParameters.SearchString, pageInfo, new SearchFilter(searchParameters.IsPrereleaseIncluded), cancellationToken);
 
-                    var packages = await _packagesLoaderService.LoadAsync(
-                        Settings.SearchString, PageInfo, new SearchFilter(Settings.IsPreReleaseIncluded), PageLoadingTokenSource.Token);
+                await DownloadAllPicturesForMetadataAsync(packages, cancellationToken);
 
-                    //await DownloadAllPicturesForMetadataAsync(packages);
-                    await Task.Delay(8000, PageLoadingTokenSource.Token);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    PageLoadingTokenSource.Token.ThrowIfCancellationRequested();
+                _dispatcherService.BeginInvoke(() => 
+                    {
+                        Packages.AddRange(packages);
+                    }
+                );
 
-                    Packages.AddRange(packages);
+                Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString} from {PageInfo.Source}'");
 
-                    Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString} from {PageInfo.Source}'");
+                IsLoadingInProcess = false;
 
-                    IsCancellationTokenAlive = false;
-                }
-
-            }
-            catch (OperationCanceledException e)
-            {
-                Log.Info($"Command {nameof(LoadPackagesAsync)} was cancelled by {e}");
-
-                IsCancellationTokenAlive = false;
-
-                //restart
-                if (AwaitedPageInfo != null)
-                {
-                    var pageinfo = AwaitedPageInfo;
-                    AwaitedPageInfo = null;
-                    await VerifySourceAndLoadPackagesAsync(pageinfo, Settings.ObservedFeed);
-                }
             }
             catch (Exception ex)
             {
@@ -297,11 +351,11 @@
             }
             finally
             {
-                IsCancellationTokenAlive = false;
+                IsLoadingInProcess = false;
             }
         }
 
-        private async Task DownloadAllPicturesForMetadataAsync(IEnumerable<IPackageSearchMetadata> metadatas)
+        private async Task DownloadAllPicturesForMetadataAsync(IEnumerable<IPackageSearchMetadata> metadatas, CancellationToken token)
         {
             foreach (var metadata in metadatas)
             {
@@ -309,6 +363,7 @@
                 {
                     try
                     {
+                        token.ThrowIfCancellationRequested();
                         await _packageMetadataMediaDownloadService.DownloadFromAsync(metadata);
                     }
                     catch(Exception)
@@ -323,6 +378,7 @@
 
         private async Task RefreshPageWithNewParameters()
         {
+            StartLoadingTimer();
         }
 
         private async Task CanFeedBeLoadedAsync(CancellationToken cancelToken, INuGetSource source)
@@ -352,7 +408,6 @@
                         {
                             unaccessibleFeeds.Add(feed);
                             Log.Warning($"{feed} is unaccessible. It won't be used when 'All' option selected");
-                            //todo isAccessible be true for feed with credentials
                         }
                     }
 

@@ -10,15 +10,11 @@
 
         private int _pageSize = 1;
 
-        private int _startNumber = 1;
-
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         public PageContinuation(int pageSize, PackageSourceWrapper packageSourceWrapper)
         {
             _pageSize = pageSize;
-            _startNumber = _lastNumber - pageSize;    //first GetNext() returns zero position
-            _lastNumber = _startNumber;
 
             Source = packageSourceWrapper;
         }
@@ -37,10 +33,18 @@
 
         public int GetNext()
         {
-            LastNumber = LastNumber + Size;
-
             Log.Info($"Got next {Size} positions, starts from {Next}");
 
+            var next = Next;
+
+            LastNumber = LastNumber + Size;
+
+            return next;
+        }
+
+        public int GetPrevious()
+        {
+            LastNumber = LastNumber - Size;
             return Next;
         }
     }
