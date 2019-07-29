@@ -196,8 +196,9 @@
                             await CanFeedBeLoadedAsync(VerificationTokenSource.Token, currentSource);
                         }
 
-                        if (!Settings.ObservedFeed.IsAccessible)
+                        if (!currentSource.IsAccessible)
                         {
+                            IsCancellationTokenAlive = false;
                             return;
                         }
 

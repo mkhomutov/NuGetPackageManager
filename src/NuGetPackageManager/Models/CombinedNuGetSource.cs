@@ -57,12 +57,12 @@ namespace NuGetPackageManager.Models
 
         protected bool IsAllFeedsAccessible()
         {
-            return _sourceList.All(x => x.IsAccessible);
+            return _sourceList.Any() && _sourceList.All(x => x.IsAccessible);
         }
 
         protected bool IsAllVerified()
         {
-            return _sourceList.All(x => x.IsVerified);
+            return _sourceList.Any() && _sourceList.All(x => x.IsVerified);
         }
     }
 }
