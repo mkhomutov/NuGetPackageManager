@@ -52,6 +52,7 @@
             _log.Debug("Verifying feed '{0}'", source);
 
             var v3_providers = Repository.Provider.GetCoreV3();
+
             try
             {
                 var packageSource = new PackageSource(source);
@@ -60,13 +61,31 @@
 
                 var repository = repoProvider.CreateRepository(packageSource);
 
-                var searchResource3 = await repository.GetResourceAsync<PackageSearchResource>();
+                var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
 
-                //maybe use Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token) insted
+                var httpHandler = await repository.GetResourceAsync<HttpHandlerResourceV3>();
+
+
+                //maybe use Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token) instead
 
                 //try to perform search
-                var metadata = await searchResource3.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, ct);
+                try
+                {
+                    var metadata = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, ct);
+                }
+                catch(Exception)
+                {
+                    throw;
+                }
+                finally
+                { 
+                    var credentialsService = httpHandler.GetCredentialServiceImplementation<ExplorerCredentialService>();
 
+                    if (credentialsService != null)
+                    {
+                        credentialsService.ClearRetryCache();
+                    }
+                }
             }
             catch (FatalProtocolException ex)
             {

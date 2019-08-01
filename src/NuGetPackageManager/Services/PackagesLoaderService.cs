@@ -22,6 +22,7 @@
 
 
                 var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
+                var httpHandler = await repository.GetResourceAsync<HttpHandlerResourceV3>();
 
                 try
                 {
@@ -33,6 +34,15 @@
                 {
                     //task is cancelled, supress
                     throw new OperationCanceledException("Search request was canceled", ex, token);
+                }
+                finally
+                {
+                    var credentialsService = httpHandler.GetCredentialServiceImplementation<ExplorerCredentialService>();
+
+                    if (credentialsService != null)
+                    {
+                        credentialsService.ClearRetryCache();
+                    }
                 }
             }
             else

@@ -22,21 +22,12 @@
 
         private readonly bool _nonInteractive;
 
-        private ILog _log = LogManager.GetCurrentClassLogger();
-
         /// <summary>
         /// Gets the currently configured providers.
         /// </summary>
         private AsyncLazy<IEnumerable<ICredentialProvider>> _providers { get; }
 
-        /// <summary>
-        /// This semaphore ensures only one provider active per process, in order
-        /// to prevent multiple concurrent interactive login dialogues.
-        /// Unnamed semaphores are local to the current process.
-        /// </summary>
-        private static readonly Semaphore ProviderSemaphore = new Semaphore(1, 1);
-
-        private Action<string> ErrorDelegate { get; }
+        private readonly Semaphore _proivderSemaphore = new Semaphore(1,1);
 
         public bool HandlesDefaultCredentials { get; }
 
@@ -94,7 +85,7 @@
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var retryKey = RetryCacheKey(uri, type, provider);
+                var retryKey = CredentialsKeyHelper.GetUriKey(uri, type, provider);
                 var isRetry = _retryCache.ContainsKey(retryKey);
 
                 try
@@ -102,6 +93,8 @@
                     //original implementation contains semaphore
                     //in fact unecessary, because service called
                     //only when no one provider cached
+
+                    _proivderSemaphore.WaitOne();
 
                     CredentialResponse response;
                     if (!TryFromCredentialCache(uri, type, isRetry, provider, out response))
@@ -116,9 +109,7 @@
                             cancellationToken);
 
                         // Check that the provider gave us a valid response.
-                        if (response == null || (response.Status != CredentialStatus.Success &&
-                                                 response.Status != CredentialStatus.ProviderNotApplicable &&
-                                                 response.Status != CredentialStatus.UserCanceled))
+                        if (response == null || !Enum.IsDefined(typeof(CredentialStatus), response.Status))
                         {
                             //malformed response
                             throw new ProviderException("Credential provider gave an invalid response.");
@@ -145,6 +136,10 @@
                 catch (Exception)
                 {
                     throw;
+                }
+                finally
+                {
+                    _proivderSemaphore.Release();
                 }
             }
 
@@ -176,7 +171,7 @@
 
             credentials = null;
 
-            var rootUri = GetRootUri(uri);
+            var rootUri = uri.GetRootUri();
             var ending = $"_{isProxy}_{rootUri}";
 
             foreach (var entry in _providerCredentialCache)
@@ -197,7 +192,8 @@
         {
             credentials = null;
 
-            var key = CredentialCacheKey(uri, type, provider);
+            var key = CredentialsKeyHelper.GetCacheKey(uri, type, provider);
+
             if (isRetry)
             {
                 CredentialResponse removed;
@@ -211,28 +207,25 @@
         private void AddToCredentialCache(Uri uri, CredentialRequestType type, ICredentialProvider provider,
             CredentialResponse credentials)
         {
-            _providerCredentialCache[CredentialCacheKey(uri, type, provider)] = credentials;
+            _providerCredentialCache[CredentialsKeyHelper.GetCacheKey(uri, type, provider)] = credentials;
+        }
+   
+        public void ClearRetryCache()
+        {
+            _retryCache.Clear();
         }
 
-        private static string RetryCacheKey(Uri uri, CredentialRequestType type, ICredentialProvider provider)
+        private static class CredentialsKeyHelper
         {
-            return GetUriKey(uri, type, provider);
-        }
-
-        private static string CredentialCacheKey(Uri uri, CredentialRequestType type, ICredentialProvider provider)
-        {
-            var rootUri = GetRootUri(uri);
-            return GetUriKey(rootUri, type, provider);
-        }
-
-        private static Uri GetRootUri(Uri uri)
-        {
-            return new Uri(uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped));
-        }
-
-        private static string GetUriKey(Uri uri, CredentialRequestType type, ICredentialProvider provider)
-        {
-            return $"{provider.Id}_{type == CredentialRequestType.Proxy}_{uri}";
+            public static string GetCacheKey(Uri uri, CredentialRequestType type, ICredentialProvider provider)
+            {
+                var rootUri = uri.GetRootUri();
+                return GetUriKey(rootUri, type, provider);
+            }
+            public static string GetUriKey(Uri uri, CredentialRequestType type, ICredentialProvider provider)
+            {
+                return $"{provider.Id}_{type == CredentialRequestType.Proxy}_{uri}";
+            }
         }
     }
 }
