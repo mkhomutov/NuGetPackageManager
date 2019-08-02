@@ -7,7 +7,7 @@
 
     public class DebugLogger : ILogger
     {
-        private ILog _log = LogManager.GetCurrentClassLogger();
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private bool _verbose;
 
@@ -16,39 +16,44 @@
             _verbose = verbose;
         }
 
-        public void Log(LogLevel level, string data)
+        void ILogger.Log(LogLevel level, string data)
         {
             switch (level)
             {
                 case LogLevel.Debug:
                     LogDebug(data);
                     break;
+
                 case LogLevel.Error:
                     LogError(data);
                     break;
+
                 case LogLevel.Information:
                     LogInformation(data);
                     break;
+
                 case LogLevel.Warning:
                     LogWarning(data);
                     break;
+
                 case LogLevel.Minimal:
                     LogMinimal(data);
                     break;
+
                 case LogLevel.Verbose:
                     LogVerbose(data);
                     break;
             }
         }
 
-        public void Log(ILogMessage message)
+        void ILogger.Log(ILogMessage message)
         {
-            Log(message.Level, message.Message);
+            ((ILogger)this).Log(message.Level, message.Message);
         }
 
         public async Task LogAsync(LogLevel level, string data)
         {
-            var logginTask = Task.Run(() => Log(level, data));
+            var logginTask = Task.Run(() => ((ILogger)this).Log(level, data));
             await logginTask;
         }
 
@@ -59,22 +64,22 @@
 
         public void LogDebug(string data)
         {
-            _log.Debug(data);
+            Log.Debug(data);
         }
 
         public void LogError(string data)
         {
-            _log.Error(data);
+            Log.Error(data);
         }
 
         public void LogInformation(string data)
         {
-            _log.Info(data);
+            Log.Info(data);
         }
 
         public void LogInformationSummary(string data)
         {
-            _log.Info(data);
+            Log.Info(data);
         }
 
         public void LogMinimal(string data)
@@ -89,7 +94,7 @@
 
         public void LogWarning(string data)
         {
-            _log.Warning(data);
+            Log.Warning(data);
         }
     }
 }

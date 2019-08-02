@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="MSBuild.Sdk.Extras">
 
   <PropertyGroup>
     <TargetFrameworks>net462</TargetFrameworks>
@@ -29,6 +29,7 @@
     <None Remove="Controls\RotationProgressBar.xaml" />
     <None Remove="Resources\Add_8x_16x.png" />
     <None Remove="Resources\cross-removebg.png" />
+    <None Remove="Resources\default-package-icon.png" />
     <None Remove="Resources\Download_grey_16x.png" />
     <None Remove="Resources\Upload_gray_16x.png" />
     <None Remove="Themes\Brushes.xaml" />
@@ -58,7 +59,12 @@
     <PackageReference Include="NuGet.Packaging.Core" Version="4.9.4" />
     <PackageReference Include="NuGet.Protocol" Version="4.9.4" />
     <PackageReference Include="Obsolete.Fody" Version="5.0.0" />
+    <PackageReference Include="Orc.Controls" Version="3.2.10" />
     <PackageReference Include="WpfAnalyzers" Version="2.2.0.2" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="NETStandard.Library" Version="2.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,8 +74,17 @@
   <ItemGroup>
     <Resource Include="Resources\Add_8x_16x.png" />
     <Resource Include="Resources\cross-removebg.png" />
+    <Resource Include="Resources\default-package-icon.png" />
     <Resource Include="Resources\Download_grey_16x.png" />
     <Resource Include="Resources\Upload_gray_16x.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -78,5 +93,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <Import Project="$(MSBuildProjectDirectory)\..\Directory.build.shared.explicit.props" Condition="Exists('$(MSBuildProjectDirectory)\..\Directory.build.shared.explicit.props')" />
 
 </Project>

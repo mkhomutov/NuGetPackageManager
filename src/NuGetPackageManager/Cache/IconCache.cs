@@ -1,22 +1,26 @@
 ﻿namespace NuGetPackageManager.Cache
 {
+    using Catel.Caching;
+    using Catel.Caching.Policies;
     using System;
     using System.IO;
-    using System.Runtime.Caching;
     using System.Windows.Media.Imaging;
 
     public class IconCache
     {
-        MemoryCache Cache { get; set; } = new MemoryCache("Icon cache");
+        private readonly CacheStorage<string, byte[]> Cache = new CacheStorage<string, byte[]>();
 
-        public IconCache(CacheItemPolicy cacheItemPolicy = null)
+        private static readonly ExpirationPolicy DefaultStoringPolicy = ExpirationPolicy.Duration(TimeSpan.FromDays(30));
+
+        public BitmapImage FallbackValue { get; set; }
+
+        public IconCache(ExpirationPolicy cacheItemPolicy = null)
         {
             StoringPolicy = cacheItemPolicy ?? DefaultStoringPolicy;
         }
 
-        public CacheItemPolicy StoringPolicy { get; private set; }
 
-        public static CacheItemPolicy DefaultStoringPolicy = new CacheItemPolicy();
+        public ExpirationPolicy StoringPolicy { get; private set; }
 
         public void SaveToCache(Uri iconUri, byte[] streamContent)
         {
@@ -26,15 +30,20 @@
         public BitmapImage GetFromCache(Uri iconUri)
         {
             //todo stream should be disposed when item removed from cache
+            if (iconUri == null)
+            {
+                return FallbackValue;
+            }
+
             string key = iconUri.ToString();
-            var cachedItem = Cache.Get(key) as byte[];
+            var cachedItem = Cache.Get(key);
 
             if (cachedItem == null)
             {
-                throw new InvalidOperationException($"Key '{key}' not found in cache");
+                return FallbackValue;
             }
 
-            using (var stream = new MemoryStream())
+            using (var stream = new MemoryStream(cachedItem))
             {
                 var image = new BitmapImage();
 

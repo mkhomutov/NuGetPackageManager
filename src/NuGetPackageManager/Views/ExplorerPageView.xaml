@@ -25,6 +25,7 @@
                                       IsCommandExecuting="{Binding IsCancellationTokenAlive}"
                                       HorizontalContentAlignment="Stretch"
                                       ItemContainerStyle="{StaticResource DefaultListBoxItemStyle}"
+                                      SelectedItem="{Binding SelectedPackage}"
                                       Height="800">
             <nugetc:InfiniteScrollListBox.ItemTemplate>
                 <DataTemplate>
@@ -41,27 +42,31 @@
                                 <RowDefinition Height="50"/>
                             </Grid.RowDefinitions>
 
-                            <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}}"/>
+                            <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}, IsAsync=True}"
+                                   RenderOptions.BitmapScalingMode="Fant"
+                                   Height="32" Width="32" Grid.RowSpan="2"
+                                   VerticalAlignment="Top" Margin="0 4 2 0"/>
 
-                            <StackPanel Orientation="Horizontal" Grid.Column="1">
-                                <TextBlock Text="{Binding Identity}" FontSize="14"
+                            <DockPanel Grid.Column="1">
+                                <TextBlock Text="{Binding Title}" FontSize="14"
                                            FontWeight="DemiBold"/>
                                 <TextBlock Margin="8 0 2 0" 
                                     Text="by:"
                                     VerticalAlignment="Bottom"/>
                                 <TextBlock Text="{Binding Authors}"
                                     VerticalAlignment="Bottom"/>
-                            </StackPanel>
+                                <TextBlock Text="{Binding Identity.Version}"
+                                           Margin="0 0 8 0"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Bottom"/>
+                            </DockPanel>
 
 
                             <Grid Grid.Column="1" Grid.Row="1"
                                   Margin="0 4 0 0">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="64"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="90"/>
-                                    <ColumnDefinition Width="1"/>
-                                    <ColumnDefinition Width="86"/>
-                                    <ColumnDefinition Width="64"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
@@ -74,12 +79,7 @@
                                 </Grid.Resources>
 
                                 <TextBlock Text="{Binding DownloadCount}" Grid.Column="0"/>
-                                <TextBlock Grid.Column="1">total downloads</TextBlock>
-                                <Separator Grid.Column="2" Height="20"/>
-                                <TextBlock Grid.Column="3" 
-                                           Margin="4 0 0 0">Latest version:</TextBlock>
-                                <TextBlock Grid.Column="4" Text="{Binding Identity.Version}"/>
-                                <!--<TextBlock Text="{Binding Tags}" HorizontalAlignment="Right"/>-->
+                                <TextBlock Grid.Column="1" Margin="4 0 0 0">total downloads</TextBlock>
                             </Grid>
                            
                             <TextBlock Text="{Binding Summary }" TextWrapping="WrapWithOverflow"

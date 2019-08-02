@@ -1,13 +1,8 @@
-﻿using NuGet.Protocol.Core.Types;
-using NuGetPackageManager.Web;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using NuGet.Protocol.Core.Types;
+    using System.Threading.Tasks;
+
     public interface IPackageMetadataMediaDownloadService
     {
         Task DownloadFromAsync(IPackageSearchMetadata packageMetadata);

@@ -12,6 +12,7 @@ namespace NuGetPackageManager.ViewModels
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public class SettingsControlViewModel : ViewModelBase
@@ -33,6 +34,8 @@ namespace NuGetPackageManager.ViewModels
             Argument.IsNotNull(() => configredFeeds);
 
             ActiveFeeds = configredFeeds;
+            Feeds = new ObservableCollection<NuGetFeed>(ActiveFeeds);
+            RemovedFeeds = new List<NuGetFeed>();
 
             _configurationService = configurationService as NugetConfigurationService;
             _feedVerificationService = feedVerificationService;
@@ -43,9 +46,9 @@ namespace NuGetPackageManager.ViewModels
             DeferValidationUntilFirstSaveCall = true;
         }
 
-        public ObservableCollection<NuGetFeed> Feeds { get; set; } = new ObservableCollection<NuGetFeed>();
+        public ObservableCollection<NuGetFeed> Feeds { get; set; }
 
-        [Model]
+        //[Model]
         public NuGetFeed SelectedFeed { get; set; }
 
         /// <summary>
@@ -53,10 +56,13 @@ namespace NuGetPackageManager.ViewModels
         /// </summary>
         public List<NuGetFeed> ActiveFeeds { get; set; }
 
+        public List<NuGetFeed> RemovedFeeds { get; set; }
+
         public Command RemoveFeed { get; set; }
 
         private void OnRemoveFeedExecute()
         {
+            RemovedFeeds.Add(SelectedFeed);
             Feeds.Remove(SelectedFeed);
         }
 
@@ -89,13 +95,13 @@ namespace NuGetPackageManager.ViewModels
             AddFeed = new Command(OnAddFeedExecute);
         }
 
-        protected override Task InitializeAsync()
+        protected override async Task InitializeAsync()
         {
             //handle manual model save on child viewmodel
             _modelProvider.PropertyChanged += OnModelProviderPropertyChanged;
             Feeds.CollectionChanged += OnFeedsCollectioChanged;
 
-            return base.InitializeAsync();
+            Feeds.ForEach(async x => await VerifyFeedAsync(x));
         }
 
         protected override Task<bool> SaveAsync()
@@ -103,12 +109,16 @@ namespace NuGetPackageManager.ViewModels
             //store all feed inside configuration
             for (int i = 0; i < Feeds.Count; i++)
             {
-                _configurationService.SetValue(ConfigurationContainer.Local, $"feed{i}", Feeds[i]);
+                _configurationService.SetRoamingValueWithDefaultIdGenerator(Feeds[i]);
             }
 
             //send usable feeds (including failed)
             ActiveFeeds.Clear();
             ActiveFeeds.AddRange(Feeds);
+
+            //feeds removal
+            _configurationService.RemoveValues(ConfigurationContainer.Roaming, RemovedFeeds);
+            RemovedFeeds.Clear();
 
             return base.SaveAsync();
         }
@@ -155,9 +165,11 @@ namespace NuGetPackageManager.ViewModels
 
             feed.IsVerifiedNow = true;
 
-            var result = await _feedVerificationService.VerifyFeedAsync(feed.Source, true);
-
-            feed.VerificationResult = result;
+            using (var cts = new CancellationTokenSource())
+            {
+                var result = await _feedVerificationService.VerifyFeedAsync(feed.Source, cts.Token, true);
+                feed.VerificationResult = result;
+            }
 
             feed.IsVerifiedNow = false;
         }
@@ -165,19 +177,11 @@ namespace NuGetPackageManager.ViewModels
 
         private void OnModelProviderPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            //should drop current selected row and add updated
-            Feeds.Remove(SelectedFeed);
-            Feeds.Add(_modelProvider.Model);
+            var index = Feeds.IndexOf(SelectedFeed);
+
+            Feeds[index] = _modelProvider.Model;
 
             SelectedFeed = _modelProvider.Model;
-
-            //keep selection
-            //SelectedFeed = _modelProvider.Model;
-
-            ////copy values from edited clone
-            //_modelProvider.Model.CopyTo(SelectedFeed);
-
-            //_modelProvider.Model = SelectedFeed;
         }
 
 
@@ -185,13 +189,13 @@ namespace NuGetPackageManager.ViewModels
         {
             //verify all new feeds in collection
             //because of feed edit is simple re-insertion we should'nt handle property change inside model
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add || e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
             {
                 if (e.NewItems != null)
                 {
                     foreach (NuGetFeed item in e.NewItems)
                     {
-                        if (!item.IsLocal())
+                        if (!item.IsLocal() && item.VerificationResult == FeedVerificationResult.Unknown)
                         {
                             await VerifyFeedAsync(item);
                         }

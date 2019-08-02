@@ -50,22 +50,20 @@
         public string SearchString { get; set; }
 
         [ViewModelToModel]
-        public NuGetFeed ObservedFeed { get; set; }
+        public INuGetSource ObservedFeed { get; set; }
 
-        public ObservableCollection<NuGetFeed> ActiveFeeds { get; set; }
+        public bool SelectFirstPageOnLoad { get; set; } = true;
+
+        public ObservableCollection<INuGetSource> ActiveFeeds { get; set; }
 
         protected override Task InitializeAsync()
         {
-            if (_configurationService.IsValueAvailable(ConfigurationContainer.Local, $"feed{0}"))
-            {
-                ReadFeedsFromConfiguration(Settings);
-            }
-            else
-            {
-                AddDefaultFeeds(Settings);
-            }
+            ReadFeedsFromConfiguration(Settings);
 
-            ActiveFeeds = new ObservableCollection<NuGetFeed>(GetActiveFeedsFromSettings());
+            //Log.Info("No feeds stored in configuration");
+            //AddDefaultFeeds(Settings);
+
+            ActiveFeeds = new ObservableCollection<INuGetSource>(GetActiveFeedsFromSettings());
 
             //select top feed
             ObservedFeed = ActiveFeeds.FirstOrDefault();
@@ -91,23 +89,20 @@
                 if (result ?? false)
                 {
                     //update available feeds
-                    ActiveFeeds = new ObservableCollection<NuGetFeed>(GetActiveFeedsFromSettings());
+                    ActiveFeeds = new ObservableCollection<INuGetSource>(GetActiveFeedsFromSettings());
                 }
             }
         }
 
-        /*placeholder, this probably should be application command inside separate Catel command container*/
-        public Command RefreshCurrentPage { get; set; }
-
         private void ReadFeedsFromConfiguration(ExplorerSettingsContainer settings)
         {
             NuGetFeed temp = null; ;
-            int i = 0;
 
-            //restore values from configuration
-            while (_configurationService.IsLocalValueAvailable($"feed{i}"))
+            var keyCollection = _configurationService.GetAllKeys(ConfigurationContainer.Roaming);
+
+            for (int i = 0; i < keyCollection.Count; i++)
             {
-                temp = _configurationService.GetValue(ConfigurationContainer.Local, $"feed{i}");
+                temp = _configurationService.GetRoamingValue(keyCollection[i]);
 
                 if (temp != null)
                 {
@@ -117,8 +112,6 @@
                 {
                     Log.Error($"Configuration value under key {i} is broken and cannot be loaded");
                 }
-
-                i++;
             }
         }
 
@@ -131,9 +124,14 @@
               ));
         }
 
-        private IEnumerable<NuGetFeed> GetActiveFeedsFromSettings()
+        private IEnumerable<INuGetSource> GetActiveFeedsFromSettings()
         {
-            return Settings.NuGetFeeds.Where(x => x.IsActive);
+            var activefeeds = Settings.NuGetFeeds.Where(x => x.IsActive).ToList<INuGetSource>();
+            var allInOneSource = new CombinedNuGetSource(activefeeds);
+
+            activefeeds.Insert(0, allInOneSource);
+
+            return activefeeds;
         }
     }
 }

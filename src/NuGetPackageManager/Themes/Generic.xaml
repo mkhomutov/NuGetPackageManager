@@ -3,22 +3,6 @@
                     xmlns:local="clr-namespace:NuGetPackageManager.Controls"
                     xmlns:catel="http://schemas.catelproject.com">
 
-    <Style x:Key="ControlsFocusVisualStyle" TargetType="{x:Type Control}">
-        <Setter Property="Foreground" Value="{DynamicResource PopupText}"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate>
-                    <Rectangle x:Name="ControlFocusVisualRectangle"
-                                Stroke="{TemplateBinding Foreground}"
-                                StrokeThickness="1"  
-                                StrokeDashArray="1 2"  
-                                SnapsToDevicePixels="true"/>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-
     <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
         <Setter Property="Control.Template">
             <Setter.Value>

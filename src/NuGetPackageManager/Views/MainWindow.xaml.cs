@@ -9,7 +9,7 @@ namespace NuGetPackageManager.Views
     /// </summary>
     public partial class MainWindow : Catel.Windows.DataWindow
     {
-        public MainWindow()
+        public MainWindow() : base(Catel.Windows.DataWindowMode.Custom)
         {
             InitializeComponent();
             ShowInTaskbar = true;

@@ -6,6 +6,8 @@
              xmlns:catel="http://schemas.catelproject.com"
              xmlns:local="clr-namespace:NuGetPackageManager.Views"
              xmlns:nugetc="clr-namespace:NuGetPackageManager.Controls"
+             xmlns:orc="http://schemas.wildgums.com/orc/controls"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="1300">
     <Grid>
@@ -34,19 +36,16 @@
             </StackPanel.Resources>
             <nugetc:TabControllerButton x:Name="Browse"
                 TabSource="{Binding RelativeSource={RelativeSource AncestorType={x:Type catel:UserControl}}, Path=UsedOn}"
-                Next="{Binding ElementName=Installed}">
+                Next="{Binding ElementName=Installed}" 
+                IsChecked="{Binding SelectFirstPageOnLoad}">
                 Browse
             </nugetc:TabControllerButton>
             <nugetc:TabControllerButton x:Name="Installed" 
                 Next="{Binding ElementName=Updates}">
                 Installed
             </nugetc:TabControllerButton>
-            <nugetc:TabControllerButton x:Name="Updates"
-                Next="{Binding ElementName=Consolidate}">
+            <nugetc:TabControllerButton x:Name="Updates">
                 Updates
-            </nugetc:TabControllerButton>
-            <nugetc:TabControllerButton x:Name="Consolidate">
-                Consolidate
             </nugetc:TabControllerButton>
         </StackPanel>
 
@@ -57,14 +56,35 @@
                    FontSize="16"
                    Margin="0 0 10 10"/>
 
-
         <!-- tool bar -->
-        <TextBox Grid.Row="1"
+        <!--<TextBox Grid.Row="1"
                  Margin="10 0 0 0"
-                 Text="{Binding SearchString}"/> <!--search box-->
+                 Text="{Binding SearchString}"/> --><!--search box-->
+
+        <orc:WatermarkTextBox Grid.Row="1"
+                  Text="{Binding SearchString}"
+                  Margin="10 0 0 0">
+            <orc:WatermarkTextBox.Watermark>
+                <StackPanel Orientation="Horizontal">
+                    <Viewbox Width="12" Height="12">
+                        <Canvas Width="12" Height="12">
+                            <Path Data="{Binding Source={StaticResource Search-web}, Path=Data}" 
+                                  Margin="0 -4 0 0"
+                                  Fill="{StaticResource AccentColorBrush}"/>
+                        </Canvas>
+                    </Viewbox>
+
+                    <TextBlock Text="Enter package id"
+                               Margin="14 0 0 0"/>
+                </StackPanel>
+            </orc:WatermarkTextBox.Watermark>
+            <i:Interaction.Behaviors>
+                <catel:UpdateBindingOnTextChanged UpdateDelay="500"/>
+            </i:Interaction.Behaviors>
+        </orc:WatermarkTextBox>
         
         <Button Grid.Row="1" Grid.Column="1"
-                Command="{Binding RefreshCurrentPage}"
+                Command="{catel:CommandManagerBinding RefreshCurrentPage}"
                 Height="16" Width="16"
                 Margin="3 0 3 0">
             <Viewbox>
@@ -72,6 +92,9 @@
                     <Path Data="{Binding Source={StaticResource Refresh}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
                 </Canvas>
             </Viewbox>
+            <i:Interaction.Behaviors>
+                <catel:FocusOnKeyPress Key="Return"/>
+            </i:Interaction.Behaviors>
         </Button>
         
         <CheckBox Grid.Row="1" Grid.Column="2"

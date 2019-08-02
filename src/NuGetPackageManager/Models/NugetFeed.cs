@@ -3,11 +3,15 @@
     using Catel.Data;
     using System;
     using System.ComponentModel;
+    using System.Xml.Serialization;
 
-    public class NuGetFeed : ModelBase, ICloneable<NuGetFeed>, IDataErrorInfo
+    public class NuGetFeed : ModelBase, ICloneable<NuGetFeed>, IDataErrorInfo, INuGetSource
     {
         public NuGetFeed()
         {
+            VerificationResult = FeedVerificationResult.Unknown;
+            Error = String.Empty;
+            IsActive = true;
         }
 
         public NuGetFeed(string name, string source)
@@ -22,15 +26,23 @@
 
         public bool IsActive { get; set; }
 
+        [XmlIgnore]
         public bool IsVerifiedNow { get; set; }
 
-        public int TestCount { get; set; }
+        [XmlIgnore]
+        public Guid SerializationIdentifier { get; set; }
 
-        public FeedVerificationResult VerificationResult { get; set; } = FeedVerificationResult.Valid;
+        [XmlIgnore]
+        public FeedVerificationResult VerificationResult { get; set; }
 
-        public bool IsNameValid => !String.IsNullOrEmpty(Name);
+        [XmlIgnore]
+        public bool IsNameValid { get; private set; }
 
-        public bool IsAccessible => VerificationResult == FeedVerificationResult.Valid;
+        [XmlIgnore]
+        public bool IsAccessible { get; set; }
+
+        [XmlIgnore]
+        public bool IsVerified { get; private set; }
 
         public override string ToString()
         {
@@ -72,15 +84,23 @@
             }
         }
 
+        public PackageSourceWrapper GetPackageSource()
+        {
+            return new PackageSourceWrapper(Source);
+        }
+
         public NuGetFeed Clone()
         {
             return new NuGetFeed(
                 this.Name, this.Source)
-            { IsActive = this.IsActive };
+            {
+                IsActive = this.IsActive,
+                VerificationResult = this.VerificationResult,
+                SerializationIdentifier = this.SerializationIdentifier
+            };
         }
 
-        public string Error { get; private set; } = String.Empty;
-
+        public string Error { get; private set; }
 
         public string this[string columnName]
         {
@@ -107,6 +127,35 @@
 
                 return String.Empty;
             }
+        }
+
+        protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Source))
+            {
+                //reset verification
+                VerificationResult = FeedVerificationResult.Unknown;
+            }
+            if (e.PropertyName == nameof(VerificationResult))
+            {
+                IsAccessible = VerificationResult == FeedVerificationResult.Valid || VerificationResult == FeedVerificationResult.AuthorizationRequired;
+                IsVerified = VerificationResult != FeedVerificationResult.Unknown;
+            }
+            if (e.PropertyName == nameof(Name))
+            {
+                IsNameValid = !String.IsNullOrEmpty(Name);
+            }
+            base.OnPropertyChanged(e);
+        }
+
+        /// <summary>
+        /// Called from configuration service
+        /// </summary>
+        public void Initialize()
+        {
+            IsNameValid = !String.IsNullOrEmpty(Name);
+            IsAccessible = VerificationResult == FeedVerificationResult.Valid || VerificationResult == FeedVerificationResult.AuthorizationRequired;
+            IsVerified = VerificationResult != FeedVerificationResult.Unknown;
         }
     }
 }

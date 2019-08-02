@@ -25,17 +25,9 @@
         </Grid.RowDefinitions>
 
         <TextBlock Margin="10 13 0 0"
-                   FontSize="24">
-            Title
-        </TextBlock>
-
-        <TextBlock Grid.Column="2"
-                   Margin="0 13 10 0"
-                   HorizontalAlignment="Right"
-                   VerticalAlignment="Top">
-            <Hyperlink NavigateUri="https://www.nuget.org/">
-                nuget.org
-            </Hyperlink>
+                   FontSize="24"
+                   Grid.ColumnSpan="3"
+                   Text="{Binding Title}">
         </TextBlock>
 
         <ListView Grid.ColumnSpan="3" Grid.Row="1" 
@@ -79,8 +71,8 @@
         <TextBlock Grid.ColumnSpan="3" Grid.Row="5" 
                    Margin="10"
             TextWrapping="WrapWithOverflow"
-                   MinHeight="80">
-            Description
+                   MinHeight="80"
+                   Text="{Binding Description}">
         </TextBlock>
 
     </Grid>

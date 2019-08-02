@@ -13,11 +13,6 @@
     <SolidColorBrush x:Key="TabSelectedBrushKey" Color="{x:Static SystemColors.ActiveCaptionTextColor}"/>
     <SolidColorBrush x:Key="TabPopupBrushKey" Color="{x:Static SystemColors.ActiveCaptionTextColor}"/>
     <SolidColorBrush x:Key="TabPopupTextBrushKey" Color="{x:Static SystemColors.HighlightTextBrush}"/>
-    <SolidColorBrush x:Key="PopupText" Color="DarkGray"/>
-    <SolidColorBrush x:Key="TabSelectedTextBrushKey" Color="{x:Static SystemColors.ActiveCaptionTextColorKey}"/>
-    <SolidColorBrush x:Key="TabHoverBrushKey" Color="{x:Static SystemColors.HotTrackBrushKey}"/>
-
-
 
     <!-- main accent theme brushes -->
     <SolidColorBrush x:Key="AccentColorBrush" Color="Orange"/>

@@ -5,9 +5,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NuGetPackageManager.Views"
+        xmlns:orc ="http://schemas.wildgums.com/orc/controls"
+        xmlns:mvvm="clr-namespace:NuGetPackageManager.MVVM"
         mc:Ignorable="d"
         Title="MainWindow" d:DesignWidth="1000">
-    <Grid Width="1000">
+    <Grid Width="1000" Margin="0 0 0 30">
+        <Grid.Resources>
+            <mvvm:BindingProxy Data="{Binding }" x:Key="RootContextProxy"/>
+        </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/> <!-- right toolbar-->
             <RowDefinition Height="5*"/>
@@ -22,10 +27,11 @@
                                   UsedOn="{Binding ElementName=ExplorerPagesTabControl}"
                                   DataContext="{Binding Settings}"/>
 
-        <TabControl Name="ExplorerPagesTabControl"
+        <orc:TabControl Name="ExplorerPagesTabControl"
                     Grid.Column="0" Grid.Row="1"
                     MinHeight="800"
                     Margin="10 0 0 0"
+                    LoadTabItems="LazyLoading"
                     ItemsSource="{Binding ExplorerPages}">
             <TabControl.ItemContainerStyle>
                 <Style TargetType="{x:Type TabItem}">
@@ -43,14 +49,16 @@
             <TabControl.ContentTemplate>
                 <DataTemplate>
                     <StackPanel>
-                        <local:ExplorerPageView/>
+                        <local:ExplorerPageView SelectedItemOnPage="{Binding Path=Data.SelectedPackageMetadata, Source={StaticResource RootContextProxy}, Mode=TwoWay}"/>
                     </StackPanel>                    
                 </DataTemplate>
             </TabControl.ContentTemplate>
-        </TabControl>
+        </orc:TabControl>
         
         <!--detail of current selected package -->
-        <local:PackageDetailsView Grid.Row="1" Grid.Column="1"/>
+        <local:PackageDetailsView DataContext="{Binding SelectedPackageMetadata}" 
+                                  Visibility="{Binding Path=., Converter={catel:ReferenceToHidingVisibilityConverter}}"
+                                  Grid.Row="1" Grid.Column="1"/>
 
     </Grid>
 </catel:DataWindow>

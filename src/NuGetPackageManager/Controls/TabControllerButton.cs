@@ -17,9 +17,28 @@
 
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
+        static TabControllerButton()
+        {
+            //custom metadata for checked property
+            FrameworkPropertyMetadata pmeta = new FrameworkPropertyMetadata(false, (s, e) => ((TabControllerButton)s).OnIsCheckedChanged(e));
+
+            IsCheckedProperty.OverrideMetadata(typeof(TabControllerButton), pmeta);
+        }
+
         public TabControllerButton()
         {
-            Click += OnTabControllerButtonClicked;
+
+        }
+
+        private void OnIsCheckedChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if ((bool)e.NewValue == true)
+            {
+                if (group != null)
+                {
+                    SelectTab();
+                }
+            }
         }
 
         public TabControl TabSource
@@ -104,17 +123,21 @@
 
         private void SelectTab()
         {
-            var items = TabSource.Items;
-            var index = MyIndex();
-
-            int i = 0;
-            foreach (var item in TabSource.ItemsSource)
+            if (TabSource != null)
             {
-                //try to get container from source
-                var tab = TabSource.ItemContainerGenerator.ContainerFromItem(item);
-                tab.SetCurrentValue(TabItem.IsSelectedProperty, i == index);
+                var items = TabSource.Items;
+                var index = MyIndex();
 
-                i++;
+                int i = 0;
+                foreach (var item in TabSource.ItemsSource)
+                {
+                    //try to get container from source
+                    var tab = TabSource.ItemContainerGenerator.ContainerFromItem(item);
+
+                    tab.SetCurrentValue(TabItem.IsSelectedProperty, i == index);
+
+                    i++;
+                }
             }
         }
     }

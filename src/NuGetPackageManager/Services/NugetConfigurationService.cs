@@ -5,8 +5,12 @@ namespace NuGetPackageManager.Services
     using Catel.Runtime.Serialization;
     using Catel.Runtime.Serialization.Xml;
     using Catel.Services;
+    using NuGetPackageManager.Configuration;
     using NuGetPackageManager.Models;
+    using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
 
     public class NugetConfigurationService : ConfigurationService
     {
@@ -16,11 +20,6 @@ namespace NuGetPackageManager.Services
             IObjectConverterService objectConverterService, IXmlSerializer serializer) : base(serializationManager, objectConverterService, serializer)
         {
             _configSerializer = serializer;
-        }
-
-        protected override string GetValueFromStore(ConfigurationContainer container, string key)
-        {
-            return base.GetValueFromStore(container, key);
         }
 
         public NuGetFeed GetValue(ConfigurationContainer container, string key)
@@ -36,19 +35,47 @@ namespace NuGetPackageManager.Services
                 serializedModel = ser.Deserialize(sr);
             }
 
-            //using(var memstream = new MemoryStream())
-            //{
-            //    var streamWriter = new StreamWriter(memstream);
-            //    streamWriter.Write(rawXml);
+            if (serializedModel == null)
+            {
+                return null;
+            }
+            else
+            {
+                var serializedFeed = serializedModel as NuGetFeed;
 
-            //    memstream.Position = 0;
+                Guid guid = KeyFromString(key);
 
-            //    var obj = configSerializer.Deserialize(new NugetFeed(), memstream);
+                if (serializedFeed != null)
+                {
+                    if (!ConfigurationIdGenerator.TryTakeUniqueIdentifier(guid, out Guid newGUid))
+                    {
+                        serializedFeed.SerializationIdentifier = newGUid;
+                    }
+                    else
+                    {
+                        serializedFeed.SerializationIdentifier = guid;
+                    }
 
-            //    feed = configSerializer.Deserialize<NugetFeed>(memstream);
-            //}
+                    serializedFeed.Initialize();
 
-            return serializedModel == null ? null : serializedModel as NuGetFeed;
+                    return serializedFeed;
+                }
+                throw new InvalidCastException("Serialized model cannot be casted to type 'NuGetFeed'");
+            }
+        }
+
+        public NuGetFeed GetRoamingValue(Guid key)
+        {
+            return GetValue(ConfigurationContainer.Roaming, KeyToString(key));
+        }
+
+        public IReadOnlyList<Guid> GetAllKeys(ConfigurationContainer container)
+        {
+            var feedKeys = GetValueFromStore(container, masterKeys[ConfigurationSections.Feeds]);
+
+            var keyList = feedKeys.Split(new string[] { KeySeparator }, StringSplitOptions.RemoveEmptyEntries);
+
+            return keyList.Select(key => KeyFromString(key)).ToList();
         }
 
         public void SetValue(ConfigurationContainer container, string key, NuGetFeed value)
@@ -63,15 +90,89 @@ namespace NuGetPackageManager.Services
 
                 string rawxml = streamReader.ReadToEnd();
 
+                bool shouldBeUpdated = !ValueExists(container, key);
+
                 SetValueToStore(container, key, rawxml);
+
+                if (shouldBeUpdated)
+                {
+                    UpdateSectionKeyList(container, ConfigurationSections.Feeds, key);
+                }
             }
         }
 
-        protected override void SetValueToStore(ConfigurationContainer container, string key, string value)
+        public void SetValueWithDefaultIdGenerator(ConfigurationContainer container, NuGetFeed value)
         {
-            //serialize catel model to string
+            if (value.SerializationIdentifier.Equals(default(Guid)))
+            {
+                value.SerializationIdentifier = ConfigurationIdGenerator.GetUniqueIdentifier();
+            }
 
-            base.SetValueToStore(container, key, value);
+            SetValue(container, KeyToString(value.SerializationIdentifier), value);
+        }
+
+        public void SetRoamingValueWithDefaultIdGenerator(NuGetFeed value)
+        {
+            SetValueWithDefaultIdGenerator(ConfigurationContainer.Roaming, value);
+        }
+
+        protected string KeyToString(Guid guid)
+        {
+            return $"_{guid}";
+        }
+
+        protected Guid KeyFromString(string key)
+        {
+            return Guid.Parse(key.Substring(1));
+        }
+
+        public void RemoveValues(ConfigurationContainer container, IReadOnlyList<NuGetFeed> feedList)
+        {
+            foreach (var feed in feedList)
+            {
+                var guid = feed.SerializationIdentifier;
+
+                if (!guid.Equals(default(Guid)))
+                {
+                    guid = ConfigurationIdGenerator.IsCollision(guid) ? ConfigurationIdGenerator.GetOriginalIdentifier(guid) : guid;
+
+                    if (IsValueAvailable(container, KeyToString(guid)))
+                    {
+                        SetValue(container, KeyToString(guid), String.Empty);
+
+                        UpdateSectionKeyList(container, ConfigurationSections.Feeds, KeyToString(guid), true);
+                    }
+                }
+            }
+        }
+
+        private Dictionary<ConfigurationSections, string> masterKeys = new Dictionary<ConfigurationSections, string>()
+        {
+            { ConfigurationSections.Feeds, $"NuGet_{ConfigurationSections.Feeds}" }
+        };
+
+        string KeySeparator = "|";
+
+        private void UpdateSectionKeyList(ConfigurationContainer container, ConfigurationSections confSection, string key, bool isRemove = false)
+        {
+            var keyList = GetValueFromStore(container, masterKeys[confSection]);
+            string updatedKeys = String.Empty;
+
+            if (isRemove)
+            {
+                var persistedKeys = keyList.Split(new string[] { KeySeparator }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                //updatedKeys = String.Join(KeySeparator, persistedKeys.Except(keys));
+                persistedKeys.Remove(key);
+                updatedKeys = String.Join(KeySeparator, persistedKeys);
+            }
+            else
+            {
+                //updatedKeys = String.Join(keyList, keys);
+                updatedKeys = String.Join(KeySeparator, key, keyList);
+            }
+
+            SetValueToStore(container, masterKeys[confSection], updatedKeys);
         }
     }
 }

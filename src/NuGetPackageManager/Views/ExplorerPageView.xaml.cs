@@ -1,5 +1,5 @@
 ﻿using Catel.MVVM.Views;
-using NuGetPackageManager.Models;
+using NuGet.Protocol.Core.Types;
 using System.Windows;
 
 namespace NuGetPackageManager.Views
@@ -11,19 +11,18 @@ namespace NuGetPackageManager.Views
     {
         public ExplorerPageView()
         {
+            //prevent closing view models
             InitializeComponent();
         }
 
+        [ViewToViewModel(viewModelPropertyName: "SelectedPackage", MappingType = ViewToViewModelMappingType.TwoWayViewModelWins)]
+        public IPackageSearchMetadata SelectedItemOnPage
+        {
+            get { return (IPackageSearchMetadata)GetValue(SelectedItemOnPageProperty); }
+            set { SetValue(SelectedItemOnPageProperty, value); }
+        }
 
-        //[ViewToViewModel(MappingType = ViewToViewModelMappingType.ViewToViewModel)]
-        //public ExplorerSettingsContainer Settings
-        //{
-        //    get { return (ExplorerSettingsContainer)GetValue(SettingsProperty); }
-        //    set { SetValue(SettingsProperty, value); }
-        //}
-
-        //// Using a DependencyProperty as the backing store for MyProperty.  This enables animation, styling, binding, etc...
-        //public static readonly DependencyProperty SettingsProperty =
-        //    DependencyProperty.Register(nameof(Settings), typeof(ExplorerSettingsContainer), typeof(ExplorerPageView), new PropertyMetadata(null));
+        public static readonly DependencyProperty SelectedItemOnPageProperty =
+            DependencyProperty.Register(nameof(SelectedItemOnPage), typeof(IPackageSearchMetadata), typeof(ExplorerPageView), new PropertyMetadata(null));
     }
 }

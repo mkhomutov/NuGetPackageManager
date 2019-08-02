@@ -8,6 +8,7 @@
     using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Loggers;
+    using NuGetPackageManager.Web;
     using System;
     using System.Collections.Generic;
     using System.Net;
@@ -18,6 +19,9 @@
     internal class NuGetFeedVerificationService : INuGetFeedVerificationService
     {
         private static readonly ILog _log = LogManager.GetCurrentClassLogger();
+
+        private static readonly IHttpExceptionHandler<WebException> webExceptionHandler = new HttpWebExceptionHandler();
+        private static readonly IHttpExceptionHandler<FatalProtocolException> fatalProtocolExceptionHandler = new FatalProtocolExceptionHandler();
 
         private readonly ICredentialProviderLoaderService _credentialProviderLoaderService;
 
@@ -35,7 +39,7 @@
                 );
         }
 
-        public async Task<FeedVerificationResult> VerifyFeedAsync(string source, bool authenticateIfRequired = true)
+        public async Task<FeedVerificationResult> VerifyFeedAsync(string source, CancellationToken ct, bool authenticateIfRequired = true)
         {
             Argument.IsNotNull(() => source);
 
@@ -47,32 +51,55 @@
             _log.Debug("Verifying feed '{0}'", source);
 
             var v3_providers = Repository.Provider.GetCoreV3();
+
             try
             {
                 var packageSource = new PackageSource(source);
 
                 var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root: null), v3_providers);
 
-                var repository = new SourceRepository(packageSource, v3_providers);
+                var repository = repoProvider.CreateRepository(packageSource);
 
                 var searchResource = await repository.GetResourceAsync<PackageSearchResource>();
 
-                using (var cts = new CancellationTokenSource())
+                var httpHandler = await repository.GetResourceAsync<HttpHandlerResourceV3>();
+
+
+                //maybe use Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token) instead
+
+                //try to perform search
+                try
                 {
-                    var cancellationToken = cts.Token;
-
-                    //try to perform search
-                    var metadata = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, cancellationToken);
+                    var metadata = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, ct);
                 }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    var credentialsService = httpHandler.GetCredentialServiceImplementation<ExplorerCredentialService>();
 
+                    if (credentialsService != null)
+                    {
+                        credentialsService.ClearRetryCache();
+                    }
+                }
             }
             catch (FatalProtocolException ex)
             {
-                result = HandleNugetProtocolException(ex, source);
+                if (ct.IsCancellationRequested)
+                {
+                    result = FeedVerificationResult.Unknown;
+
+                    //cancel operation
+                    throw new OperationCanceledException("Verification was canceled", ex, ct);
+                }
+                result = fatalProtocolExceptionHandler.HandleException(ex, source);
             }
             catch (WebException ex)
             {
-                result = HandleWebException(ex, source);
+                result = webExceptionHandler.HandleException(ex, source);
             }
             catch (UriFormatException ex)
             {
@@ -81,7 +108,7 @@
 
                 result = FeedVerificationResult.Invalid;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!ct.IsCancellationRequested)
             {
                 _log.Debug(ex, errorMessage.ToString());
 
@@ -91,71 +118,6 @@
             _log.Debug("Verified feed '{0}', result is '{1}'", source, result);
 
             return result;
-        }
-
-        private static FeedVerificationResult HandleWebException(WebException exception, string source)
-        {
-            try
-            {
-                var httpWebResponse = (HttpWebResponse)exception.Response;
-                if (ReferenceEquals(httpWebResponse, null))
-                {
-                    return FeedVerificationResult.Invalid;
-                }
-
-                //403 error
-                if (httpWebResponse.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return FeedVerificationResult.AuthorizationRequired;
-                }
-
-                //401 error
-                if (httpWebResponse.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    return FeedVerificationResult.AuthenticationRequired;
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.Debug(ex, "Failed to verify feed '{0}'", source);
-            }
-
-            return FeedVerificationResult.Invalid;
-        }
-
-        private static FeedVerificationResult HandleNugetProtocolException(FatalProtocolException exception, string source)
-        {
-            try
-            {
-                var innerException = exception.InnerException;
-
-                if (innerException == null)
-                {
-                    //handle based on protocol error messages
-                    if (exception.Message.Contains("returned an unexpected status code '401 Unauthorized'"))
-                    {
-                        return FeedVerificationResult.AuthenticationRequired;
-                    }
-                    if (exception.Message.Contains("returned an unexpected status code '403 Forbidden'"))
-                    {
-                        return FeedVerificationResult.AuthorizationRequired;
-                    }
-                }
-                else
-                {
-                    if (innerException is WebException)
-                    {
-                        HandleWebException(innerException as WebException, source);
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                _log.Debug(ex, "Failed to verify feed '{0}'", source);
-            }
-
-            return FeedVerificationResult.Invalid;
         }
 
         [ObsoleteEx]
@@ -209,11 +171,11 @@
             }
             catch (FatalProtocolException ex)
             {
-                result = HandleNugetProtocolException(ex, source);
+                result = fatalProtocolExceptionHandler.HandleException(ex, source);
             }
             catch (WebException ex)
             {
-                result = HandleWebException(ex, source);
+                result = webExceptionHandler.HandleException(ex, source);
             }
             catch (UriFormatException ex)
             {

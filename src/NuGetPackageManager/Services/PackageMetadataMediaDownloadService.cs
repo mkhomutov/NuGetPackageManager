@@ -1,25 +1,31 @@
 ﻿namespace NuGetPackageManager.Services
 {
     using Catel;
+    using Catel.Logging;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Cache;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Web;
     using System;
-    using System.IO;
+    using System.Net;
     using System.Threading.Tasks;
 
     public class PackageMetadataMediaDownloadService : IPackageMetadataMediaDownloadService
     {
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         private static readonly IconDownloader iconDownloader = new IconDownloader();
 
         private readonly IconCache iconCache;
+
+        private string defaultIconUri = "pack://application:,,,/NuGetPackageManager;component/Resources/default-package-icon.png";
 
         public PackageMetadataMediaDownloadService(IApplicationCacheProvider appCacheProvider)
         {
             Argument.IsNotNull(() => appCacheProvider);
 
             iconCache = appCacheProvider.EnsureIconCache();
+            iconCache.FallbackValue = new System.Windows.Media.Imaging.BitmapImage(new Uri(defaultIconUri));
         }
 
         public async Task DownloadFromAsync(IPackageSearchMetadata packageMetadata)
@@ -28,19 +34,18 @@
             {
                 if (packageMetadata.IconUrl == null)
                 {
-                    throw new ArgumentException("Download source is null");
+                    //default picture
+                    return;
                 }
 
-                using (var ms = new MemoryStream())
-                {
-                    using (var contentStream = await iconDownloader.GetByUrlAsync(packageMetadata.IconUrl))
-                    {
-                        contentStream.CopyTo(ms);
-                        var bytes = ms.ToArray();
-                        //store to cache
-                        iconCache.SaveToCache(packageMetadata.IconUrl, bytes);
-                    }
-                }
+                var data = await iconDownloader.GetByUrlAsync(packageMetadata.IconUrl);
+                //store to cache
+                iconCache.SaveToCache(packageMetadata.IconUrl, data);
+            }
+            catch (WebException ex)
+            {
+                Log.Error(ex);
+                return;
             }
             catch (Exception e)
             {
