@@ -1,7 +1,7 @@
-﻿using NuGet.Protocol.Core.Types;
-
-namespace NuGetPackageManager.Web
+﻿namespace NuGetPackageManager.Web
 {
+    using NuGet.Protocol.Core.Types;
+
     public static class FatalProtocolExceptionExtension
     {
         public static bool HidesUnauthorizedError(this FatalProtocolException fatalProtocolException)

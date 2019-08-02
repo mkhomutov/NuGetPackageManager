@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace NuGetPackageManager
+﻿namespace NuGetPackageManager
 {
+    using System;
+
     public static class UriExtensions
     {
         public static Uri GetRootUri(this Uri uri)

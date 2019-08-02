@@ -1,10 +1,10 @@
-﻿using Catel.Fody;
-using Catel.MVVM;
-using NuGet.Protocol.Core.Types;
-using NuGetPackageManager.Models;
-
-namespace NuGetPackageManager.ViewModels
+﻿namespace NuGetPackageManager.ViewModels
 {
+    using Catel.Fody;
+    using Catel.MVVM;
+    using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Models;
+
     public class PackageDetailsViewModel : ViewModelBase
     {
         public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata)

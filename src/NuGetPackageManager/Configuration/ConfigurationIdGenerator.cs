@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace NuGetPackageManager.Configuration
+﻿namespace NuGetPackageManager.Configuration
 {
+    using System;
+    using System.Collections.Generic;
+
     public static class ConfigurationIdGenerator
     {
         /// <summary>

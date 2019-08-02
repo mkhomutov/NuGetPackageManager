@@ -1,13 +1,13 @@
-﻿using NuGet.Common;
-using NuGet.Protocol.Core.Types;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager
+﻿namespace NuGetPackageManager
 {
+    using NuGet.Common;
+    using NuGet.Protocol.Core.Types;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class MultiplySourceSearchResource : PackageSearchResource
     {
         private PackageSearchResource[] combinedResources;

@@ -1,11 +1,10 @@
-﻿using NuGet.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-
-namespace NuGetPackageManager
+﻿namespace NuGetPackageManager
 {
+    using NuGet.Configuration;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     public class PackageSourceWrapper
     {
         public IReadOnlyList<PackageSource> PackageSources { get; private set; }

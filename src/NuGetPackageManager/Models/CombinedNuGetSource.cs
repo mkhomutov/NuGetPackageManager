@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace NuGetPackageManager.Models
+﻿namespace NuGetPackageManager.Models
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     public class CombinedNuGetSource : INuGetSource
     {
         private List<INuGetSource> _sourceList = new List<INuGetSource>();
@@ -21,7 +21,8 @@ namespace NuGetPackageManager.Models
         }
 
         public string Name => "All";
-        public string Source => _sourceList.FirstOrDefault()?.Source; //returns top source
+
+        public string Source => _sourceList.FirstOrDefault()?.Source;//returns top source
 
         public bool IsAccessible => IsAllFeedsAccessible();
 

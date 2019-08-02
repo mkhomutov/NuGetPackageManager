@@ -1,13 +1,14 @@
-﻿using Catel.Logging;
-using NuGet.Protocol.Core.Types;
-using System;
-using System.Net;
-
-namespace NuGetPackageManager.Web
+﻿namespace NuGetPackageManager.Web
 {
+    using Catel.Logging;
+    using NuGet.Protocol.Core.Types;
+    using System;
+    using System.Net;
+
     public class FatalProtocolExceptionHandler : IHttpExceptionHandler<FatalProtocolException>
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         private static readonly IHttpExceptionHandler<WebException> webExceptionHandler = new HttpWebExceptionHandler();
 
         public FeedVerificationResult HandleException(FatalProtocolException exception, string source)
@@ -44,6 +45,5 @@ namespace NuGetPackageManager.Web
 
             return FeedVerificationResult.Invalid;
         }
-
     }
 }

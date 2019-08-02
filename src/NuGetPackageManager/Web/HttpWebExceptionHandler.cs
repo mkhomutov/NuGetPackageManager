@@ -1,9 +1,9 @@
-﻿using Catel.Logging;
-using System;
-using System.Net;
-
-namespace NuGetPackageManager.Web
+﻿namespace NuGetPackageManager.Web
 {
+    using Catel.Logging;
+    using System;
+    using System.Net;
+
     public class HttpWebExceptionHandler : IHttpExceptionHandler<WebException>
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();

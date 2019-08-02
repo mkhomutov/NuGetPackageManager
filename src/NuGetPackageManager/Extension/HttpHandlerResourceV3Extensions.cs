@@ -1,9 +1,9 @@
-﻿using NuGet.Configuration;
-using NuGet.Protocol;
-using System;
-
-namespace NuGetPackageManager
+﻿namespace NuGetPackageManager
 {
+    using NuGet.Configuration;
+    using NuGet.Protocol;
+    using System;
+
     public static class HttpHandlerResourceV3Extensions
     {
         public static T GetCredentialServiceImplementation<T>(this HttpHandlerResourceV3 httpResourceHandler) where T : class, ICredentialService
