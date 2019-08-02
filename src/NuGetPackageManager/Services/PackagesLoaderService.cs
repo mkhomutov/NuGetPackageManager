@@ -16,7 +16,7 @@
         {
             Argument.IsValid(nameof(pageContinuation), pageContinuation, pageContinuation.IsValid);
 
-            if (pageContinuation.Source.PackageSources.Count > 0) // < 2
+            if (pageContinuation.Source.PackageSources.Count < 2) 
             {
                 var repository = new SourceRepository(pageContinuation.Source.PackageSources.FirstOrDefault(), Repository.Provider.GetCoreV3());
 
@@ -56,8 +56,17 @@
         public async Task<IEnumerable<IPackageSearchMetadata>> LoadAsyncFromSources(string searchTerm, PageContinuation pageContinuation,
             SearchFilter searchFilter, CancellationToken token)
         {
+            SourceRepository tempRepoLocal = null;
+
             var searchResource = await MultiplySourceSearchResource.CreateAsync(
-                pageContinuation.Source.PackageSources.Select(s => new SourceRepository(s, Repository.Provider.GetCoreV3())).ToArray());
+                pageContinuation.Source.PackageSources.Select(s =>
+                    {
+                        tempRepoLocal = new SourceRepository(s, Repository.Provider.GetCoreV3());
+                        return tempRepoLocal;
+                    })
+                .ToArray());
+
+            var httpHandler = await tempRepoLocal?.GetResourceAsync<HttpHandlerResourceV3>();
 
             try
             {
@@ -70,6 +79,15 @@
             {
                 //task is cancelled, supress
                 throw new OperationCanceledException("Search request was cancelled", ex, token);
+            }
+            finally
+            {
+                var credentialsService = httpHandler.GetCredentialServiceImplementation<ExplorerCredentialService>();
+
+                if (credentialsService != null)
+                {
+                    credentialsService.ClearRetryCache();
+                }
             }
         }
     }
