@@ -420,13 +420,5 @@
                 throw;
             }
         }
-
-        private async Task ResetLoaded()
-        {
-            PageInfo.Reset();
-            Packages.Clear();
-
-            await LoadPackagesForTestAsync(PageInfo);
-        }
     }
 }
