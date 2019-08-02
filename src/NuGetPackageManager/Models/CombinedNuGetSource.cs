@@ -1,9 +1,6 @@
-﻿using Catel.Collections;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NuGetPackageManager.Models
 {
@@ -13,9 +10,9 @@ namespace NuGetPackageManager.Models
 
         public CombinedNuGetSource(IReadOnlyList<INuGetSource> feedList)
         {
-            foreach(var feed in feedList)
+            foreach (var feed in feedList)
             {
-                if(feed is CombinedNuGetSource)
+                if (feed is CombinedNuGetSource)
                 {
                     throw new InvalidOperationException("NuGet Source with multiple feeds cannot contains сontains nested sources");
                 }

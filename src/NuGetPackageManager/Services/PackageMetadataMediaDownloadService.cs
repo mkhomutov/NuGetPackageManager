@@ -7,7 +7,6 @@
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Web;
     using System;
-    using System.IO;
     using System.Net;
     using System.Threading.Tasks;
 
@@ -43,7 +42,7 @@
                 //store to cache
                 iconCache.SaveToCache(packageMetadata.IconUrl, data);
             }
-            catch(WebException ex)
+            catch (WebException ex)
             {
                 Log.Error(ex);
                 return;

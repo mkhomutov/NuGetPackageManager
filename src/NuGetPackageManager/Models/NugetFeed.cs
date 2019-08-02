@@ -1,7 +1,6 @@
 ﻿namespace NuGetPackageManager.Models
 {
     using Catel.Data;
-    using Catel.Logging;
     using System;
     using System.ComponentModel;
     using System.Xml.Serialization;
@@ -97,7 +96,7 @@
             {
                 IsActive = this.IsActive,
                 VerificationResult = this.VerificationResult,
-                SerializationIdentifier = this.SerializationIdentifier  
+                SerializationIdentifier = this.SerializationIdentifier
             };
         }
 
@@ -132,17 +131,17 @@
 
         protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
         {
-            if(e.PropertyName == nameof(Source))
+            if (e.PropertyName == nameof(Source))
             {
                 //reset verification
                 VerificationResult = FeedVerificationResult.Unknown;
             }
-            if(e.PropertyName == nameof(VerificationResult))
+            if (e.PropertyName == nameof(VerificationResult))
             {
                 IsAccessible = VerificationResult == FeedVerificationResult.Valid || VerificationResult == FeedVerificationResult.AuthorizationRequired;
                 IsVerified = VerificationResult != FeedVerificationResult.Unknown;
             }
-            if(e.PropertyName == nameof(Name))
+            if (e.PropertyName == nameof(Name))
             {
                 IsNameValid = !String.IsNullOrEmpty(Name);
             }

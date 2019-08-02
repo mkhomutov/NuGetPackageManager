@@ -16,7 +16,7 @@
         {
             Argument.IsValid(nameof(pageContinuation), pageContinuation, pageContinuation.IsValid);
 
-            if (pageContinuation.Source.PackageSources.Count < 2) 
+            if (pageContinuation.Source.PackageSources.Count < 2)
             {
                 var repository = new SourceRepository(pageContinuation.Source.PackageSources.FirstOrDefault(), Repository.Provider.GetCoreV3());
 
@@ -70,7 +70,7 @@
 
             try
             {
-                var packages = await searchResource.SearchAsync(searchTerm, searchFilter, 
+                var packages = await searchResource.SearchAsync(searchTerm, searchFilter,
                     pageContinuation.GetNext(), pageContinuation.Size, new Loggers.DebugLogger(true), token);
 
                 return packages;

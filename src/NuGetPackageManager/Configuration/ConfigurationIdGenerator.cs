@@ -1,9 +1,5 @@
-﻿using Catel;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NuGetPackageManager.Configuration
 {
@@ -25,11 +21,11 @@ namespace NuGetPackageManager.Configuration
         {
             lock (_lockObject)
             {
-                while(true)
+                while (true)
                 {
                     var guid = Guid.NewGuid();
 
-                    if(!_occupiedIdenitfiers.Contains(guid))
+                    if (!_occupiedIdenitfiers.Contains(guid))
                     {
                         _occupiedIdenitfiers.Add(guid);
                         return guid;
@@ -40,7 +36,7 @@ namespace NuGetPackageManager.Configuration
 
         public static bool TryTakeUniqueIdentifier(Guid guid, out Guid collisionResolve)
         {
-            lock(_lockObject)
+            lock (_lockObject)
             {
                 bool isFree = true;
 
@@ -48,12 +44,12 @@ namespace NuGetPackageManager.Configuration
 
                 isFree = !_remappedValues.TryGetValue(guid, out collisionResolve);
 
-                if(_occupiedIdenitfiers.Contains(isFree ? guid : collisionResolve))
+                if (_occupiedIdenitfiers.Contains(isFree ? guid : collisionResolve))
                 {
                     isFree = false;
                     collisionResolve = GetUniqueIdentifier();
 
-                    _remappedValues[guid] = collisionResolve;                   
+                    _remappedValues[guid] = collisionResolve;
                 }
 
                 _occupiedIdenitfiers.Add(guid);
@@ -64,7 +60,7 @@ namespace NuGetPackageManager.Configuration
 
         public static Guid GetOriginalIdentifier(Guid gui)
         {
-            lock(_lockObject)
+            lock (_lockObject)
             {
                 if (_remappedValues.TryGetValue(gui, out Guid collidedGuid))
                 {

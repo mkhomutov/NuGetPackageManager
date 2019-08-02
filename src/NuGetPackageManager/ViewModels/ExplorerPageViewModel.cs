@@ -5,7 +5,6 @@
     using Catel.Logging;
     using Catel.MVVM;
     using Catel.Services;
-    using NuGet.Configuration;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Pagination;
@@ -102,7 +101,7 @@
         //handle settings changes and force reloading if needed
         private async void OnSettingsPropertyPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if(Settings.ObservedFeed == null)
+            if (Settings.ObservedFeed == null)
             {
                 return;
             }
@@ -154,7 +153,7 @@
                     Log.Info("None of the source feeds configured");
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Error(ex);
             }
@@ -232,7 +231,7 @@
                 IsCancellationTokenAlive = false;
 
                 //backward page if needed
-                if(PageInfo.LastNumber > PageSize)
+                if (PageInfo.LastNumber > PageSize)
                 {
                     PageInfo.GetPrevious();
                 }
@@ -251,7 +250,7 @@
                     Log.Info("Search operation was canceled (interrupted by next user request");
                 }
             }
-            catch (FatalProtocolException ex) 
+            catch (FatalProtocolException ex)
             {
                 IsCancellationTokenAlive = false;
                 var result = packageLoadingExceptionHandler.HandleException(ex, currentSource.Source);
@@ -271,12 +270,12 @@
 
         private CancellationTokenSource CreateCanclellationTokenSource()
         {
-            if(PageLoadingTokenSource == null)
+            if (PageLoadingTokenSource == null)
             {
                 return new CancellationTokenSource();
             }
 
-            if(PageLoadingTokenSource.IsCancellationRequested)
+            if (PageLoadingTokenSource.IsCancellationRequested)
             {
                 return new CancellationTokenSource();
             }
@@ -285,7 +284,7 @@
         }
 
         public TaskCommand LoadNextPackagePage { get; set; }
-        
+
         private async Task LoadNextPackagePageExecute()
         {
             var pageInfo = PageInfo;
@@ -311,13 +310,13 @@
 
         private async Task RefreshCurrentPageExecute()
         {
-            if(IsActive)
+            if (IsActive)
             {
                 await RefreshPageWithNewParameters();
             }
         }
 
-        private async Task LoadPackagesAsync(PageContinuation pageInfo ,CancellationToken cancellationToken, PackageSearchParameters searchParameters)
+        private async Task LoadPackagesAsync(PageContinuation pageInfo, CancellationToken cancellationToken, PackageSearchParameters searchParameters)
         {
             try
             {
@@ -335,7 +334,7 @@
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                _dispatcherService.BeginInvoke(() => 
+                _dispatcherService.BeginInvoke(() =>
                     {
                         Packages.AddRange(packages);
                     }
@@ -367,7 +366,7 @@
                         token.ThrowIfCancellationRequested();
                         await _packageMetadataMediaDownloadService.DownloadFromAsync(metadata);
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                         throw;
                     }
@@ -416,7 +415,7 @@
                 }
                 else Log.Error($"Parameter {source} has invalid type");
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw;
             }

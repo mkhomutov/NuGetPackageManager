@@ -31,14 +31,14 @@ namespace NuGetPackageManager.ViewModels
         protected override Task InitializeAsync()
         {
             ExplorerPages = new ObservableCollection<ExplorerPageViewModel>();
-            
+
             CreatePages();
             return base.InitializeAsync();
         }
 
         public ExplorerSettingsContainer Settings { get; set; } = new ExplorerSettingsContainer();
 
-        public IPackageSearchMetadata SelectedPackageMetadata { get; set; } 
+        public IPackageSearchMetadata SelectedPackageMetadata { get; set; }
 
         public ObservableCollection<ExplorerPageViewModel> ExplorerPages { get; set; }
 
@@ -58,7 +58,7 @@ namespace NuGetPackageManager.ViewModels
 
             ExplorerPageViewModel CreatePage(string title)
             {
-                return _typeFactory.CreateInstanceWithParametersAndAutoCompletion<ExplorerPageViewModel>(Settings,title);
+                return _typeFactory.CreateInstanceWithParametersAndAutoCompletion<ExplorerPageViewModel>(Settings, title);
             }
         }
 

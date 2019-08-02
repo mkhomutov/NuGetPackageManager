@@ -100,7 +100,7 @@
 
             var keyCollection = _configurationService.GetAllKeys(ConfigurationContainer.Roaming);
 
-            for (int i = 0; i< keyCollection.Count; i++)
+            for (int i = 0; i < keyCollection.Count; i++)
             {
                 temp = _configurationService.GetRoamingValue(keyCollection[i]);
 

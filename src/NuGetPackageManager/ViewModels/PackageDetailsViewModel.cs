@@ -2,11 +2,6 @@
 using Catel.MVVM;
 using NuGet.Protocol.Core.Types;
 using NuGetPackageManager.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NuGetPackageManager.ViewModels
 {
@@ -15,7 +10,7 @@ namespace NuGetPackageManager.ViewModels
         public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata)
         {
             //create package from metadata
-            if(packageMetadata != null)
+            if (packageMetadata != null)
             {
                 Package = new NuGetPackage(packageMetadata);
             }

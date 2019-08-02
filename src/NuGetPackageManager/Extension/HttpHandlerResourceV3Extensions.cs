@@ -1,18 +1,14 @@
 ﻿using NuGet.Configuration;
 using NuGet.Protocol;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NuGetPackageManager
 {
     public static class HttpHandlerResourceV3Extensions
     {
-        public static T GetCredentialServiceImplementation<T>(this HttpHandlerResourceV3 httpResourceHandler) where T: class, ICredentialService
+        public static T GetCredentialServiceImplementation<T>(this HttpHandlerResourceV3 httpResourceHandler) where T : class, ICredentialService
         {
-            if(HttpHandlerResourceV3.CredentialService != null)
+            if (HttpHandlerResourceV3.CredentialService != null)
             {
                 return HttpHandlerResourceV3.CredentialService.Value as T;
             }

@@ -4,7 +4,6 @@
     using Catel.Caching.Policies;
     using System;
     using System.IO;
-    using System.Runtime.Caching;
     using System.Windows.Media.Imaging;
 
     public class IconCache
@@ -31,7 +30,7 @@
         public BitmapImage GetFromCache(Uri iconUri)
         {
             //todo stream should be disposed when item removed from cache
-            if(iconUri == null)
+            if (iconUri == null)
             {
                 return FallbackValue;
             }

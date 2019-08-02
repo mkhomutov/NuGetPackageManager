@@ -1,7 +1,6 @@
 ﻿namespace NuGetPackageManager.Services
 {
     using Catel;
-    using Catel.Logging;
     using NuGet.Common;
     using NuGet.Configuration;
     using NuGet.Credentials;
@@ -27,7 +26,7 @@
         /// </summary>
         private AsyncLazy<IEnumerable<ICredentialProvider>> _providers { get; }
 
-        private readonly Semaphore _proivderSemaphore = new Semaphore(1,1);
+        private readonly Semaphore _proivderSemaphore = new Semaphore(1, 1);
 
         public bool HandlesDefaultCredentials { get; }
 
@@ -209,7 +208,7 @@
         {
             _providerCredentialCache[CredentialsKeyHelper.GetCacheKey(uri, type, provider)] = credentials;
         }
-   
+
         public void ClearRetryCache()
         {
             _retryCache.Clear();

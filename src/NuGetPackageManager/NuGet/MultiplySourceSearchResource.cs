@@ -3,7 +3,6 @@ using NuGet.Protocol.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,7 +41,7 @@ namespace NuGetPackageManager
 
                 var combinedResults = results.SelectMany(x => x.Select(i => i));
 
-                return  await MergeVersionsAsync(combinedResults);
+                return await MergeVersionsAsync(combinedResults);
             }
             catch (FatalProtocolException ex) when (cancellationToken.IsCancellationRequested)
             {

@@ -1,8 +1,4 @@
-﻿using Catel.MVVM;
-using Catel.MVVM.Views;
-using NuGetPackageManager.Models;
-using System.Data;
-using System.Windows;
+﻿using System.Windows;
 
 namespace NuGetPackageManager.Views
 {

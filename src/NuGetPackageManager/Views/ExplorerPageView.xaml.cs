@@ -1,6 +1,5 @@
 ﻿using Catel.MVVM.Views;
 using NuGet.Protocol.Core.Types;
-using NuGetPackageManager.Models;
 using System.Windows;
 
 namespace NuGetPackageManager.Views
@@ -16,7 +15,7 @@ namespace NuGetPackageManager.Views
             InitializeComponent();
         }
 
-        [ViewToViewModel(viewModelPropertyName:"SelectedPackage",MappingType = ViewToViewModelMappingType.TwoWayViewModelWins)]
+        [ViewToViewModel(viewModelPropertyName: "SelectedPackage", MappingType = ViewToViewModelMappingType.TwoWayViewModelWins)]
         public IPackageSearchMetadata SelectedItemOnPage
         {
             get { return (IPackageSearchMetadata)GetValue(SelectedItemOnPageProperty); }

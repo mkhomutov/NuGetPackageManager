@@ -1,7 +1,6 @@
 ﻿namespace NuGetPackageManager.Pagination
 {
     using Catel.Logging;
-    using NuGet.Configuration;
     using System.Linq;
 
     public class PageContinuation

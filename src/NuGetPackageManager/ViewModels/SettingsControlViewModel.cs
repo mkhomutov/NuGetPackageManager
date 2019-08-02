@@ -101,7 +101,7 @@ namespace NuGetPackageManager.ViewModels
             _modelProvider.PropertyChanged += OnModelProviderPropertyChanged;
             Feeds.CollectionChanged += OnFeedsCollectioChanged;
 
-            Feeds.ForEach(async x =>  await VerifyFeedAsync(x));
+            Feeds.ForEach(async x => await VerifyFeedAsync(x));
         }
 
         protected override Task<bool> SaveAsync()

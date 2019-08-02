@@ -11,7 +11,6 @@
     using NuGetPackageManager.Web;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Net;
     using System.Text;
     using System.Threading;
@@ -56,7 +55,7 @@
             try
             {
                 var packageSource = new PackageSource(source);
-                
+
                 var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root: null), v3_providers);
 
                 var repository = repoProvider.CreateRepository(packageSource);
@@ -73,12 +72,12 @@
                 {
                     var metadata = await searchResource.SearchAsync(String.Empty, new SearchFilter(false), 0, 1, logger, ct);
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     throw;
                 }
                 finally
-                { 
+                {
                     var credentialsService = httpHandler.GetCredentialServiceImplementation<ExplorerCredentialService>();
 
                     if (credentialsService != null)
@@ -89,7 +88,7 @@
             }
             catch (FatalProtocolException ex)
             {
-                if(ct.IsCancellationRequested)
+                if (ct.IsCancellationRequested)
                 {
                     result = FeedVerificationResult.Unknown;
 
