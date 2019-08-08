@@ -24,13 +24,17 @@
                                       Command="{Binding LoadNextPackagePage}"
                                       IsCommandExecuting="{Binding IsCancellationTokenAlive}"
                                       HorizontalContentAlignment="Stretch"
-                                      ItemContainerStyle="{StaticResource DefaultListBoxItemStyle}"
                                       SelectedItem="{Binding SelectedPackage}"
                                       Height="800">
             <nugetc:InfiniteScrollListBox.ItemTemplate>
                 <DataTemplate>
-                    <Border BorderThickness="1"
-                            BorderBrush="Black">
+                    <Grid>
+                        <!--<Border BorderThickness="1"
+                                BorderBrush="Black"
+                                Effect="{StaticResource BasicShadowDepth}">
+                        
+                        </Border>-->
+
                         <Grid Margin="0 8 0 0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="60"/>
@@ -43,27 +47,41 @@
                             </Grid.RowDefinitions>
 
                             <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}, IsAsync=True}"
-                                   RenderOptions.BitmapScalingMode="Fant"
-                                   Height="32" Width="32" Grid.RowSpan="2"
-                                   VerticalAlignment="Top" Margin="0 4 2 0"/>
+                                       RenderOptions.BitmapScalingMode="Fant"
+                                       Height="32" Width="32" Grid.RowSpan="2"
+                                       VerticalAlignment="Top" Margin="0 4 2 0"/>
 
-                            <DockPanel Grid.Column="1">
-                                <TextBlock Text="{Binding Title}" FontSize="14"
-                                           FontWeight="DemiBold"/>
+                            <Grid Grid.Column="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="{Binding Title}"
+                                               ToolTip="{Binding Title}"
+                                               FontSize="14" 
+                                               TextTrimming="WordEllipsis"
+                                               FontWeight="DemiBold"
+                                               MaxWidth="300"/>
                                 <TextBlock Margin="8 0 2 0" 
-                                    Text="by:"
-                                    VerticalAlignment="Bottom"/>
-                                <TextBlock Text="{Binding Authors}"
-                                    VerticalAlignment="Bottom"/>
+                                               VerticalAlignment="Bottom"
+                                               Grid.Column="1"
+                                               ToolTip="{Binding Authors}">
+                                        <TextBlock Text="by:"></TextBlock>
+                                        <TextBlock Text="{Binding Authors}"
+                                                   TextTrimming="WordEllipsis"/>
+                                    </TextBlock>
                                 <TextBlock Text="{Binding Identity.Version}"
-                                           Margin="0 0 8 0"
-                                           HorizontalAlignment="Right"
-                                           VerticalAlignment="Bottom"/>
-                            </DockPanel>
+                                               Margin="0 0 8 0"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Bottom"
+                                               Grid.Column="3"/>
+                            </Grid>
 
 
                             <Grid Grid.Column="1" Grid.Row="1"
-                                  Margin="0 4 0 0">
+                                      Margin="0 4 0 0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="90"/>
@@ -81,13 +99,17 @@
                                 <TextBlock Text="{Binding DownloadCount}" Grid.Column="0"/>
                                 <TextBlock Grid.Column="1" Margin="4 0 0 0">total downloads</TextBlock>
                             </Grid>
-                           
+
                             <TextBlock Text="{Binding Summary }" TextWrapping="WrapWithOverflow"
-                                       Grid.Column="1" Grid.Row="2"/>
+                                           Grid.Column="1" Grid.Row="2"/>
                         </Grid>
-                    </Border>
+                    </Grid>
                 </DataTemplate>
             </nugetc:InfiniteScrollListBox.ItemTemplate>
+            <nugetc:InfiniteScrollListBox.ItemContainerStyle>
+                <Style BasedOn="{StaticResource DefaultListBoxItemStyle}" TargetType="{x:Type ListBoxItem}">
+                </Style>
+            </nugetc:InfiniteScrollListBox.ItemContainerStyle>
         </nugetc:InfiniteScrollListBox>
         
         <!--loading indication -->
