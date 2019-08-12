@@ -19,7 +19,7 @@
                 Package = new NuGetPackage(packageMetadata);
             }
 
-            LoadInfoAboutVersions = new TaskCommand(LoadInfoAboutVersionsExecute, () => Package != null);
+            LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
         }
 
         protected override Task InitializeAsync()
@@ -42,20 +42,20 @@
 
         public NuGetVersion SelectedVersion { get; set; }
 
-        public TaskCommand LoadInfoAboutVersions { get; set; }
+        public Command LoadInfoAboutVersions { get; set; }
 
-        private async Task LoadInfoAboutVersionsExecute()
+        private void LoadInfoAboutVersionsExecute()
         {
             try
             {
                 //todo check is initialized?
                 if (Package.Versions == null)
                 {
-                    await Package.LoadVersionsAsync();
+                    Package.LoadVersionsAsync().GetAwaiter().GetResult();
                     VersionsCollection = new ObservableCollection<NuGetVersion>(Package.Versions);
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw;
             }

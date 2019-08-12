@@ -7,6 +7,7 @@
              xmlns:local="clr-namespace:NuGetPackageManager.Views"
              xmlns:nugcontrols="clr-namespace:NuGetPackageManager.Controls"
              xmlns:catel="http://schemas.catelproject.com"
+             xmlns:behaviors="clr-namespace:NuGetPackageManager.Behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
@@ -60,14 +61,17 @@
             Version:
         </Label>
 
-        <nugcontrols:LazyComboBox Grid.Row="3" Grid.Column="1"
+        <ComboBox Grid.Row="3" Grid.Column="1"
                   Margin="3 0 3 2"
                   IsReadOnly="True"
                   DisplayMemberPath="Version"
-                  Command="{Binding LoadInfoAboutVersions}"
                   SelectedValue="{Binding SelectedVersion}"
                   ItemsSource="{Binding VersionsCollection}">
-        </nugcontrols:LazyComboBox>
+            <i:Interaction.Behaviors>
+                <behaviors:LoadItemsOnDropDownBehavior Command="{Binding LoadInfoAboutVersions}"/>
+            </i:Interaction.Behaviors>
+        </ComboBox>
+
 
         <Button Grid.Row="3" Grid.Column="2"
                 Margin="3 0 10 2"> 

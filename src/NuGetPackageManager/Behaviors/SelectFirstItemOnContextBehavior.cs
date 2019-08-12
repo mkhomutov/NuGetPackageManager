@@ -6,11 +6,6 @@ namespace NuGetPackageManager.Behaviors
 
     public class SelectFirstItemOnContextBehavior : BehaviorBase<ListBox>
     {
-        protected override void OnAttached()
-        {
-            base.OnAttached();
-        }
-
         protected override void OnAssociatedObjectLoaded()
         {
             TrySelectFirstItemFromSource();

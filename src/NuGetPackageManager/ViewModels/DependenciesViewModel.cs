@@ -1,23 +1,16 @@
-﻿using Catel.MVVM;
-using NuGet.Protocol.Core.Types;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.ViewModels
+﻿namespace NuGetPackageManager.ViewModels
 {
+    using Catel.MVVM;
+    using NuGet.Protocol.Core.Types;
+
     public class DependenciesViewModel : ViewModelBase
     {
         public DependenciesViewModel(IPackageSearchMetadata packageMetadata)
         {
-
         }
 
         public DependenciesViewModel()
         {
-
         }
     }
 }

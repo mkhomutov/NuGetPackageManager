@@ -1,7 +1,6 @@
 ﻿using Catel.Data;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
