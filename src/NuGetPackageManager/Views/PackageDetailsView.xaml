@@ -24,6 +24,9 @@
             <!--second part-->
             <RowDefinition Height="20"/> 
             <RowDefinition />
+            <!--third part-->
+            <RowDefinition Height="20" />
+            <RowDefinition />
         </Grid.RowDefinitions>
 
         <TextBlock Margin="10 13 0 0"
@@ -82,5 +85,8 @@
                    Text="{Binding Description}">
         </TextBlock>
 
+        <Separator Grid.ColumnSpan="3" Grid.Row="6"/>
+
+        <local:DependenciesView/>
     </Grid>
 </catel:UserControl>

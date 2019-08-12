@@ -36,6 +36,7 @@
     <None Remove="Themes\Generic.xaml" />
     <None Remove="Themes\MaterialIcons.xaml" />
     <None Remove="Themes\Shadows.xaml" />
+    <None Remove="Views\DependenciesView.xaml" />
     <None Remove="Views\ExplorerPageView.xaml" />
     <None Remove="Views\ExplorerTopBarView.xaml" />
     <None Remove="Views\FeedDetailView.xaml" />
