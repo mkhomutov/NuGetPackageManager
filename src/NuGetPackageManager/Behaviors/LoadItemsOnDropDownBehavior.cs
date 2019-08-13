@@ -1,10 +1,10 @@
-﻿using Catel.MVVM;
-using System;
-using System.Windows;
-using System.Windows.Controls;
-
-namespace NuGetPackageManager.Behaviors
+﻿namespace NuGetPackageManager.Behaviors
 {
+    using Catel.MVVM;
+    using System;
+    using System.Windows;
+    using System.Windows.Controls;
+
     public class LoadItemsOnDropDownBehavior : Catel.Windows.Interactivity.BehaviorBase<ComboBox>
     {
         protected override void OnAssociatedObjectLoaded()
