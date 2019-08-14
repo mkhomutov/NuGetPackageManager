@@ -2,6 +2,7 @@
 using Catel.Logging;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
+using NuGetPackageManager.Extensions;
 using NuGetPackageManager.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -39,10 +40,30 @@ namespace NuGetPackageManager.Providers
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<IPackageSearchMetadata>> GetPackageMetadataListAsync(string packageId, bool includePrerelease, bool includeUnlisted, CancellationToken cancellationToken)
+        public async Task<IEnumerable<IPackageSearchMetadata>> GetPackageMetadataListAsync(string packageId, bool includePrerelease, bool includeUnlisted, CancellationToken cancellationToken)
         {
             //todo load metadata details
+ 
+            var tasks = _sourceRepositories.Select(repo => GetPackageMetadataListAsync(repo, packageId, includePrerelease, includeUnlisted, cancellationToken)).ToArray();
 
+            var completed = (await tasks.WhenAllOrException()).Where(x => x.IsSuccess).Select(x => x.UnwrapResult());
+
+            var packages = completed.SelectMany(p => p);
+
+            var uniquePackages = packages
+                .GroupBy(
+                   m => m.Identity.Version,
+                   (v, ms) => ms.First());
+
+            throw new NotImplementedException();
+        }
+
+        private async Task<IEnumerable<IPackageSearchMetadata>> GetPackageMetadataListAsync(SourceRepository repository, 
+            string packageId, 
+            bool includePrerelease,
+            bool includeUnlisted,
+            CancellationToken cancellationToken)
+        {
             throw new NotImplementedException();
         }
     }

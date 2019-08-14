@@ -21,8 +21,6 @@
 
             var deps = packageMetadata.DependencySets;
 
-            NuGet.
-
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
         }
 
