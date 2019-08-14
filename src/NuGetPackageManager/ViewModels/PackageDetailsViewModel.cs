@@ -1,6 +1,7 @@
 ﻿namespace NuGetPackageManager.ViewModels
 {
     using Catel.Fody;
+    using Catel.Logging;
     using Catel.MVVM;
     using NuGet.Protocol.Core.Types;
     using NuGet.Versioning;
@@ -11,6 +12,8 @@
 
     public class PackageDetailsViewModel : ViewModelBase
     {
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata)
         {
             //create package from metadata
@@ -44,6 +47,8 @@
 
         public NuGetVersion SelectedVersion { get; set; }
 
+        public NuGetVersion InstalledVersion { get; set; }
+
         public Command LoadInfoAboutVersions { get; set; }
 
         private void LoadInfoAboutVersionsExecute()
@@ -53,9 +58,13 @@
                 //todo check is initialized?
                 if (Package.Versions == null)
                 {
-                    Package.LoadVersionsAsync().GetAwaiter().GetResult();
+                    Package.LoadVersionsAsync().Wait(500);
                     VersionsCollection = new ObservableCollection<NuGetVersion>(Package.Versions);
                 }
+            }
+            catch(TimeoutException ex)
+            {
+                Log.Error(ex, "failed to get package versions for a given time");
             }
             catch (Exception)
             {

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager
+﻿namespace NuGetPackageManager
 {
+    using System;
+
     public class TaskResultOrException<T>
     {
         public TaskResultOrException(T result)
@@ -21,7 +17,9 @@ namespace NuGetPackageManager
         }
 
         public bool IsSuccess { get; }
+
         public T Result { get; }
+
         public Exception Exception { get; }
 
         public T UnwrapResult()

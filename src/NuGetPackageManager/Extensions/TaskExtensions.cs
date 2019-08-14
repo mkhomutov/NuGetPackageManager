@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Extensions
+﻿namespace NuGetPackageManager.Extensions
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     public static class TaskExtensions
     {
         public static async Task<TaskResultOrException<T>[]> WhenAllOrException<T>(this IEnumerable<Task<T>> tasks)

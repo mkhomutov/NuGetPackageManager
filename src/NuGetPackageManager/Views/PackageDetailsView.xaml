@@ -49,10 +49,12 @@
 
         <TextBox Grid.Row="2" Grid.Column="1"
                  Margin="3 0 3 2"
-                 IsReadOnly="True"/>
+                 IsReadOnly="True"
+                 Text="{Binding InstalledVersion, TargetNullValue='not installed'}"/>
 
         <Button Grid.Row="2" Grid.Column="2"
-                Margin="3 0 10 2">
+                Margin="3 0 10 2"
+                IsEnabled="False">
             Uninstall
         </Button>
 
@@ -64,7 +66,6 @@
         <ComboBox Grid.Row="3" Grid.Column="1"
                   Margin="3 0 3 2"
                   IsReadOnly="True"
-                  DisplayMemberPath="Version"
                   SelectedValue="{Binding SelectedVersion}"
                   ItemsSource="{Binding VersionsCollection}">
             <i:Interaction.Behaviors>
