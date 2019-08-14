@@ -2,9 +2,12 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:local="clr-namespace:NuGetPackageManager.Views"
+             xmlns:nugcontrols="clr-namespace:NuGetPackageManager.Controls"
              xmlns:catel="http://schemas.catelproject.com"
+             xmlns:behaviors="clr-namespace:NuGetPackageManager.Behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
@@ -21,6 +24,9 @@
             <RowDefinition Height="28"/>
             <!--second part-->
             <RowDefinition Height="20"/> 
+            <RowDefinition />
+            <!--third part-->
+            <RowDefinition Height="20" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
@@ -43,10 +49,12 @@
 
         <TextBox Grid.Row="2" Grid.Column="1"
                  Margin="3 0 3 2"
-            IsReadOnly="True"/>
+                 IsReadOnly="True"
+                 Text="{Binding InstalledVersion, TargetNullValue='not installed'}"/>
 
         <Button Grid.Row="2" Grid.Column="2"
-                Margin="3 0 10 2">
+                Margin="3 0 10 2"
+                IsEnabled="False">
             Uninstall
         </Button>
 
@@ -55,9 +63,16 @@
             Version:
         </Label>
 
-        <TextBox Grid.Row="3" Grid.Column="1"
-                 Margin="3 0 3 2"
-            IsReadOnly="True"/>
+        <ComboBox Grid.Row="3" Grid.Column="1"
+                  Margin="3 0 3 2"
+                  IsReadOnly="True"
+                  SelectedValue="{Binding SelectedVersion}"
+                  ItemsSource="{Binding VersionsCollection}">
+            <i:Interaction.Behaviors>
+                <behaviors:LoadItemsOnDropDownBehavior Command="{Binding LoadInfoAboutVersions}"/>
+            </i:Interaction.Behaviors>
+        </ComboBox>
+
 
         <Button Grid.Row="3" Grid.Column="2"
                 Margin="3 0 10 2"> 
@@ -75,5 +90,8 @@
                    Text="{Binding Description}">
         </TextBlock>
 
+        <Separator Grid.ColumnSpan="3" Grid.Row="6"/>
+
+        <local:DependenciesView/>
     </Grid>
 </catel:UserControl>
