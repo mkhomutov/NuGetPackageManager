@@ -64,11 +64,11 @@
             }
             catch(TimeoutException ex)
             {
-                Log.Error(ex, "failed to get package versions for a given time");
+                Log.Error(ex, "Failed to get package versions for a given time (500 ms)");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                Log.Error(ex);
             }
         }
     }
