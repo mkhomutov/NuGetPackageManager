@@ -31,6 +31,13 @@
 
         private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
 
+        /// <summary>
+        /// Repository context. 
+        /// Due to all pages uses package sources selected by user in settings
+        /// context is shared between pages too
+        /// </summary>
+        private static  IDisposable Context { get; set; }
+
         private ExplorerSettingsContainer _settings;
 
         private FastObservableCollection<IPackageSearchMetadata> _packages { get; set; }

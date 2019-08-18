@@ -1,10 +1,11 @@
 ﻿namespace NuGetPackageManager.Models
 {
     using Catel.Data;
+    using NuGet.Configuration;
     using System.Collections.Generic;
     using System.Linq;
 
-    public class ExplorerSettingsContainer : ModelBase
+    public class ExplorerSettingsContainer : ModelBase, INuGetSettings
     {
         /// <summary>
         /// All feeds configured in application
@@ -19,6 +20,16 @@
         public bool IsPreReleaseIncluded { get; set; }
 
         public string SearchString { get; set; }
+
+        /// <summary>
+        /// Create and retrive all unique package sources
+        /// </summary>
+        /// <returns></returns>
+        public IReadOnlyList<PackageSource> GetAllPackageSources()
+        {
+            var feeds = NuGetFeeds.Select(x => new PackageSource(x.Source));
+            return feeds.ToList();
+        }
 
         protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
         {
