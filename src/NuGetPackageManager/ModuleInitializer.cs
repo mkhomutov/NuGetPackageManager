@@ -1,9 +1,11 @@
 ﻿using Catel.Configuration;
 using Catel.IoC;
 using NuGet.Credentials;
+using NuGet.Protocol.Core.Types;
 using NuGetPackageManager.Models;
 using NuGetPackageManager.Providers;
 using NuGetPackageManager.Services;
+using SourceRepositoryProvider = NuGetPackageManager.Providers.SourceRepositoryProvider;
 
 /// <summary>
 /// Used by the ModuleInit. All code inside the Initialize method is ran as soon as the assembly is loaded.
@@ -33,5 +35,9 @@ public static class ModuleInitializer
 
         serviceLocator.RegisterInstance<IApplicationCacheProvider>(appCache);
         serviceLocator.RegisterType<IPackageMetadataMediaDownloadService, PackageMetadataMediaDownloadService>();
+
+        serviceLocator.RegisterInstance<ISourceRepositoryProvider>(new SourceRepositoryProvider(ExplorerSettingsContainer.Singleton));
+
+        serviceLocator.RegisterType<IRepositoryService, RepositoryService>();
     }
 }

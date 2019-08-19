@@ -2,9 +2,11 @@
 {
     using Catel;
     using Catel.Collections;
+    using Catel.Data;
     using Catel.Logging;
     using Catel.MVVM;
     using Catel.Services;
+    using NuGet.Configuration;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Pagination;
@@ -25,6 +27,7 @@
         private static readonly IHttpExceptionHandler<FatalProtocolException> packageLoadingExceptionHandler = new FatalProtocolExceptionHandler();
 
         private readonly IPackagesLoaderService _packagesLoaderService;
+        private readonly IRepositoryService _repositoryService;
         private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
         private readonly INuGetFeedVerificationService _nuGetFeedVerificationService;
         private readonly IDispatcherService _dispatcherService;
@@ -36,7 +39,20 @@
         /// Due to all pages uses package sources selected by user in settings
         /// context is shared between pages too
         /// </summary>
-        private static  IDisposable Context { get; set; }
+        private static IDisposable Context
+        {
+            get { return _context; }
+            set
+            {
+                if (_context != value)
+                {
+                    _context?.Dispose();
+                    _context = value;
+                }
+            }
+        }
+
+        private static IDisposable _context;
 
         private ExplorerSettingsContainer _settings;
 
@@ -44,7 +60,7 @@
 
         public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
             IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService, INuGetFeedVerificationService nuGetFeedVerificationService,
-            ICommandManager commandManager, IDispatcherService dispatcherService)
+            ICommandManager commandManager, IDispatcherService dispatcherService, IRepositoryService repositoryService)
         {
             Title = pageTitle;
 
@@ -166,16 +182,6 @@
             }
         }
 
-        private async void OnTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            Log.Info("Timer elapsed");
-            var currentFeed = Settings.ObservedFeed;
-            //reset page
-            PageInfo = new PageContinuation(PageSize, currentFeed.GetPackageSource());
-            var searchParams = new PackageSearchParameters(Settings.IsPreReleaseIncluded, Settings.SearchString);
-            await VerifySourceAndLoadPackagesAsync(PageInfo, currentFeed, searchParams);
-        }
-
         private void StartLoadingTimer()
         {
             if (SingleDelayTimer.Enabled)
@@ -186,10 +192,31 @@
             SingleDelayTimer.Start();
         }
 
+        private async void OnTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            Log.Info("Timer elapsed");
+            var currentFeed = Settings.ObservedFeed;
+            //reset page
+            PageInfo = new PageContinuation(PageSize, currentFeed.GetPackageSource());
+
+            var searchParams = new PackageSearchParameters(Settings.IsPreReleaseIncluded, Settings.SearchString);
+            await VerifySourceAndLoadPackagesAsync(PageInfo, currentFeed, searchParams);
+        }
+
         private async Task VerifySourceAndLoadPackagesAsync(PageContinuation pageinfo, INuGetSource currentSource, PackageSearchParameters searchParams)
         {
             try
             {
+                if(pageinfo.Source.IsMultipleSource)
+                {
+                    Context = _repositoryService.AcquireContext();
+                }
+                else
+                {
+                    Context = _repositoryService.AcquireContext((PackageSource)pageinfo.Source);
+                }
+
+
                 if (IsActive)
                 {
                     IsCancellationTokenAlive = true;
@@ -217,6 +244,7 @@
                         {
                             if (IsCancellationForced)
                             {
+                                //to prevent load restarting if cancellation initiated by user
                                 AwaitedPageInfo = null;
                             }
                             else
@@ -290,6 +318,7 @@
             return PageLoadingTokenSource;
         }
 
+        #region commands
         public TaskCommand LoadNextPackagePage { get; set; }
 
         private async Task LoadNextPackagePageExecute()
@@ -319,9 +348,11 @@
         {
             if (IsActive)
             {
-                await RefreshPageWithNewParameters();
+                StartLoadingTimer();
             }
         }
+
+        #endregion
 
         private async Task LoadPackagesAsync(PageContinuation pageInfo, CancellationToken cancellationToken, PackageSearchParameters searchParameters)
         {
@@ -381,11 +412,6 @@
             }
 
             await Task.CompletedTask;
-        }
-
-        private async Task RefreshPageWithNewParameters()
-        {
-            StartLoadingTimer();
         }
 
         private async Task CanFeedBeLoadedAsync(CancellationToken cancelToken, INuGetSource source)

@@ -36,7 +36,7 @@ namespace NuGetPackageManager.ViewModels
             return base.InitializeAsync();
         }
 
-        public ExplorerSettingsContainer Settings { get; set; } = new ExplorerSettingsContainer();
+        public ExplorerSettingsContainer Settings { get; set; } = ExplorerSettingsContainer.Singleton;
 
         public IPackageSearchMetadata SelectedPackageMetadata { get; set; }
 

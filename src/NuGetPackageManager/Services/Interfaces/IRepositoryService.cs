@@ -7,6 +7,7 @@
 
     public interface IRepositoryService
     {
-        SourceRepository AcquireContext(PackageSource source, out SourceContext context);
+        SourceContext AcquireContext(PackageSource source);
+        SourceContext AcquireContext();
     }
 }
