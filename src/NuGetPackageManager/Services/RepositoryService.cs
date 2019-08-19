@@ -23,7 +23,7 @@
             _sourceRepositoryProvider = sourceRepositoryProvider;
         }
 
-        public SourceContext AcquireContext(PackageSource source)
+        public SourceRepository GetRepository(PackageSource source)
         {
             SourceRepository sourceRepo = null;
 
@@ -32,7 +32,14 @@
                 sourceRepo = _sourceRepositoryProvider.CreateRepository(source);
             }
 
-            var context = new SourceContext(new List<SourceRepository>() { sourceRepo }, this);
+            return sourceRepo;
+        }
+
+        public SourceContext AcquireContext(PackageSource source)
+        {
+            var repo = GetRepository(source);
+
+            var context = new SourceContext(new List<SourceRepository>() { repo }, this);
 
             return context;
         }

@@ -1,4 +1,5 @@
 ﻿using Catel.Data;
+using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using System.Collections.Generic;
@@ -24,6 +25,8 @@ namespace NuGetPackageManager.Models
         public string Title { get; private set; }
 
         public string Description { get; private set; }
+
+        public PackageIdentity Identity => _packageMetadata.Identity;
 
         public IEnumerable<NuGetVersion> Versions { get; private set; }
 
