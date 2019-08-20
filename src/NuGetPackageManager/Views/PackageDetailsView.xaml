@@ -92,6 +92,7 @@
 
         <Separator Grid.ColumnSpan="3" Grid.Row="6"/>
 
-        <local:DependenciesView/>
+        <local:DependenciesView Grid.Row="7" Grid.ColumnSpan="3"
+            Collection="{Binding DependencyInfo, Mode=TwoWay}"/>
     </Grid>
 </catel:UserControl>

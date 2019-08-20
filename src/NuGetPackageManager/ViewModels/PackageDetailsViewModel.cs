@@ -5,6 +5,7 @@
     using Catel.Logging;
     using Catel.MVVM;
     using NuGet.Configuration;
+    using NuGet.Packaging;
     using NuGet.Protocol.Core.Types;
     using NuGet.Versioning;
     using NuGetPackageManager.Interfaces;
@@ -13,6 +14,7 @@
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
     using System;
+    using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
     using System.Threading;
@@ -48,6 +50,8 @@
                 VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 
                 _packageMetadataProvider = InitiMetadataProvider();
+
+                await LoadSinglePackageMetadataAsync();
             }
             catch(Exception e)
             {
@@ -61,6 +65,8 @@
             {
                 //todo include prerelease
                 var package = await _packageMetadataProvider?.GetPackageMetadataAsync(Package.Identity, true, cts.Token);
+
+                DependencyInfo = package.DependencySets;
             }
         }
 
@@ -70,6 +76,17 @@
         public NuGetPackage Package { get; set; }
 
         public ObservableCollection<NuGetVersion> VersionsCollection { get; set; }
+
+        object _dependencyInfo;
+        public object DependencyInfo
+        {
+            get { return _dependencyInfo; }
+            set
+            {
+                _dependencyInfo = value;
+                RaisePropertyChanged(() => DependencyInfo);
+            }
+        }
 
         public NuGetVersion SelectedVersion { get; set; }
 

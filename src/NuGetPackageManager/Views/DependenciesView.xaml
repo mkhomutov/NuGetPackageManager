@@ -9,6 +9,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-            
+        <ListBox ItemsSource="{Binding Collection}"/>
     </Grid>
 </catel:UserControl>
