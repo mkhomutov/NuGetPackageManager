@@ -30,6 +30,8 @@ namespace NuGetPackageManager.Models
 
         public IEnumerable<NuGetVersion> Versions { get; private set; }
 
+        public IEnumerable<VersionInfo> VersionsInfo { get; private set; }
+
         public NuGetVersion LastVersion { get; private set; }
 
         public async Task<IEnumerable<NuGetVersion>> LoadVersionsAsync()
@@ -37,6 +39,7 @@ namespace NuGetPackageManager.Models
             var versinfo = await _packageMetadata.GetVersionsAsync();
 
             Versions = versinfo.Select(x => x.Version).OrderByDescending(x => x);
+            VersionsInfo = versinfo;
 
             return Versions;
         }

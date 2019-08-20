@@ -70,11 +70,13 @@
             Argument.IsNotNull(() => commandManager);
             Argument.IsNotNull(() => nuGetFeedVerificationService);
             Argument.IsNotNull(() => dispatcherService);
+            Argument.IsNotNull(() => repositoryService);
 
             _packagesLoaderService = packagesLoaderService;
             _dispatcherService = dispatcherService;
             _packageMetadataMediaDownloadService = packageMetadataMediaDownloadService;
             _nuGetFeedVerificationService = nuGetFeedVerificationService;
+            _repositoryService = repositoryService;
 
             Settings = explorerSettings;
 

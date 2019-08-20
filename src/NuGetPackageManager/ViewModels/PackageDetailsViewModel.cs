@@ -24,7 +24,7 @@
         private IPackageMetadataProvider _packageMetadataProvider;
         private IRepositoryService _repositoryService;
 
-        public PackageDetailsViewModel(IRepositoryService repositoryService, IPackageSearchMetadata packageMetadata)
+        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, IRepositoryService repositoryService)
         {
             Argument.IsNotNull(() => repositoryService);
             _repositoryService = repositoryService;
@@ -38,18 +38,31 @@
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
         }
 
-        protected override Task InitializeAsync()
+        protected async override Task InitializeAsync()
         {
-            //by default last version always selected for user actions
-            SelectedVersion = Package.LastVersion;
+            try
+            {
+                //by default last version always selected for user actions
+                SelectedVersion = Package.LastVersion;
 
-            VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
+                VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 
-            _packageMetadataProvider = InitiMetadataProvider();
-
-            return base.InitializeAsync();
+                _packageMetadataProvider = InitiMetadataProvider();
+            }
+            catch(Exception e)
+            {
+                Log.Error(e, "Error ocurred during view model inititalization, probably package metadata is incorrect");
+            }
         }
 
+        protected async Task LoadSinglePackageMetadataAsync()
+        {
+            using(var cts = new CancellationTokenSource())
+            {
+                //todo include prerelease
+                var package = await _packageMetadataProvider?.GetPackageMetadataAsync(Package.Identity, true, cts.Token);
+            }
+        }
 
         [Model]
         [Expose("Title")]
@@ -71,14 +84,16 @@
                 //todo check is initialized?
                 if (Package.Versions == null)
                 {
-                    Package.LoadVersionsAsync().Wait(500);
-                    using (var cts = new CancellationTokenSource())
+                    if (Package.LoadVersionsAsync().Wait(500))
                     {
-                        //todo prerelease inclusion
-                        _packageMetadataProvider.GetPackageMetadataAsync(Package.Identity, false, cts.Token);
-                    }
 
-                    VersionsCollection = new ObservableCollection<NuGetVersion>(Package.Versions);
+                        VersionsCollection = new ObservableCollection<NuGetVersion>(Package.Versions);
+
+                    }
+                    else
+                    {
+                        throw new TimeoutException();
+                    }
                 }
             }
             catch(TimeoutException ex)
