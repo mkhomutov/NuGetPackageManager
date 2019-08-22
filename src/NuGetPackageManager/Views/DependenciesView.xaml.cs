@@ -12,17 +12,18 @@ namespace NuGetPackageManager.Views
     /// </summary>
     public partial class DependenciesView : Catel.Windows.Controls.UserControl
     {
+        static DependenciesView()
+        {
+            typeof(DependenciesView).AutoDetectViewPropertiesToSubscribe();
+        }
+
         public DependenciesView()
         {
             InitializeComponent();
 
-            var serviceLocator = ServiceLocator.Default;
-            var viewPropertySelector = serviceLocator.ResolveType<IViewPropertySelector>();
-
-            viewPropertySelector.AddPropertyToSubscribe(nameof(Collection), typeof(DependenciesView));
         }
 
-        [ViewToViewModel("Collection", MappingType = ViewToViewModelMappingType.TwoWayViewWins)]
+        [ViewToViewModel("Collection", MappingType=ViewToViewModelMappingType.TwoWayViewWins)]
         public object Collection
         {
             get { return (object)GetValue(CollectionProperty); }

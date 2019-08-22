@@ -46,12 +46,12 @@ namespace NuGetPackageManager.Providers
             //    tasks.Add(_localRepository.GetPackageMetadataFromLocalSourceAsync(identity, cancellationToken));
             //}
 
-            var completed = (await tasks.WhenAllOrException()).Where(x => x.IsSuccess).Select(x => x.UnwrapResult());
+            var completed = (await tasks.WhenAllOrException()).Where(x => x.IsSuccess)
+                .Select(x => x.UnwrapResult())
+                .Where(metadata => metadata != null);
 
 
-            var master = completed.FirstOrDefault();
-
-            master = completed.FirstOrDefault(m => !string.IsNullOrEmpty(m.Summary))
+            var master = completed.FirstOrDefault(m => !string.IsNullOrEmpty(m.Summary))
                 ?? completed.FirstOrDefault()
                 ?? PackageSearchMetadataBuilder.FromIdentity(identity).Build();
 
@@ -65,7 +65,9 @@ namespace NuGetPackageManager.Providers
         {
             var tasks = _sourceRepositories.Select(repo => GetPackageMetadataListAsyncFromSource(repo, packageId, includePrerelease, includeUnlisted, cancellationToken)).ToArray();
 
-            var completed = (await tasks.WhenAllOrException()).Where(x => x.IsSuccess).Select(x => x.UnwrapResult());
+            var completed = (await tasks.WhenAllOrException()).Where(x => x.IsSuccess).
+                Select(x => x.UnwrapResult())
+                .Where(metadata => metadata != null);
 
             var packages = completed.SelectMany(p => p);
 

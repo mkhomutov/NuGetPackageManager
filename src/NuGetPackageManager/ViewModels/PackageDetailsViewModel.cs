@@ -77,16 +77,7 @@
 
         public ObservableCollection<NuGetVersion> VersionsCollection { get; set; }
 
-        object _dependencyInfo;
-        public object DependencyInfo
-        {
-            get { return _dependencyInfo; }
-            set
-            {
-                _dependencyInfo = value;
-                RaisePropertyChanged(() => DependencyInfo);
-            }
-        }
+        public object DependencyInfo { get; set; }
 
         public NuGetVersion SelectedVersion { get; set; }
 
