@@ -20,7 +20,6 @@ namespace NuGetPackageManager.Views
         public DependenciesView()
         {
             InitializeComponent();
-
         }
 
         [ViewToViewModel("Collection", MappingType=ViewToViewModelMappingType.TwoWayViewWins)]

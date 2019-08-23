@@ -1,11 +1,13 @@
 ﻿namespace NuGetPackageManager.ViewModels
 {
     using Catel;
+    using Catel.Data;
     using Catel.Fody;
     using Catel.Logging;
     using Catel.MVVM;
     using NuGet.Configuration;
     using NuGet.Packaging;
+    using NuGet.Packaging.Core;
     using NuGet.Protocol.Core.Types;
     using NuGet.Versioning;
     using NuGetPackageManager.Interfaces;
@@ -61,12 +63,18 @@
 
         protected async Task LoadSinglePackageMetadataAsync()
         {
-            using(var cts = new CancellationTokenSource())
+            await LoadSinglePackageMetadataAsync(Package.Identity);
+        }
+
+        protected async Task LoadSinglePackageMetadataAsync(PackageIdentity identity)
+        {
+            using (var cts = new CancellationTokenSource())
             {
                 //todo include prerelease
-                var package = await _packageMetadataProvider?.GetPackageMetadataAsync(Package.Identity, true, cts.Token);
+                VersionData = await _packageMetadataProvider?.GetPackageMetadataAsync(
+                    identity, ExplorerSettingsContainer.Singleton.IsPreReleaseIncluded, cts.Token);
 
-                DependencyInfo = package.DependencySets;
+                DependencyInfo = VersionData.DependencySets;
             }
         }
 
@@ -79,9 +87,13 @@
 
         public object DependencyInfo { get; set; }
 
+        public IPackageSearchMetadata VersionData { get; set; }
+
         public NuGetVersion SelectedVersion { get; set; }
 
         public NuGetVersion InstalledVersion { get; set; }
+
+        public int SelectedVersionIndex { get; set; }
 
         public Command LoadInfoAboutVersions { get; set; }
 
@@ -121,6 +133,19 @@
             var repositories = currentSourceContext.Sources ?? currentSourceContext.PackageSources.Select(src => _repositoryService.GetRepository(src));
 
             return new PackageMetadataProvider(repositories, null);
+        }
+
+        protected override async void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if(string.Equals(e.PropertyName, nameof(SelectedVersion)))
+            {
+                if (SelectedVersion != Package.Identity.Version)
+                {
+                    var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
+                    await LoadSinglePackageMetadataAsync(identity);
+                }
+            }
         }
     }
 }
