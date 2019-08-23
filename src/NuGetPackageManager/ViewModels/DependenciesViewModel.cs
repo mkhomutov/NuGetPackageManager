@@ -24,11 +24,5 @@
         }
 
         bool HasDependency { get; set; }
-
-
-        protected override Task OnClosingAsync()
-        {
-            return base.OnClosingAsync();
-        }
     }
 }
