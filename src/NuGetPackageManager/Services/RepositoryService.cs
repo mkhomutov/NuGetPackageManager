@@ -2,11 +2,8 @@
 {
     using Catel;
     using NuGet.Configuration;
-    using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Management;
-    using NuGetPackageManager.Models;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 

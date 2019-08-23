@@ -1,14 +1,10 @@
-﻿using Catel.MVVM.Converters;
-using NuGet.Frameworks;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Converters
+﻿namespace NuGetPackageManager.Converters
 {
+    using Catel.MVVM.Converters;
+    using NuGet.Frameworks;
+    using System;
+    using System.Globalization;
+
     public class NuGetFrameworkToStringConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

@@ -1,8 +1,4 @@
-﻿using Catel.IoC;
-using Catel.MVVM.Views;
-using NuGet.Packaging;
-using System;
-using System.Collections.ObjectModel;
+﻿using Catel.MVVM.Views;
 using System.Windows;
 
 namespace NuGetPackageManager.Views
@@ -22,10 +18,10 @@ namespace NuGetPackageManager.Views
             InitializeComponent();
         }
 
-        [ViewToViewModel("Collection", MappingType=ViewToViewModelMappingType.TwoWayViewWins)]
+        [ViewToViewModel("Collection", MappingType = ViewToViewModelMappingType.TwoWayViewWins)]
         public object Collection
         {
-            get { return (object)GetValue(CollectionProperty); }
+            get { return GetValue(CollectionProperty); }
             set { SetValue(CollectionProperty, value); }
         }
 
@@ -35,7 +31,7 @@ namespace NuGetPackageManager.Views
 
         private static void OnCollectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            
+
         }
     }
 }

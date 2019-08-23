@@ -5,8 +5,6 @@
     using Catel.Fody;
     using Catel.Logging;
     using Catel.MVVM;
-    using NuGet.Configuration;
-    using NuGet.Packaging;
     using NuGet.Packaging.Core;
     using NuGet.Protocol.Core.Types;
     using NuGet.Versioning;
@@ -16,7 +14,6 @@
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
     using System;
-    using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
     using System.Threading;
@@ -55,7 +52,7 @@
 
                 await LoadSinglePackageMetadataAsync();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e, "Error ocurred during view model inititalization, probably package metadata is incorrect");
             }
@@ -116,7 +113,7 @@
                     }
                 }
             }
-            catch(TimeoutException ex)
+            catch (TimeoutException ex)
             {
                 Log.Error(ex, "Failed to get package versions for a given time (500 ms)");
             }
@@ -138,7 +135,7 @@
         protected override async void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
-            if(string.Equals(e.PropertyName, nameof(SelectedVersion)))
+            if (string.Equals(e.PropertyName, nameof(SelectedVersion)))
             {
                 if (SelectedVersion != Package.Identity.Version)
                 {

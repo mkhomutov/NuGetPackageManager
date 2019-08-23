@@ -3,10 +3,7 @@
     using Catel.Data;
     using Catel.MVVM;
     using NuGet.Packaging;
-    using NuGet.Protocol.Core.Types;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Threading.Tasks;
 
     public class DependenciesViewModel : ViewModelBase
     {
@@ -17,7 +14,7 @@
 
         protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
         {
-            if(string.Equals(e.PropertyName, nameof(Collection)))
+            if (string.Equals(e.PropertyName, nameof(Collection)))
             {
                 HasDependency = ((Collection as List<PackageDependencyGroup>)?.Count ?? 0) > 0;
             }

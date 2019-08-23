@@ -9,7 +9,7 @@
     {
         public static explicit operator PackageSource(PackageSourceWrapper wrapper)
         {
-            if(wrapper.IsMultipleSource)
+            if (wrapper.IsMultipleSource)
             {
                 throw new InvalidCastException("Wrong casting from 'PackageSourceWrapper' to single 'PackageSource' bacuse of wrapper contains multiple sources");
             }

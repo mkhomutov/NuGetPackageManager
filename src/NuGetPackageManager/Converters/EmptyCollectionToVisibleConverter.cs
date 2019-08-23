@@ -1,16 +1,12 @@
-﻿using Catel.MVVM.Converters;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Data;
-
-namespace NuGetPackageManager.Converters
+﻿namespace NuGetPackageManager.Converters
 {
+    using Catel.MVVM.Converters;
+    using System;
+    using System.Collections;
+    using System.Globalization;
+    using System.Windows;
+    using System.Windows.Data;
+
     [ValueConversion(typeof(ICollection), typeof(Visibility))]
     public class EmptyCollectionToVisibleConverter : Catel.MVVM.Converters.IValueConverter
     {
@@ -25,7 +21,7 @@ namespace NuGetPackageManager.Converters
                 return visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
 
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw;
             }

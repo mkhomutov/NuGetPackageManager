@@ -2,7 +2,6 @@
 {
     using Catel;
     using Catel.Collections;
-    using Catel.Data;
     using Catel.Logging;
     using Catel.MVVM;
     using Catel.Services;
@@ -209,7 +208,7 @@
         {
             try
             {
-                if(pageinfo.Source.IsMultipleSource)
+                if (pageinfo.Source.IsMultipleSource)
                 {
                     Context = _repositoryService.AcquireContext();
                 }

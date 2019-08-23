@@ -1,19 +1,17 @@
-﻿using Catel;
-using NuGet.Configuration;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
-using NuGetPackageManager.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Providers
+﻿namespace NuGetPackageManager.Providers
 {
+    using Catel;
+    using NuGet.Configuration;
+    using NuGet.Protocol;
+    using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Models;
+    using System;
+    using System.Collections.Generic;
+
     public class SourceRepositoryProvider : ISourceRepositoryProvider
     {
         private readonly IEnumerable<Lazy<INuGetResourceProvider>> _resourceProviders;
+
         private readonly INuGetSettings _settings;
 
         /// <summary>

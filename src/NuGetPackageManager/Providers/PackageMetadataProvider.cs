@@ -1,23 +1,23 @@
-﻿using Catel;
-using Catel.Logging;
-using NuGet.Packaging.Core;
-using NuGet.Protocol.Core.Types;
-using NuGetPackageManager.Extensions;
-using NuGetPackageManager.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Providers
+﻿namespace NuGetPackageManager.Providers
 {
+    using Catel;
+    using Catel.Logging;
+    using NuGet.Packaging.Core;
+    using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Extensions;
+    using NuGetPackageManager.Interfaces;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class PackageMetadataProvider : IPackageMetadataProvider
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private readonly IEnumerable<SourceRepository> _sourceRepositories;
+
         private readonly SourceRepository _optionalLocalRepository;
 
         public PackageMetadataProvider(IEnumerable<SourceRepository> sourceRepositories,
@@ -28,8 +28,6 @@ namespace NuGetPackageManager.Providers
             _sourceRepositories = sourceRepositories;
             _optionalLocalRepository = optionalLocalRepository;
         }
-
-        #region IPackageMetadataProvider
 
         public Task<IPackageSearchMetadata> GetLocalPackageMetadataAsync(PackageIdentity identity, bool includePrerelease, CancellationToken cancellationToken)
         {
@@ -79,10 +77,8 @@ namespace NuGetPackageManager.Providers
             return uniquePackages;
         }
 
-        #endregion
-
-        private async Task<IEnumerable<IPackageSearchMetadata>> GetPackageMetadataListAsyncFromSource(SourceRepository repository, 
-            string packageId, 
+        private async Task<IEnumerable<IPackageSearchMetadata>> GetPackageMetadataListAsyncFromSource(SourceRepository repository,
+            string packageId,
             bool includePrerelease,
             bool includeUnlisted,
             CancellationToken cancellationToken)
@@ -108,9 +104,9 @@ namespace NuGetPackageManager.Providers
             }
         }
 
-        private async Task<IPackageSearchMetadata> GetPackageMetadataAsyncFromSource(SourceRepository repository, 
+        private async Task<IPackageSearchMetadata> GetPackageMetadataAsyncFromSource(SourceRepository repository,
             PackageIdentity identity,
-            bool includePrerelease, 
+            bool includePrerelease,
             CancellationToken cancellationToken)
         {
             var metadataResource = await repository.GetResourceAsync<PackageMetadataResource>(cancellationToken);
