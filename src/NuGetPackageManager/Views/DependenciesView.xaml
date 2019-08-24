@@ -4,11 +4,54 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:cnv="clr-namespace:NuGetPackageManager.Converters"
              xmlns:catel="http://schemas.catelproject.com"
              xmlns:local="clr-namespace:NuGetPackageManager.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <catel:UserControl.Resources>
+        <cnv:NuGetFrameworkToStringConverter x:Key="NuGetFrameworkToStringConverter"/>
+        <cnv:NuGetFrameworkToVisibilityConverter x:Key="NuGetFrameworkToVisibilityConverter"/>
+        
+        <cnv:EmptyCollectionToVisibleConverter x:Key="EmptyCollectionToVisibleConverter"/>
+
+    </catel:UserControl.Resources>
     <Grid>
-            
+        <ItemsControl
+                ItemsSource="{Binding Collection}"
+                Visibility="{Binding Path=HasDependencies, Converter={catel:BooleanToCollapsingVisibilityConverter}}"
+                IsTabStop="False"
+                Margin="8,0,0,0">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel
+                        Orientation="Vertical"
+                        Margin="0,8,0,0">
+                        <TextBlock
+                            Text="{Binding TargetFramework, Converter={StaticResource NuGetFrameworkToStringConverter}}"
+                            FontWeight="Bold"
+                            x:Name="_targetFramework"
+                            Visibility="{Binding TargetFramework, Converter={StaticResource NuGetFrameworkToVisibilityConverter}}" />
+                        <ItemsControl
+                            ItemsSource="{Binding Packages}"
+                            IsTabStop="False">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock x:Name="_dependencies"
+                                                 Text="{Binding Mode=OneWay}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock
+                            FontStyle="Italic"
+                            Text="No Dependencies"
+                            x:Name="_noDependencies"
+                            Visibility="{Binding Packages, Converter={StaticResource EmptyCollectionToVisibleConverter}}">
+
+                        </TextBlock>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </Grid>
 </catel:UserControl>

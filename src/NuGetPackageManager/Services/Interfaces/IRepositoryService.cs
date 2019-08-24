@@ -3,22 +3,12 @@
     using NuGet.Configuration;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Management;
-    using System.Collections.Generic;
 
     public interface IRepositoryService
     {
-        SourceRepository GetOrCreateRepositoryForSource(PackageSource source);
-
-        SourceRepository[] GetOrCreateRepositoryForSourceMultiple(IEnumerable<PackageSource> sources);
-
+        SourceRepository GetRepository(PackageSource source);
         SourceContext AcquireContext(PackageSource source);
+        SourceContext AcquireContext();
 
-        void ReleaseContext(SourceContext context);
-
-        /// <summary>
-        /// Returns current context repositories
-        /// </summary>
-        /// <returns></returns>
-        IReadOnlyList<SourceRepository> GetContextRepositories();
     }
 }

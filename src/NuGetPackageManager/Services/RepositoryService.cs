@@ -1,39 +1,54 @@
 ﻿namespace NuGetPackageManager.Services
 {
+    using Catel;
     using NuGet.Configuration;
-    using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Management;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 
     public class RepositoryService : IRepositoryService
     {
+        private readonly ISourceRepositoryProvider _sourceRepositoryProvider;
+        private readonly Dictionary<PackageSource, SourceRepository> _constructedRepositories = new Dictionary<PackageSource, SourceRepository>();
+
+
+        public RepositoryService(ISourceRepositoryProvider sourceRepositoryProvider)
+        {
+            Argument.IsNotNull(() => sourceRepositoryProvider);
+
+            _sourceRepositoryProvider = sourceRepositoryProvider;
+        }
+
+        public SourceRepository GetRepository(PackageSource source)
+        {
+            SourceRepository sourceRepo = null;
+
+            if (!_constructedRepositories.TryGetValue(source, out sourceRepo))
+            {
+                sourceRepo = _sourceRepositoryProvider.CreateRepository(source);
+            }
+
+            return sourceRepo;
+        }
+
         public SourceContext AcquireContext(PackageSource source)
         {
-            throw new NotImplementedException();
+            var repo = GetRepository(source);
+
+            var context = new SourceContext(new List<SourceRepository>() { repo }, this);
+
+            return context;
         }
 
-        public IReadOnlyList<SourceRepository> GetContextRepositories()
+        public SourceContext AcquireContext()
         {
-            throw new NotImplementedException();
-        }
+            //acquire for all by default
+            IReadOnlyList<SourceRepository> repos = _sourceRepositoryProvider.GetRepositories().ToList();
 
-        public SourceRepository GetOrCreateRepositoryForSource(PackageSource source)
-        {
-            //todo store repos
-            return new SourceRepository(source, Repository.Provider.GetCoreV3());
-        }
+            var context = new SourceContext(repos, this);
 
-        public SourceRepository[] GetOrCreateRepositoryForSourceMultiple(IEnumerable<PackageSource> sources)
-        {
-            return sources.Select(s => new SourceRepository(s, Repository.Provider.GetCoreV3())).ToArray();
-        }
-
-        public void ReleaseContext(SourceContext context)
-        {
-            throw new NotImplementedException();
+            return context;
         }
     }
 }

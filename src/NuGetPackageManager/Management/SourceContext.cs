@@ -1,12 +1,44 @@
 ﻿namespace NuGetPackageManager.Management
 {
+    using NuGet.Configuration;
     using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Services;
+    using System;
     using System.Collections.Generic;
 
-    public class SourceContext
+    public class SourceContext : IDisposable
     {
-        public bool IsMultipleRepository => SourceRepositories?.Count > 1;
+        private static Stack<SourceContext> _activeContext = new Stack<SourceContext>();
 
-        public IReadOnlyList<SourceRepository> SourceRepositories { get; private set; }
+
+        public static SourceContext CurrentContext
+        {
+            get
+            {
+                return _activeContext.Peek();
+            }
+        }
+
+        public SourceContext(IReadOnlyList<PackageSource> packageSources, IRepositoryService repositoryService)
+        {
+            PackageSources = packageSources;
+            _activeContext.Push(this);
+        }
+
+        public SourceContext(IReadOnlyList<SourceRepository> sourceRepositories, IRepositoryService repositoryService)
+        {
+            Sources = sourceRepositories;
+            _activeContext.Push(this);
+        }
+
+
+        public IReadOnlyList<PackageSource> PackageSources { get; private set; }
+        public IReadOnlyList<SourceRepository> Sources { get; private set; }
+
+        public void Dispose()
+        {
+            //todo release this context
+            _activeContext.Pop();
+        }
     }
 }

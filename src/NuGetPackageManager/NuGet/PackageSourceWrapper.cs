@@ -7,9 +7,18 @@
 
     public class PackageSourceWrapper
     {
+        public static explicit operator PackageSource(PackageSourceWrapper wrapper)
+        {
+            if (wrapper.IsMultipleSource)
+            {
+                throw new InvalidCastException("Wrong casting from 'PackageSourceWrapper' to single 'PackageSource' bacuse of wrapper contains multiple sources");
+            }
+            return wrapper.PackageSources.FirstOrDefault();
+        }
+
         public IReadOnlyList<PackageSource> PackageSources { get; private set; }
 
-        bool IsMultipleSource => PackageSources.Count > 1;
+        public bool IsMultipleSource => PackageSources.Count > 1;
 
         public PackageSourceWrapper(string source)
         {

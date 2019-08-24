@@ -1,4 +1,5 @@
 ﻿using Catel.Data;
+using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using System.Collections.Generic;
@@ -25,7 +26,11 @@ namespace NuGetPackageManager.Models
 
         public string Description { get; private set; }
 
+        public PackageIdentity Identity => _packageMetadata.Identity;
+
         public IEnumerable<NuGetVersion> Versions { get; private set; }
+
+        public IEnumerable<VersionInfo> VersionsInfo { get; private set; }
 
         public NuGetVersion LastVersion { get; private set; }
 
@@ -34,6 +39,7 @@ namespace NuGetPackageManager.Models
             var versinfo = await _packageMetadata.GetVersionsAsync();
 
             Versions = versinfo.Select(x => x.Version).OrderByDescending(x => x);
+            VersionsInfo = versinfo;
 
             return Versions;
         }
