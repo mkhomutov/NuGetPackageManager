@@ -41,7 +41,6 @@ public static class ModuleInitializer
 
 
         serviceLocator.RegisterType<ISourceRepositoryProvider, SourceRepositoryProvider>();
-        //serviceLocator.RegisterInstance<ISourceRepositoryProvider>();
 
         serviceLocator.RegisterType<IRepositoryService, RepositoryService>();
     }
