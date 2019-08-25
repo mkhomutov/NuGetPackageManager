@@ -24,11 +24,15 @@
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
         private IPackageMetadataProvider _packageMetadataProvider;
         private IRepositoryService _repositoryService;
+        private IModelProvider<ExplorerSettingsContainer> _settingsProvider;
 
-        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, IRepositoryService repositoryService)
+        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider)
         {
             Argument.IsNotNull(() => repositoryService);
+            Argument.IsNotNull(() => settingsProvider);
+
             _repositoryService = repositoryService;
+            _settingsProvider = settingsProvider;
 
             //create package from metadata
             if (packageMetadata != null)
@@ -69,7 +73,7 @@
             {
                 //todo include prerelease
                 VersionData = await _packageMetadataProvider?.GetPackageMetadataAsync(
-                    identity, ExplorerSettingsContainer.Singleton.IsPreReleaseIncluded, cts.Token);
+                    identity, _settingsProvider.Model.IsPreReleaseIncluded, cts.Token);
 
                 DependencyInfo = VersionData.DependencySets;
             }
@@ -137,11 +141,14 @@
             base.OnPropertyChanged(e);
             if (string.Equals(e.PropertyName, nameof(SelectedVersion)))
             {
-                if (SelectedVersion != Package.Identity.Version)
+                if (e.OldValue == null && SelectedVersion == Package.Identity.Version)
                 {
-                    var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
-                    await LoadSinglePackageMetadataAsync(identity);
+                    //skip loading on version list first load
+                    return;
                 }
+
+                var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
+                await LoadSinglePackageMetadataAsync(identity);
             }
         }
     }

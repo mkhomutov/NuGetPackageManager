@@ -22,7 +22,9 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<IConfigurationService, NugetConfigurationService>();
         serviceLocator.RegisterType<IModelProvider<NuGetFeed>, ModelProvider<NuGetFeed>>();
 
-        serviceLocator.RegisterType<IModelProvider<ExplorerSettingsContainer>, ModelProvider<ExplorerSettingsContainer>>();
+        var settingsProvider = new ModelProvider<ExplorerSettingsContainer>();
+        settingsProvider.Model = new ExplorerSettingsContainer();
+        serviceLocator.RegisterInstance<IModelProvider<ExplorerSettingsContainer>>(settingsProvider);
 
         serviceLocator.RegisterType<INuGetFeedVerificationService, NuGetFeedVerificationService>();
 
@@ -36,7 +38,10 @@ public static class ModuleInitializer
         serviceLocator.RegisterInstance<IApplicationCacheProvider>(appCache);
         serviceLocator.RegisterType<IPackageMetadataMediaDownloadService, PackageMetadataMediaDownloadService>();
 
-        serviceLocator.RegisterInstance<ISourceRepositoryProvider>(new SourceRepositoryProvider(ExplorerSettingsContainer.Singleton));
+
+
+        serviceLocator.RegisterType<ISourceRepositoryProvider, SourceRepositoryProvider>();
+        //serviceLocator.RegisterInstance<ISourceRepositoryProvider>();
 
         serviceLocator.RegisterType<IRepositoryService, RepositoryService>();
     }

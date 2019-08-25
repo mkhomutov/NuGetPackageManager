@@ -20,6 +20,6 @@
             }
         }
 
-        bool HasDependency { get; set; }
+        public bool HasDependency { get; set; }
     }
 }
