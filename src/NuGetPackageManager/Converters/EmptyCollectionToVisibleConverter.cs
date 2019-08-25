@@ -1,5 +1,6 @@
 ﻿namespace NuGetPackageManager.Converters
 {
+    using Catel.Logging;
     using Catel.MVVM.Converters;
     using System;
     using System.Collections;
@@ -8,28 +9,25 @@
     using System.Windows.Data;
 
     [ValueConversion(typeof(ICollection), typeof(Visibility))]
-    public class EmptyCollectionToVisibleConverter : Catel.MVVM.Converters.IValueConverter
+    public class EmptyCollectionToVisibleConverter : ValueConverterBase<ICollection, Visibility>
     {
-        private static readonly CollectionToCollapsingVisibilityConverter _collectionToVisibility = new CollectionToCollapsingVisibilityConverter();
+        private static readonly CollectionToCollapsingVisibilityConverter CollectionToVisibility = new CollectionToCollapsingVisibilityConverter();
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        protected override object Convert(ICollection value, Type targetType, object parameter)
         {
             try
             {
-                var visibility = (Visibility)_collectionToVisibility.Convert(value, targetType, parameter, culture);
+                var visibility = (Visibility)CollectionToVisibility.Convert(value, targetType, parameter, CurrentCulture);
 
                 return visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw;
+                Log.Error("Error occured during value conversion", e);
+                return DependencyProperty.UnsetValue;
             }
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -6,22 +6,16 @@
     using System.Globalization;
     using System.Windows;
 
-    public class NuGetFrameworkToVisibilityConverter : IValueConverter
+    public class NuGetFrameworkToVisibilityConverter : ValueConverterBase<NuGetFramework, Visibility>
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        protected override object Convert(NuGetFramework value, Type targetType, object parameter)
         {
-            var framework = value as NuGetFramework;
-            if (framework == null || framework.IsAny)
+            if (value == null || value.IsAny)
             {
                 return Visibility.Collapsed;
             }
 
             return Visibility.Visible;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
         }
     }
 }
