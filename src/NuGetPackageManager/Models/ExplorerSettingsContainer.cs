@@ -7,26 +7,6 @@
 
     public class ExplorerSettingsContainer : ModelBase, INuGetSettings
     {
-        private static ExplorerSettingsContainer _instance;
-
-        public static ExplorerSettingsContainer Singleton
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new ExplorerSettingsContainer();
-                }
-
-                return _instance;
-            }
-        }
-
-        private ExplorerSettingsContainer()
-        {
-
-        }
-
         /// <summary>
         /// All feeds configured in application
         /// </summary>
