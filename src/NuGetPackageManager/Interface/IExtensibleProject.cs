@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NuGetPackageManager
 {
-    public interface IManagerExtensible
+    public interface IExtensibleProject
     {
         string Name { get; }
 

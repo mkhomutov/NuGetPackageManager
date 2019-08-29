@@ -2,6 +2,8 @@
 using Catel.IoC;
 using NuGet.Credentials;
 using NuGet.Protocol.Core.Types;
+using NuGetPackageManager;
+using NuGetPackageManager.Management;
 using NuGetPackageManager.Models;
 using NuGetPackageManager.Providers;
 using NuGetPackageManager.Services;
@@ -43,5 +45,14 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<ISourceRepositoryProvider, SourceRepositoryProvider>();
 
         serviceLocator.RegisterType<IRepositoryService, RepositoryService>();
+
+        serviceLocator.RegisterType<IExtensibleProjectManager, ExtensibleProjectManager>();
+
+        //add all project extensions
+
+        var manager = serviceLocator.ResolveType<IExtensibleProjectManager>();
+
+        manager.Register<ExampleFolderPackageManagement>();
+        manager.Register<ExamplePackageManagement>();
     }
 }

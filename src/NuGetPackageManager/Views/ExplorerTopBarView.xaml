@@ -129,5 +129,9 @@
                 </Canvas>
             </Viewbox>
         </Button>
+        <Button Grid.Row="1" Grid.Column="7"
+                Command="{Binding ShowExtensibles}">
+            TestButton
+        </Button>
     </Grid>
 </catel:UserControl>

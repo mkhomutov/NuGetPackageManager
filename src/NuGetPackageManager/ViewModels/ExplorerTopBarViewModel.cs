@@ -74,9 +74,11 @@
         protected void CommandInitialize()
         {
             ShowPackageSourceSettings = new TaskCommand(OnShowPackageSourceSettingsExecuteAsync);
+            ShowExtensibles = new TaskCommand(OnShowExtensibles);
         }
 
         public TaskCommand ShowPackageSourceSettings { get; set; }
+
 
         private async Task OnShowPackageSourceSettingsExecuteAsync()
         {
@@ -91,6 +93,18 @@
                     //update available feeds
                     ActiveFeeds = new ObservableCollection<INuGetSource>(GetActiveFeedsFromSettings());
                 }
+            }
+        }
+
+        public TaskCommand ShowExtensibles { get; set; }
+
+        private async Task OnShowExtensibles()
+        {
+            var extensiblesVM = _typeFactory.CreateInstanceWithParametersAndAutoCompletion<ExtensiblesViewModel>();
+
+            if(extensiblesVM != null)
+            {
+                var result = await _uIVisualizerService.ShowDialogAsync(extensiblesVM);   
             }
         }
 
