@@ -1,26 +1,25 @@
-﻿using Catel;
-using Catel.Configuration;
-using Catel.IoC;
-using Catel.Logging;
-using NuGetPackageManager.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Management
+﻿namespace NuGetPackageManager.Management
 {
+    using Catel;
+    using Catel.Configuration;
+    using Catel.IoC;
+    using Catel.Logging;
+    using NuGetPackageManager.Services;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     public class ExtensibleProjectManager : IExtensibleProjectManager
     {
         private readonly static ILog Log = LogManager.GetCurrentClassLogger();
 
         private readonly ITypeFactory _typeFactory;
+
         private readonly NugetConfigurationService _managerConfigurationService;
 
         private readonly Dictionary<Type, IExtensibleProject> _registredProjects = new Dictionary<Type, IExtensibleProject>();
-        private readonly HashSet<IExtensibleProject> _enabledProjects = new HashSet<IExtensibleProject>();
 
+        private readonly HashSet<IExtensibleProject> _enabledProjects = new HashSet<IExtensibleProject>();
 
         public ExtensibleProjectManager(ITypeFactory typeFactory, IConfigurationService configurationService)
         {
@@ -42,12 +41,12 @@ namespace NuGetPackageManager.Management
         {
             var registeredProject = _registredProjects[extensibleProject.GetType()];
 
-            if(registeredProject != extensibleProject)
+            if (registeredProject != extensibleProject)
             {
                 throw new InvalidOperationException("ExtensibleProject must be registered before use");
             }
 
-            if(!_enabledProjects.Add(registeredProject))
+            if (!_enabledProjects.Add(registeredProject))
             {
                 Log.Info($"Project {extensibleProject} already enabled");
             }
@@ -62,7 +61,7 @@ namespace NuGetPackageManager.Management
                 throw new InvalidOperationException("ExtensibleProject must be registered before use");
             }
 
-            if(!_enabledProjects.Remove(registeredProject))
+            if (!_enabledProjects.Remove(registeredProject))
             {
                 Log.Info($"Attempt to disable Project {extensibleProject}, which is not enabled");
             }
@@ -85,7 +84,7 @@ namespace NuGetPackageManager.Management
 
         public void Register<T>(object[] parameters) where T : IExtensibleProject
         {
-            var instance =_typeFactory.CreateInstanceWithParametersAndAutoCompletion<T>(parameters);
+            var instance = _typeFactory.CreateInstanceWithParametersAndAutoCompletion<T>(parameters);
 
             Register(instance);
         }
@@ -93,7 +92,7 @@ namespace NuGetPackageManager.Management
         public void PersistChanges()
         {
             _managerConfigurationService.SetRoamingValueWithDefaultIdGenerator(
-                _enabledProjects.Select(x => 
+                _enabledProjects.Select(x =>
                     x.GetType().FullName)
                 .ToList()
                 );
@@ -105,15 +104,15 @@ namespace NuGetPackageManager.Management
             {
                 var restored = _managerConfigurationService.GetRoamingValue(Configuration.ConfigurationSections.ProjectExtensions) as List<string>;
 
-                foreach(var type in _registredProjects.Keys)
+                foreach (var type in _registredProjects.Keys)
                 {
-                    if(restored.Any(s => s == type.FullName))
+                    if (restored.Any(s => s == type.FullName))
                     {
                         Enable(_registredProjects[type]);
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e, "Error when restoring project extensions state from configuration");
             }

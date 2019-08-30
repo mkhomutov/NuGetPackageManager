@@ -3,7 +3,6 @@
     using Catel.MVVM.Converters;
     using NuGet.Frameworks;
     using System;
-    using System.Globalization;
 
     public class NuGetFrameworkToStringConverter : ValueConverterBase<NuGetFramework, string>
     {

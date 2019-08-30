@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NuGetPackageManager.Models;
-
-namespace NuGetPackageManager.Management
+﻿namespace NuGetPackageManager.Management
 {
+    using NuGetPackageManager.Models;
+    using System;
+    using System.Collections.Generic;
+
     public class ExamplePackageManagement : IExtensibleProject
     {
         public string Name => "Plain project extensible example";
@@ -15,22 +12,18 @@ namespace NuGetPackageManager.Management
 
         public void Install()
         {
-
         }
 
         public void Uninstall()
         {
-
         }
 
         public void Update()
         {
-
         }
 
         public ExamplePackageManagement()
         {
-
         }
 
         public override string ToString()
@@ -39,4 +32,3 @@ namespace NuGetPackageManager.Management
         }
     }
 }
-

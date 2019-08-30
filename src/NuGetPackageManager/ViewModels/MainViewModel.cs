@@ -16,7 +16,7 @@ namespace NuGetPackageManager.ViewModels
         private readonly IUIVisualizerService _uIVisualizerService;
 
         private readonly ITypeFactory _typeFactory;
-        
+
 
         public MainViewModel(ITypeFactory typeFactory, IUIVisualizerService service, ICommandManager commandManager, IModelProvider<ExplorerSettingsContainer> settingsProvider)
         {

@@ -1,15 +1,12 @@
-﻿using Catel;
-using Catel.MVVM;
-using NuGetPackageManager.Management;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.ViewModels
+﻿namespace NuGetPackageManager.ViewModels
 {
+    using Catel;
+    using Catel.MVVM;
+    using NuGetPackageManager.Management;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     public class ExtensiblesViewModel : ViewModelBase
     {
         private readonly IExtensibleProjectManager _extensiblesManager;
@@ -50,7 +47,7 @@ namespace NuGetPackageManager.ViewModels
             }
             else
             {
-                _extensiblesManager.Disable(project); 
+                _extensiblesManager.Disable(project);
             }
         }
 

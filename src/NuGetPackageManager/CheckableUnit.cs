@@ -1,12 +1,8 @@
-﻿using Catel.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager
+﻿namespace NuGetPackageManager
 {
+    using Catel.Data;
+    using System;
+
     public class CheckableUnit<T> : ObservableObject
     {
         private readonly Action<bool, T> _onCheckedChangedCallback;
@@ -17,24 +13,21 @@ namespace NuGetPackageManager
             Value = value;
         }
 
-        public CheckableUnit(bool isChecked, T value, Action<bool,  T> onCheckedChangedCallback) : this(isChecked, value)
+        public CheckableUnit(bool isChecked, T value, Action<bool, T> onCheckedChangedCallback) : this(isChecked, value)
         {
             _onCheckedChangedCallback = onCheckedChangedCallback;
         }
 
-        public bool IsChecked
-        {
-            get; set;
-        }
+        public bool IsChecked { get; set; }
 
         protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
         {
-            if(Value == null)
+            if (Value == null)
             {
                 return;
             }
 
-            if(string.Equals(e.PropertyName, nameof(IsChecked)))
+            if (string.Equals(e.PropertyName, nameof(IsChecked)))
             {
                 _onCheckedChangedCallback((bool)e.NewValue, Value);
             }

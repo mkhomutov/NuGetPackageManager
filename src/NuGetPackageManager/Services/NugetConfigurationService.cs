@@ -135,9 +135,9 @@ namespace NuGetPackageManager.Services
 
             using (StringReader sr = new StringReader(storedValue))
             {
-               var obj = ser.Deserialize(sr);
+                var obj = ser.Deserialize(sr);
 
-               return (obj as ListWrapper)?.List;                
+                return (obj as ListWrapper)?.List;
             }
         }
 
@@ -202,7 +202,7 @@ namespace NuGetPackageManager.Services
                 SetValueToStore(container, _masterKeys[section], strValue);
             }
         }
-       
+
         private void UpdateSectionKeyList(ConfigurationContainer container, ConfigurationSections confSection, string key, bool isRemove = false)
         {
             var keyList = GetValueFromStore(container, _masterKeys[confSection]);
@@ -228,8 +228,8 @@ namespace NuGetPackageManager.Services
         [XmlRoot(ElementName = "Items")]
         public class ListWrapper
         {
-                [XmlElement(ElementName = "string", Namespace = "http://schemas.microsoft.com/2003/10/Serialization/Arrays")]
-                public List<string> List { get; set; }
+            [XmlElement(ElementName = "string", Namespace = "http://schemas.microsoft.com/2003/10/Serialization/Arrays")]
+            public List<string> List { get; set; }
         }
     }
 }

@@ -102,9 +102,9 @@
         {
             var extensiblesVM = _typeFactory.CreateInstanceWithParametersAndAutoCompletion<ExtensiblesViewModel>();
 
-            if(extensiblesVM != null)
+            if (extensiblesVM != null)
             {
-                var result = await _uIVisualizerService.ShowDialogAsync(extensiblesVM);   
+                var result = await _uIVisualizerService.ShowDialogAsync(extensiblesVM);
             }
         }
 

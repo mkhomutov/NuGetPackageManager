@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Management
+﻿namespace NuGetPackageManager.Management
 {
+    using System.Collections.Generic;
+
     public interface IExtensibleProjectManager
     {
         IEnumerable<IExtensibleProject> GetAllExtensibleProjects();
@@ -17,11 +13,13 @@ namespace NuGetPackageManager.Management
         void Register<T>(object[] parameters) where T : IExtensibleProject;
 
         void Enable(IExtensibleProject extensibleProject);
+
         void Disable(IExtensibleProject extensibleProject);
 
         bool IsEnabled(IExtensibleProject extensibleProject);
 
         void PersistChanges();
+
         void RestoreStateFromConfig();
     }
 }

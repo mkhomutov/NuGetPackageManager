@@ -1,9 +1,7 @@
 ﻿namespace NuGetPackageManager.Converters
 {
-    using Catel;
     using Catel.MVVM.Converters;
     using System;
-    using System.Globalization;
 
     public class BoolToIntConverter : ValueConverterBase<bool, int>
     {

@@ -2,7 +2,6 @@
 using Catel.IoC;
 using NuGet.Credentials;
 using NuGet.Protocol.Core.Types;
-using NuGetPackageManager;
 using NuGetPackageManager.Management;
 using NuGetPackageManager.Models;
 using NuGetPackageManager.Providers;
