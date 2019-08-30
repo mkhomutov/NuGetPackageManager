@@ -20,5 +20,8 @@ namespace NuGetPackageManager.Management
         void Disable(IExtensibleProject extensibleProject);
 
         bool IsEnabled(IExtensibleProject extensibleProject);
+
+        void PersistChanges();
+        void RestoreStateFromConfig();
     }
 }

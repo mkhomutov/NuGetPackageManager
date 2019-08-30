@@ -19,14 +19,24 @@ namespace NuGetPackageManager.ViewModels
             Argument.IsNotNull(() => extensiblesManager);
 
             _extensiblesManager = extensiblesManager;
+
+            Title = "Project extensions";
         }
 
         protected override Task InitializeAsync()
         {
+            var registeredProjects = _extensiblesManager.GetAllExtensibleProjects();
+
+            _extensiblesManager.RestoreStateFromConfig();
+
             ExtensiblesCollection = new ObservableCollection<CheckableUnit<IExtensibleProject>>(
-                _extensiblesManager.GetAllExtensibleProjects().Select(
+                registeredProjects
+                .Select(
                     x => new CheckableUnit<IExtensibleProject>(_extensiblesManager.IsEnabled(x), x, ExtensibleProjectStatusChange))
                 );
+
+
+
             return base.InitializeAsync();
         }
 
@@ -49,6 +59,7 @@ namespace NuGetPackageManager.ViewModels
         protected override Task<bool> SaveAsync()
         {
             //todo persist all changes in configuration file
+            _extensiblesManager.PersistChanges();
 
             return base.SaveAsync();
         }

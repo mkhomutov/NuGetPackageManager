@@ -19,7 +19,7 @@ namespace NuGetPackageManager.Views
     /// </summary>
     public partial class ExtensiblesWindow : Catel.Windows.DataWindow
     {
-        public ExtensiblesWindow()
+        public ExtensiblesWindow() : base(Catel.Windows.DataWindowMode.Close)
         {
             InitializeComponent();
         }
