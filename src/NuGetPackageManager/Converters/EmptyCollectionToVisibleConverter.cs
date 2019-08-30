@@ -10,8 +10,9 @@
     [ValueConversion(typeof(ICollection), typeof(Visibility))]
     public class EmptyCollectionToVisibleConverter : ValueConverterBase<ICollection, Visibility>
     {
-        private static readonly CollectionToCollapsingVisibilityConverter CollectionToVisibility = new CollectionToCollapsingVisibilityConverter();
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
+        private static readonly CollectionToCollapsingVisibilityConverter CollectionToVisibility = new CollectionToCollapsingVisibilityConverter();
 
         protected override object Convert(ICollection value, Type targetType, object parameter)
         {

@@ -131,6 +131,11 @@ namespace NuGetPackageManager.Services
         {
             var storedValue = GetValueFromStore(container, key);
 
+            if(string.IsNullOrEmpty(storedValue))
+            {
+                return new List<string>();
+            }
+
             var ser = new System.Xml.Serialization.XmlSerializer(typeof(ListWrapper));
 
             using (StringReader sr = new StringReader(storedValue))

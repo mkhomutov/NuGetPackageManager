@@ -23,9 +23,7 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<IConfigurationService, NugetConfigurationService>();
         serviceLocator.RegisterType<IModelProvider<NuGetFeed>, ModelProvider<NuGetFeed>>();
 
-        var settingsProvider = new ModelProvider<ExplorerSettingsContainer>();
-        settingsProvider.Model = new ExplorerSettingsContainer();
-        serviceLocator.RegisterInstance<IModelProvider<ExplorerSettingsContainer>>(settingsProvider);
+        serviceLocator.RegisterType<IModelProvider<ExplorerSettingsContainer>, ExplorerSettingsContainerModelProvider>();
 
         serviceLocator.RegisterType<INuGetFeedVerificationService, NuGetFeedVerificationService>();
 

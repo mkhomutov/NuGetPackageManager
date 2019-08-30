@@ -53,12 +53,10 @@
 
         public ObservableCollection<CheckableUnit<IExtensibleProject>> ExtensiblesCollection { get; set; }
 
-        protected override Task<bool> SaveAsync()
+        protected override Task OnClosingAsync()
         {
-            //todo persist all changes in configuration file
             _extensiblesManager.PersistChanges();
-
-            return base.SaveAsync();
+            return base.OnClosingAsync();
         }
     }
 }
