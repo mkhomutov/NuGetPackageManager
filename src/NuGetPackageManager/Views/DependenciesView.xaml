@@ -17,11 +17,20 @@
 
     </catel:UserControl.Resources>
     <Grid>
-        <ItemsControl
+
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Label Margin="0 0 3 2" Visibility="{Binding Path=HasDependency, Converter={catel:BooleanToCollapsingVisibilityConverter}}">
+            Dependencies
+        </Label>
+
+        <ItemsControl Grid.Row="1"
                 ItemsSource="{Binding Collection}"
-                Visibility="{Binding Path=HasDependencies, Converter={catel:BooleanToCollapsingVisibilityConverter}}"
-                IsTabStop="False"
-                Margin="8,0,0,0">
+                Visibility="{Binding Path=HasDependency, Converter={catel:BooleanToCollapsingVisibilityConverter}}"
+                IsTabStop="False">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <StackPanel

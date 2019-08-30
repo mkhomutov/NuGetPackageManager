@@ -19,11 +19,18 @@
         /// </summary>
         public IPackageSourceProvider PackageSourceProvider => null;
 
-        public SourceRepositoryProvider(INuGetSettings settings)
+        //public SourceRepositoryProvider(INuGetSettings settings)
+        //{
+        //    Argument.IsNotNull(() => settings);
+        //    _resourceProviders = Repository.Provider.GetCoreV3();
+        //    _settings = settings;
+        //}
+
+        public SourceRepositoryProvider(IModelProvider<ExplorerSettingsContainer> settingsProvider)
         {
-            Argument.IsNotNull(() => settings);
+            Argument.IsNotNull(() => settingsProvider);
             _resourceProviders = Repository.Provider.GetCoreV3();
-            _settings = settings;
+            _settings = settingsProvider.Model;
         }
 
         public SourceRepository CreateRepository(PackageSource source)

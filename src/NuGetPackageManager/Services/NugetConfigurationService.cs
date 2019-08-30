@@ -11,10 +11,20 @@ namespace NuGetPackageManager.Services
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Xml.Serialization;
 
     public class NugetConfigurationService : ConfigurationService
     {
         private readonly IXmlSerializer _configSerializer;
+
+        private static readonly string KeySeparator = "|";
+
+        private readonly Dictionary<ConfigurationSections, string> _masterKeys = new Dictionary<ConfigurationSections, string>()
+        {
+            { ConfigurationSections.Feeds, $"NuGet_{ConfigurationSections.Feeds}" },
+            { ConfigurationSections.ProjectExtensions, $"NuGet_{ConfigurationSections.ProjectExtensions}" }
+        };
+
 
         public NugetConfigurationService(ISerializationManager serializationManager,
             IObjectConverterService objectConverterService, IXmlSerializer serializer) : base(serializationManager, objectConverterService, serializer)
@@ -64,6 +74,15 @@ namespace NuGetPackageManager.Services
             }
         }
 
+        public object GetRoamingValue(ConfigurationSections section)
+        {
+            var masterKey = _masterKeys[section];
+
+            var obj = DeserializeXmlToListOfString(ConfigurationContainer.Roaming, masterKey);
+
+            return obj;
+        }
+
         public NuGetFeed GetRoamingValue(Guid key)
         {
             return GetValue(ConfigurationContainer.Roaming, KeyToString(key));
@@ -71,7 +90,7 @@ namespace NuGetPackageManager.Services
 
         public IReadOnlyList<Guid> GetAllKeys(ConfigurationContainer container)
         {
-            var feedKeys = GetValueFromStore(container, masterKeys[ConfigurationSections.Feeds]);
+            var feedKeys = GetValueFromStore(container, _masterKeys[ConfigurationSections.Feeds]);
 
             var keyList = feedKeys.Split(new string[] { KeySeparator }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -82,13 +101,7 @@ namespace NuGetPackageManager.Services
         {
             using (var memstream = new MemoryStream())
             {
-                value.Save(memstream, _configSerializer);
-
-                var streamReader = new StreamReader(memstream);
-
-                memstream.Position = 0;
-
-                string rawxml = streamReader.ReadToEnd();
+                var rawxml = SerializeXml(memstream, () => value.Save(memstream, _configSerializer));
 
                 bool shouldBeUpdated = !ValueExists(container, key);
 
@@ -98,6 +111,38 @@ namespace NuGetPackageManager.Services
                 {
                     UpdateSectionKeyList(container, ConfigurationSections.Feeds, key);
                 }
+            }
+        }
+
+        private string SerializeXml(Stream stream, Action putValueToStream)
+        {
+            putValueToStream();
+
+            var streamReader = new StreamReader(stream);
+
+            stream.Position = 0;
+
+            string rawxml = streamReader.ReadToEnd();
+
+            return rawxml;
+        }
+
+        private object DeserializeXmlToListOfString(ConfigurationContainer container, string key)
+        {
+            var storedValue = GetValueFromStore(container, key);
+
+            if(string.IsNullOrEmpty(storedValue))
+            {
+                return new List<string>();
+            }
+
+            var ser = new System.Xml.Serialization.XmlSerializer(typeof(ListWrapper));
+
+            using (StringReader sr = new StringReader(storedValue))
+            {
+                var obj = ser.Deserialize(sr);
+
+                return (obj as ListWrapper)?.List;
             }
         }
 
@@ -116,15 +161,12 @@ namespace NuGetPackageManager.Services
             SetValueWithDefaultIdGenerator(ConfigurationContainer.Roaming, value);
         }
 
-        protected string KeyToString(Guid guid)
+
+        public void SetRoamingValueWithDefaultIdGenerator(List<string> extensibleProject)
         {
-            return $"_{guid}";
+            SetValueInSection(ConfigurationContainer.Roaming, ConfigurationSections.ProjectExtensions, extensibleProject);
         }
 
-        protected Guid KeyFromString(string key)
-        {
-            return Guid.Parse(key.Substring(1));
-        }
 
         public void RemoveValues(ConfigurationContainer container, IReadOnlyList<NuGetFeed> feedList)
         {
@@ -146,16 +188,29 @@ namespace NuGetPackageManager.Services
             }
         }
 
-        private Dictionary<ConfigurationSections, string> masterKeys = new Dictionary<ConfigurationSections, string>()
+        protected string KeyToString(Guid guid)
         {
-            { ConfigurationSections.Feeds, $"NuGet_{ConfigurationSections.Feeds}" }
-        };
+            return $"_{guid}";
+        }
 
-        string KeySeparator = "|";
+        protected Guid KeyFromString(string key)
+        {
+            return Guid.Parse(key.Substring(1));
+        }
+
+        private void SetValueInSection(ConfigurationContainer container, ConfigurationSections section, object value)
+        {
+            using (var memStream = new MemoryStream())
+            {
+                var strValue = SerializeXml(memStream, () => _configSerializer.Serialize(value, memStream));
+
+                SetValueToStore(container, _masterKeys[section], strValue);
+            }
+        }
 
         private void UpdateSectionKeyList(ConfigurationContainer container, ConfigurationSections confSection, string key, bool isRemove = false)
         {
-            var keyList = GetValueFromStore(container, masterKeys[confSection]);
+            var keyList = GetValueFromStore(container, _masterKeys[confSection]);
             string updatedKeys = String.Empty;
 
             if (isRemove)
@@ -172,7 +227,14 @@ namespace NuGetPackageManager.Services
                 updatedKeys = String.Join(KeySeparator, key, keyList);
             }
 
-            SetValueToStore(container, masterKeys[confSection], updatedKeys);
+            SetValueToStore(container, _masterKeys[confSection], updatedKeys);
+        }
+
+        [XmlRoot(ElementName = "Items")]
+        public class ListWrapper
+        {
+            [XmlElement(ElementName = "string", Namespace = "http://schemas.microsoft.com/2003/10/Serialization/Arrays")]
+            public List<string> List { get; set; }
         }
     }
 }

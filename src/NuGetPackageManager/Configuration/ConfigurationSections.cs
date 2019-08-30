@@ -2,6 +2,7 @@
 {
     public enum ConfigurationSections
     {
-        Feeds = 0
+        Feeds = 0,
+        ProjectExtensions = 1
     }
 }

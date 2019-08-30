@@ -1,46 +1,41 @@
 ﻿namespace NuGetPackageManager.Converters
 {
     using Catel.IoC;
+    using Catel.Logging;
     using Catel.MVVM.Converters;
     using NuGetPackageManager.Cache;
     using NuGetPackageManager.Providers;
     using System;
-    using System.Globalization;
     using System.Windows;
+    using System.Windows.Media.Imaging;
 
-    public class UriToBitmapConverter : IValueConverter
+    public class UriToBitmapConverter : ValueConverterBase<Uri, BitmapImage>
     {
-        private static readonly IconCache iconCache;
+        private static readonly IconCache IconCache;
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         static UriToBitmapConverter()
         {
-            if (iconCache == null)
+            if (IconCache == null)
             {
                 var appCacheProvider = ServiceLocator.Default.ResolveType<IApplicationCacheProvider>();
 
-                iconCache = appCacheProvider.EnsureIconCache();
+                IconCache = appCacheProvider.EnsureIconCache();
             }
         }
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        protected override object Convert(Uri value, Type targetType, object parameter)
         {
-            var uri = value != null ? (Uri)value : null;
-
             //get bitmap from stream cache
             try
             {
-                return iconCache.GetFromCache(uri);
+                return IconCache.GetFromCache(value);
             }
             catch (Exception e)
             {
-                var b = e;
+                Log.Error("Error occured during value conversion", e);
                 return DependencyProperty.UnsetValue;
             }
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
         }
     }
 }

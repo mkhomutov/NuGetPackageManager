@@ -6,6 +6,7 @@ namespace NuGetPackageManager.ViewModels
     using Catel.Services;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Models;
+    using NuGetPackageManager.Providers;
     using System.Collections.ObjectModel;
     using System.Threading.Tasks;
     using System.Windows.Input;
@@ -16,16 +17,20 @@ namespace NuGetPackageManager.ViewModels
 
         private readonly ITypeFactory _typeFactory;
 
-        public MainViewModel(ITypeFactory typeFactory, IUIVisualizerService service, ICommandManager commandManager)
+
+        public MainViewModel(ITypeFactory typeFactory, IUIVisualizerService service, ICommandManager commandManager, IModelProvider<ExplorerSettingsContainer> settingsProvider)
         {
             Argument.IsNotNull(() => service);
             Argument.IsNotNull(() => typeFactory);
             Argument.IsNotNull(() => commandManager);
+            Argument.IsNotNull(() => settingsProvider);
 
             _uIVisualizerService = service;
             _typeFactory = typeFactory;
 
             CreateApplicationWideCommands(commandManager);
+
+            Settings = settingsProvider.Model;
         }
 
         protected override Task InitializeAsync()
@@ -36,7 +41,7 @@ namespace NuGetPackageManager.ViewModels
             return base.InitializeAsync();
         }
 
-        public ExplorerSettingsContainer Settings { get; set; } = ExplorerSettingsContainer.Singleton;
+        public ExplorerSettingsContainer Settings { get; set; }
 
         public IPackageSearchMetadata SelectedPackageMetadata { get; set; }
 

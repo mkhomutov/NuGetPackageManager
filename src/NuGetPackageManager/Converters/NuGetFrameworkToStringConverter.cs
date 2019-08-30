@@ -3,24 +3,17 @@
     using Catel.MVVM.Converters;
     using NuGet.Frameworks;
     using System;
-    using System.Globalization;
 
-    public class NuGetFrameworkToStringConverter : IValueConverter
+    public class NuGetFrameworkToStringConverter : ValueConverterBase<NuGetFramework, string>
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        protected override object Convert(NuGetFramework value, Type targetType, object parameter)
         {
-            var framework = value as NuGetFramework;
-            if (framework == null)
+            if (value == null)
             {
                 return string.Empty;
             }
 
-            return framework.IsSpecificFramework ? framework.ToString() : framework.Framework;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
+            return value.IsSpecificFramework ? value.ToString() : value.Framework;
         }
     }
 }

@@ -39,6 +39,7 @@
     <None Remove="Views\DependenciesView.xaml" />
     <None Remove="Views\ExplorerPageView.xaml" />
     <None Remove="Views\ExplorerTopBarView.xaml" />
+    <None Remove="Views\ExtensiblesWindow.xaml" />
     <None Remove="Views\FeedDetailView.xaml" />
     <None Remove="Views\MainWindow.xaml" />
     <None Remove="Views\PackageDetailsView.xaml" />
