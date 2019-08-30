@@ -108,7 +108,14 @@
                 {
                     if (restored.Any(s => s == type.FullName))
                     {
-                        Enable(_registredProjects[type]);
+                        try
+                        {
+                            Enable(_registredProjects[type]);
+                        }
+                        catch(InvalidOperationException e)
+                        {
+                            Log.Error(e, "Mismatch between configuration and registered projects");
+                        }
                     }
                 }
             }

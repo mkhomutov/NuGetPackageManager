@@ -24,6 +24,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="34"/>
+            <ColumnDefinition Width="34"/>
         </Grid.ColumnDefinitions>
 
         <!-- navigation panel-->
@@ -51,7 +52,7 @@
 
 
         <TextBlock Text="Manage NuGet Packages"
-                   Grid.Column="5" Grid.ColumnSpan="3"
+                   Grid.Column="5" Grid.ColumnSpan="4"
                    HorizontalAlignment="Right"
                    FontSize="16"
                    Margin="0 0 10 10"/>
@@ -129,9 +130,15 @@
                 </Canvas>
             </Viewbox>
         </Button>
-        <Button Grid.Row="1" Grid.Column="7"
-                Command="{Binding ShowExtensibles}">
-            TestButton
+        <Button Grid.Row="1" Grid.Column="8"
+                Command="{Binding ShowExtensibles}"
+                Margin="0 0 10 0"
+                Height="24" Width="24">
+            <Viewbox>
+                <Canvas Width="24" Height="24">
+                    <Path Data="{Binding Source={StaticResource App-box}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
+                </Canvas>
+            </Viewbox>
         </Button>
     </Grid>
 </catel:UserControl>
