@@ -41,6 +41,8 @@
             }
 
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
+            InstallPackage = new TaskCommand(InstallPackageExecute);
+            UninstallPackage = new TaskCommand(UninstallPackageExecute);
         }
 
         protected async override Task InitializeAsync()
@@ -52,7 +54,7 @@
 
                 VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 
-                _packageMetadataProvider = InitiMetadataProvider();
+                _packageMetadataProvider = InitMetadataProvider();
 
                 await LoadSinglePackageMetadataAsync();
             }
@@ -96,6 +98,7 @@
 
         public int SelectedVersionIndex { get; set; }
 
+        #region command
         public Command LoadInfoAboutVersions { get; set; }
 
         private void LoadInfoAboutVersionsExecute()
@@ -127,7 +130,23 @@
             }
         }
 
-        private IPackageMetadataProvider InitiMetadataProvider()
+        public TaskCommand InstallPackage { get; set; }
+
+        private async Task InstallPackageExecute()
+        {
+
+        }
+
+        public TaskCommand UninstallPackage { get; set; }
+
+        private async Task UninstallPackageExecute()
+        {
+
+        }
+
+        #endregion
+
+        private IPackageMetadataProvider InitMetadataProvider()
         {
             var currentSourceContext = SourceContext.CurrentContext;
 

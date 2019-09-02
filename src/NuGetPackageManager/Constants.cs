@@ -9,5 +9,7 @@ namespace NuGetPackageManager
         public const string DefaultNugetOrgUri = "https://api.nuget.org/v3/index.json";
 
         public const string DefaultNugetOrgName = "nuget.org";
+
+        public const string ConfigKeySeparator = "|";
     }
 }

@@ -24,15 +24,16 @@
         {
             var registeredProjects = _extensiblesManager.GetAllExtensibleProjects();
 
-            _extensiblesManager.RestoreStateFromConfig();
+            if (!_extensiblesManager.IsConfigLoaded)
+            {
+                _extensiblesManager.RestoreStateFromConfig();
+            }
 
             ExtensiblesCollection = new ObservableCollection<CheckableUnit<IExtensibleProject>>(
                 registeredProjects
                 .Select(
                     x => new CheckableUnit<IExtensibleProject>(_extensiblesManager.IsEnabled(x), x, ExtensibleProjectStatusChange))
                 );
-
-
 
             return base.InitializeAsync();
         }

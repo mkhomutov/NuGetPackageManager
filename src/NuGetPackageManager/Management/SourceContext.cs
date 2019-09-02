@@ -10,7 +10,6 @@
     {
         private static Stack<SourceContext> _activeContext = new Stack<SourceContext>();
 
-
         public static SourceContext CurrentContext
         {
             get

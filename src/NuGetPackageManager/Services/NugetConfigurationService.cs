@@ -2,6 +2,7 @@ namespace NuGetPackageManager.Services
 {
     using Catel.Configuration;
     using Catel.Data;
+    using Catel.Logging;
     using Catel.Runtime.Serialization;
     using Catel.Runtime.Serialization.Xml;
     using Catel.Services;
@@ -15,9 +16,10 @@ namespace NuGetPackageManager.Services
 
     public class NugetConfigurationService : ConfigurationService
     {
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         private readonly IXmlSerializer _configSerializer;
 
-        private static readonly string KeySeparator = "|";
 
         private readonly Dictionary<ConfigurationSections, string> _masterKeys = new Dictionary<ConfigurationSections, string>()
         {
@@ -92,7 +94,7 @@ namespace NuGetPackageManager.Services
         {
             var feedKeys = GetValueFromStore(container, _masterKeys[ConfigurationSections.Feeds]);
 
-            var keyList = feedKeys.Split(new string[] { KeySeparator }, StringSplitOptions.RemoveEmptyEntries);
+            var keyList = feedKeys.Split(new string[] { Constants.ConfigKeySeparator }, StringSplitOptions.RemoveEmptyEntries);
 
             return keyList.Select(key => KeyFromString(key)).ToList();
         }
@@ -215,16 +217,16 @@ namespace NuGetPackageManager.Services
 
             if (isRemove)
             {
-                var persistedKeys = keyList.Split(new string[] { KeySeparator }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                var persistedKeys = keyList.Split(new string[] { Constants.ConfigKeySeparator }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
                 //updatedKeys = String.Join(KeySeparator, persistedKeys.Except(keys));
                 persistedKeys.Remove(key);
-                updatedKeys = String.Join(KeySeparator, persistedKeys);
+                updatedKeys = String.Join(Constants.ConfigKeySeparator, persistedKeys);
             }
             else
             {
                 //updatedKeys = String.Join(keyList, keys);
-                updatedKeys = String.Join(KeySeparator, key, keyList);
+                updatedKeys = String.Join(Constants.ConfigKeySeparator, key, keyList);
             }
 
             SetValueToStore(container, _masterKeys[confSection], updatedKeys);

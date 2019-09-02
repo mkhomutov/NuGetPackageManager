@@ -37,8 +37,6 @@ public static class ModuleInitializer
         serviceLocator.RegisterInstance<IApplicationCacheProvider>(appCache);
         serviceLocator.RegisterType<IPackageMetadataMediaDownloadService, PackageMetadataMediaDownloadService>();
 
-
-
         serviceLocator.RegisterType<ISourceRepositoryProvider, SourceRepositoryProvider>();
 
         serviceLocator.RegisterType<IRepositoryService, RepositoryService>();
