@@ -26,13 +26,13 @@
 
         public SourceContext(IReadOnlyList<SourceRepository> sourceRepositories, IRepositoryService repositoryService)
         {
-            Sources = sourceRepositories;
+            Repositories = sourceRepositories;
             _activeContext.Push(this);
         }
 
 
         public IReadOnlyList<PackageSource> PackageSources { get; private set; }
-        public IReadOnlyList<SourceRepository> Sources { get; private set; }
+        public IReadOnlyList<SourceRepository> Repositories { get; private set; }
 
         public void Dispose()
         {

@@ -10,6 +10,8 @@
 
         public IReadOnlyList<NuGetPackage> PackageList => throw new NotImplementedException();
 
+        public string Framework => "net46";
+
         public void Install()
         {
         }

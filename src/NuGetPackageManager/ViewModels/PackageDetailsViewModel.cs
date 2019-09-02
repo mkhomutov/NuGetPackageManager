@@ -24,15 +24,19 @@
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
         private IPackageMetadataProvider _packageMetadataProvider;
         private IRepositoryService _repositoryService;
+        private IPackageInstallationService _installationService;
         private IModelProvider<ExplorerSettingsContainer> _settingsProvider;
 
-        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider)
+        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
+            IPackageInstallationService installationService)
         {
             Argument.IsNotNull(() => repositoryService);
             Argument.IsNotNull(() => settingsProvider);
+            Argument.IsNotNull(() => installationService);
 
             _repositoryService = repositoryService;
             _settingsProvider = settingsProvider;
+            _installationService = installationService;
 
             //create package from metadata
             if (packageMetadata != null)
@@ -134,7 +138,11 @@
 
         private async Task InstallPackageExecute()
         {
-
+            using (var cts = new CancellationTokenSource())
+            {
+                var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
+                await _installationService.Install(identity, null, cts.Token);
+            }
         }
 
         public TaskCommand UninstallPackage { get; set; }
@@ -150,7 +158,7 @@
         {
             var currentSourceContext = SourceContext.CurrentContext;
 
-            var repositories = currentSourceContext.Sources ?? currentSourceContext.PackageSources.Select(src => _repositoryService.GetRepository(src));
+            var repositories = currentSourceContext.Repositories ?? currentSourceContext.PackageSources.Select(src => _repositoryService.GetRepository(src));
 
             return new PackageMetadataProvider(repositories, null);
         }

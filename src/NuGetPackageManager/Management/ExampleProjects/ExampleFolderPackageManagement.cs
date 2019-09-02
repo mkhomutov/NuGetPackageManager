@@ -12,6 +12,8 @@
 
         public IReadOnlyList<NuGetPackage> PackageList { get; set; }
 
+        public string Framework => "net46";
+
         public void Install()
         {
             Log.Info("Installation started");
