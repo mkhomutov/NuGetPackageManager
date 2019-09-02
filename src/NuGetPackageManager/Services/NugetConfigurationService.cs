@@ -133,7 +133,7 @@ namespace NuGetPackageManager.Services
         {
             var storedValue = GetValueFromStore(container, key);
 
-            if(string.IsNullOrEmpty(storedValue))
+            if (string.IsNullOrEmpty(storedValue))
             {
                 return new List<string>();
             }

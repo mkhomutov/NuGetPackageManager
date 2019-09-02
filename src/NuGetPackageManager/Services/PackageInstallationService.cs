@@ -5,9 +5,6 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 using NuGetPackageManager.Management;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +32,7 @@ namespace NuGetPackageManager.Services
             {
                 targetFramework = NuGetFramework.ParseFrameworkName(project.Framework, _frameworkNameProvider);
             }
-            catch(ArgumentException e)
+            catch (ArgumentException e)
             {
                 Log.Error(e, "Incorrect target framework");
                 return;

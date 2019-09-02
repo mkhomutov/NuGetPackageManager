@@ -1,12 +1,8 @@
-﻿using Catel.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Models
+﻿namespace NuGetPackageManager.Models
 {
+    using Catel.Data;
+    using System.Collections.Generic;
+
     public class PackageActionTarget : ModelBase
     {
         public IReadOnlyList<IExtensibleProject> DestinationsList { get; set; }

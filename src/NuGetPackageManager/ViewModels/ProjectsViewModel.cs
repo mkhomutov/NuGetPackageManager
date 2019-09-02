@@ -1,15 +1,13 @@
-﻿using Catel;
-using Catel.MVVM;
-using NuGetPackageManager.Management;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.ViewModels
+﻿namespace NuGetPackageManager.ViewModels
 {
+    using Catel;
+    using Catel.MVVM;
+    using NuGetPackageManager.Management;
+    using System;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     public class ProjectsViewModel : ViewModelBase
     {
         private readonly IExtensibleProjectManager _extensiblesManager;
@@ -32,9 +30,9 @@ namespace NuGetPackageManager.ViewModels
                 .Where(x => _extensiblesManager.IsEnabled(x));
 
             Projects = new ObservableCollection<CheckableUnit<IExtensibleProject>>(availableProjects
-                .Select(x => 
+                .Select(x =>
                     new CheckableUnit<IExtensibleProject>(false, x, NotifyOnProjectSelectionChanged)));
-            
+
             return base.InitializeAsync();
         }
 
