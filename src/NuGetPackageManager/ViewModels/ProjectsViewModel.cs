@@ -4,7 +4,6 @@
     using Catel.MVVM;
     using NuGetPackageManager.Management;
     using NuGetPackageManager.Models;
-    using System;
     using System.Collections.ObjectModel;
     using System.Linq;
     using System.Threading.Tasks;

@@ -1,15 +1,11 @@
-﻿using Catel.Logging;
-using NuGet.Packaging;
-using NuGet.ProjectManagement;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-
-namespace NuGetPackageManager.Management
+﻿namespace NuGetPackageManager.Management
 {
+    using Catel.Logging;
+    using NuGet.Packaging;
+    using NuGet.ProjectManagement;
+    using System;
+    using System.Xml.Linq;
+
     public class ProjectContext : INuGetProjectContext
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
@@ -28,7 +24,9 @@ namespace NuGetPackageManager.Management
         public FileConflictAction FileConflictAction { get; private set; }
 
         public XDocument OriginalPackagesConfig { get; set; }
+
         public NuGetActionType ActionType { get; set; }
+
         public Guid OperationId { get; set; }
 
         void INuGetProjectContext.Log(MessageLevel level, string message, params object[] args)
