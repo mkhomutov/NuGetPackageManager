@@ -33,6 +33,8 @@ public static class ModuleInitializer
 
         serviceLocator.RegisterType<IPackagesLoaderService, PackagesLoaderService>();
 
+        serviceLocator.RegisterType<IPackageInstallationService, PackageInstallationService>();
+
         var appCache = new ApplcationCacheProvider();
 
         serviceLocator.RegisterInstance<IApplicationCacheProvider>(appCache);

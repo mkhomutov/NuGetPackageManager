@@ -3,6 +3,7 @@
     using Catel;
     using Catel.MVVM;
     using NuGetPackageManager.Management;
+    using NuGetPackageManager.Models;
     using System;
     using System.Collections.ObjectModel;
     using System.Linq;
@@ -12,12 +13,19 @@
     {
         private readonly IExtensibleProjectManager _extensiblesManager;
 
-        public ProjectsViewModel(IExtensibleProjectManager extensiblesManager)
+        public ProjectsViewModel(NuGetActionTarget projectsModel, IExtensibleProjectManager extensiblesManager)
         {
             Argument.IsNotNull(() => extensiblesManager);
+            Argument.IsNotNull(() => projectsModel);
 
             _extensiblesManager = extensiblesManager;
+            ProjectsModel = projectsModel;
         }
+
+        [Model]
+        public NuGetActionTarget ProjectsModel { get; set; }
+
+        public ObservableCollection<CheckableUnit<IExtensibleProject>> Projects { get; set; }
 
         protected override Task InitializeAsync()
         {
@@ -36,12 +44,16 @@
             return base.InitializeAsync();
         }
 
-        public ObservableCollection<CheckableUnit<IExtensibleProject>> Projects { get; set; }
-
         private void NotifyOnProjectSelectionChanged(bool isSelected, IExtensibleProject project)
         {
-            //todo track selection to services/provider for further actions
-            throw new NotImplementedException();
+            if (isSelected)
+            {
+                ProjectsModel.Add(project);
+            }
+            else
+            {
+                ProjectsModel.Remove(project);
+            }
         }
     }
 }

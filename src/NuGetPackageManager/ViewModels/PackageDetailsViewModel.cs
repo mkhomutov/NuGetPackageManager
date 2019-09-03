@@ -94,6 +94,8 @@
 
         public object DependencyInfo { get; set; }
 
+        public NuGetActionTarget NuGetActionTarget { get; } = new NuGetActionTarget();
+
         public IPackageSearchMetadata VersionData { get; set; }
 
         public NuGetVersion SelectedVersion { get; set; }
@@ -141,7 +143,7 @@
             using (var cts = new CancellationTokenSource())
             {
                 var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
-                await _installationService.Install(identity, null, cts.Token);
+                await _installationService.Install(identity, NuGetActionTarget.TargetProjects, cts.Token);
             }
         }
 

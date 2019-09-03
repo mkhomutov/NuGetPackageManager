@@ -5,6 +5,7 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 using NuGetPackageManager.Management;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,28 +24,32 @@ namespace NuGetPackageManager.Services
             _frameworkNameProvider = frameworkNameProvider;
         }
 
-        public async Task Install(PackageIdentity identity, IExtensibleProject project, CancellationToken cancellationToken)
+        public async Task Install(PackageIdentity identity, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken)
         {
             var repositories = SourceContext.CurrentContext.Repositories;
             NuGetFramework targetFramework;
 
-            try
+            foreach (var proj in projects)
             {
-                targetFramework = NuGetFramework.ParseFrameworkName(project.Framework, _frameworkNameProvider);
-            }
-            catch (ArgumentException e)
-            {
-                Log.Error(e, "Incorrect target framework");
-                return;
-            }
-
-            using (var cacheContext = new SourceCacheContext())
-            {
-                foreach (var r in repositories)
+                try
                 {
-                    var dependencyInfoResource = await r.GetResourceAsync<DependencyInfoResource>();
+                    targetFramework = NuGetFramework.ParseFrameworkName(proj.Framework, _frameworkNameProvider);
+                }
+                catch (ArgumentException e)
+                {
+                    Log.Error(e, "Incorrect target framework");
+                    return;
+                }
 
-                    var dependencyInfo = dependencyInfoResource.ResolvePackage(identity, targetFramework, cacheContext, new Loggers.DebugLogger(true), cancellationToken);
+                using (var cacheContext = new SourceCacheContext())
+                {
+                    foreach (var r in repositories)
+                    {
+                        var dependencyInfoResource = await r.GetResourceAsync<DependencyInfoResource>();
+
+                        var dependencyInfo = await dependencyInfoResource.ResolvePackage(
+                            identity, targetFramework, cacheContext, new Loggers.DebugLogger(true), cancellationToken);
+                    }
                 }
             }
         }
