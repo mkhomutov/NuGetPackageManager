@@ -26,31 +26,47 @@ namespace NuGetPackageManager.Services
 
         public async Task Install(PackageIdentity identity, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken)
         {
-            var repositories = SourceContext.CurrentContext.Repositories;
-            NuGetFramework targetFramework;
-
-            foreach (var proj in projects)
+            try
             {
-                try
-                {
-                    targetFramework = NuGetFramework.ParseFrameworkName(proj.Framework, _frameworkNameProvider);
-                }
-                catch (ArgumentException e)
-                {
-                    Log.Error(e, "Incorrect target framework");
-                    return;
-                }
+                var repositories = SourceContext.CurrentContext.Repositories;
 
-                using (var cacheContext = new SourceCacheContext())
+                foreach (var proj in projects)
                 {
-                    foreach (var r in repositories)
-                    {
-                        var dependencyInfoResource = await r.GetResourceAsync<DependencyInfoResource>();
-
-                        var dependencyInfo = await dependencyInfoResource.ResolvePackage(
-                            identity, targetFramework, cacheContext, new Loggers.DebugLogger(true), cancellationToken);
-                    }
+                    await Install(identity, proj, repositories, cancellationToken);
                 }
+            }
+            catch(Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task Install(PackageIdentity identity, IExtensibleProject project, IReadOnlyList<SourceRepository> repositories, CancellationToken cancellationToken)
+        {
+            var targetFramework = TryParseFrameworkName(project.Framework, _frameworkNameProvider);
+
+            using (var cacheContext = new SourceCacheContext())
+            {
+                foreach (var repository in repositories)
+                {
+                    var dependencyInfoResource = await repository.GetResourceAsync<DependencyInfoResource>();
+
+                    var dependencyInfo = await dependencyInfoResource.ResolvePackage(
+                        identity, targetFramework, cacheContext, new Loggers.DebugLogger(true), cancellationToken);
+                }
+            }
+        }
+
+        private NuGetFramework TryParseFrameworkName(string frameworkString, IFrameworkNameProvider frameworkNameProvider)
+        {
+            try
+            {
+                return NuGetFramework.ParseFrameworkName(frameworkString, frameworkNameProvider);
+            }
+            catch (ArgumentException e)
+            {
+                Log.Error(e, "Incorrect target framework");
+                throw;
             }
         }
     }
