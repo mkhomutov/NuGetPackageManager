@@ -1,6 +1,7 @@
 ﻿namespace NuGetPackageManager.ViewModels
 {
     using Catel;
+    using Catel.Collections;
     using Catel.MVVM;
     using NuGetPackageManager.Management;
     using NuGetPackageManager.Models;
@@ -38,7 +39,9 @@
 
             Projects = new ObservableCollection<CheckableUnit<IExtensibleProject>>(availableProjects
                 .Select(x =>
-                    new CheckableUnit<IExtensibleProject>(false, x, NotifyOnProjectSelectionChanged)));
+                    new CheckableUnit<IExtensibleProject>(true, x, NotifyOnProjectSelectionChanged)));
+
+            Projects.ForEach(x => ProjectsModel.Add(x.Value));
 
             return base.InitializeAsync();
         }

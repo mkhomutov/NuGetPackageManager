@@ -12,11 +12,25 @@
         public void Add(IExtensibleProject project)
         {
             extensibleProjects.Add(project);
+
+            RaisePropertyChanged(() => TargetProjects);
         }
 
         public void Remove(IExtensibleProject project)
         {
             extensibleProjects.Remove(project);
+
+            RaisePropertyChanged(() => TargetProjects);
+        }
+
+        public bool IsValid { get; private set; }
+
+        protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
+        {
+            if (string.Equals(e.PropertyName, nameof(TargetProjects)))
+            {
+                IsValid = extensibleProjects.Count > 0;
+            }
         }
     }
 }

@@ -45,7 +45,7 @@
             }
 
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
-            InstallPackage = new TaskCommand(InstallPackageExecute);
+            InstallPackage = new TaskCommand(InstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
             UninstallPackage = new TaskCommand(UninstallPackageExecute);
         }
 
