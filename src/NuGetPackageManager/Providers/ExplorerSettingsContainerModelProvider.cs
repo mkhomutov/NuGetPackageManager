@@ -1,14 +1,9 @@
 ﻿using Catel.IoC;
 using NuGetPackageManager.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NuGetPackageManager.Providers
 {
-    public  class ExplorerSettingsContainerModelProvider : ModelProvider<ExplorerSettingsContainer>
+    public class ExplorerSettingsContainerModelProvider : ModelProvider<ExplorerSettingsContainer>
     {
         private readonly ITypeFactory _typeFactory;
 

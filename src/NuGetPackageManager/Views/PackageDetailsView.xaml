@@ -33,9 +33,10 @@
                    Text="{Binding Title}">
         </TextBlock>
 
-        <ListView Grid.ColumnSpan="3" Grid.Row="1" 
-                  Margin="10"
-                  MinHeight="300"/>
+        <local:ProjectsView Grid.Row="1" Grid.ColumnSpan="3"
+                            DataContext="{Binding NuGetActionTarget}"
+                            MinHeight="260"
+                            Margin="10 0 3 6"/>
         
         <!--installation and updates-->
 
@@ -51,7 +52,8 @@
 
         <Button Grid.Row="2" Grid.Column="2"
                 Margin="3 0 10 2"
-                IsEnabled="False">
+                IsEnabled="False"
+                Command="{Binding UninstallPackage}">
             Uninstall
         </Button>
 
@@ -73,7 +75,8 @@
 
 
         <Button Grid.Row="3" Grid.Column="2"
-                Margin="3 0 10 2"> 
+                Margin="3 0 10 2"
+                Command="{Binding InstallPackage}"> 
             Install
         </Button>
         

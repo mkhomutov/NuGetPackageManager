@@ -13,7 +13,8 @@
             Value = value;
         }
 
-        public CheckableUnit(bool isChecked, T value, Action<bool, T> onCheckedChangedCallback) : this(isChecked, value)
+        public CheckableUnit(bool isChecked, T value, Action<bool, T> onCheckedChangedCallback)
+            : this(isChecked, value)
         {
             _onCheckedChangedCallback = onCheckedChangedCallback;
         }

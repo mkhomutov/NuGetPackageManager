@@ -4,6 +4,7 @@
     using Catel.Configuration;
     using Catel.IoC;
     using Catel.Logging;
+    using NuGetPackageManager.Management.Exceptions;
     using NuGetPackageManager.Services;
     using System;
     using System.Collections.Generic;
@@ -32,6 +33,8 @@
             Argument.IsNotNull(() => _managerConfigurationService);
         }
 
+        public bool IsConfigLoaded { get; private set; }
+
         public bool IsEnabled(IExtensibleProject extensibleProject)
         {
             return _enabledProjects.Contains(extensibleProject);
@@ -43,7 +46,7 @@
 
             if (registeredProject != extensibleProject)
             {
-                throw new InvalidOperationException("ExtensibleProject must be registered before use");
+                throw new ProjectStateException("ExtensibleProject must be registered before use");
             }
 
             if (!_enabledProjects.Add(registeredProject))
@@ -104,24 +107,22 @@
             {
                 var restored = _managerConfigurationService.GetRoamingValue(Configuration.ConfigurationSections.ProjectExtensions) as List<string>;
 
-                foreach (var type in _registredProjects.Keys)
+                foreach (var type in _registredProjects.Keys.Where(x => restored.Any(s => s == x.FullName)))
                 {
-                    if (restored.Any(s => s == type.FullName))
-                    {
-                        try
-                        {
-                            Enable(_registredProjects[type]);
-                        }
-                        catch(InvalidOperationException e)
-                        {
-                            Log.Error(e, "Mismatch between configuration and registered projects");
-                        }
-                    }
+                    Enable(_registredProjects[type]);
                 }
+            }
+            catch (ProjectStateException e)
+            {
+                Log.Error(e, "Mismatch between configuration and registered projects");
             }
             catch (Exception e)
             {
                 Log.Error(e, "Error when restoring project extensions state from configuration");
+            }
+            finally
+            {
+                IsConfigLoaded = true;
             }
         }
     }

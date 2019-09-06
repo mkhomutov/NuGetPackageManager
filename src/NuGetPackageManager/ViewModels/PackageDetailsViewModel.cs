@@ -24,15 +24,19 @@
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
         private IPackageMetadataProvider _packageMetadataProvider;
         private IRepositoryService _repositoryService;
+        private IPackageInstallationService _installationService;
         private IModelProvider<ExplorerSettingsContainer> _settingsProvider;
 
-        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider)
+        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
+            IPackageInstallationService installationService)
         {
             Argument.IsNotNull(() => repositoryService);
             Argument.IsNotNull(() => settingsProvider);
+            Argument.IsNotNull(() => installationService);
 
             _repositoryService = repositoryService;
             _settingsProvider = settingsProvider;
+            _installationService = installationService;
 
             //create package from metadata
             if (packageMetadata != null)
@@ -41,6 +45,8 @@
             }
 
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
+            InstallPackage = new TaskCommand(InstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
+            UninstallPackage = new TaskCommand(UninstallPackageExecute);
         }
 
         protected async override Task InitializeAsync()
@@ -52,7 +58,7 @@
 
                 VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 
-                _packageMetadataProvider = InitiMetadataProvider();
+                _packageMetadataProvider = InitMetadataProvider();
 
                 await LoadSinglePackageMetadataAsync();
             }
@@ -88,6 +94,8 @@
 
         public object DependencyInfo { get; set; }
 
+        public NuGetActionTarget NuGetActionTarget { get; } = new NuGetActionTarget();
+
         public IPackageSearchMetadata VersionData { get; set; }
 
         public NuGetVersion SelectedVersion { get; set; }
@@ -96,6 +104,7 @@
 
         public int SelectedVersionIndex { get; set; }
 
+        #region command
         public Command LoadInfoAboutVersions { get; set; }
 
         private void LoadInfoAboutVersionsExecute()
@@ -127,11 +136,31 @@
             }
         }
 
-        private IPackageMetadataProvider InitiMetadataProvider()
+        public TaskCommand InstallPackage { get; set; }
+
+        private async Task InstallPackageExecute()
+        {
+            using (var cts = new CancellationTokenSource())
+            {
+                var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
+                await _installationService.Install(identity, NuGetActionTarget.TargetProjects, cts.Token);
+            }
+        }
+
+        public TaskCommand UninstallPackage { get; set; }
+
+        private async Task UninstallPackageExecute()
+        {
+
+        }
+
+        #endregion
+
+        private IPackageMetadataProvider InitMetadataProvider()
         {
             var currentSourceContext = SourceContext.CurrentContext;
 
-            var repositories = currentSourceContext.Sources ?? currentSourceContext.PackageSources.Select(src => _repositoryService.GetRepository(src));
+            var repositories = currentSourceContext.Repositories ?? currentSourceContext.PackageSources.Select(src => _repositoryService.GetRepository(src));
 
             return new PackageMetadataProvider(repositories, null);
         }

@@ -18,6 +18,8 @@
 
         bool IsEnabled(IExtensibleProject extensibleProject);
 
+        bool IsConfigLoaded { get; }
+
         void PersistChanges();
 
         void RestoreStateFromConfig();
