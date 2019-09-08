@@ -11,5 +11,7 @@ namespace NuGetPackageManager
         public const string DefaultNugetOrgName = "nuget.org";
 
         public const string ConfigKeySeparator = "|";
+
+        public const string PackageInstallationConflictMessage = "Conflict during package installation";
     }
 }

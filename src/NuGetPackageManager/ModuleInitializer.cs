@@ -7,6 +7,7 @@ using NuGetPackageManager.Management;
 using NuGetPackageManager.Models;
 using NuGetPackageManager.Providers;
 using NuGetPackageManager.Services;
+using NuGetPackageManager.Windows;
 using SourceRepositoryProvider = NuGetPackageManager.Providers.SourceRepositoryProvider;
 
 /// <summary>
@@ -47,6 +48,8 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<IExtensibleProjectManager, ExtensibleProjectManager>();
 
         serviceLocator.RegisterType<IFrameworkNameProvider, DefaultFrameworkNameProvider>();
+
+        serviceLocator.RegisterType<IMessageDialogService, MessageDialogService>();
 
         //add all project extensions
 

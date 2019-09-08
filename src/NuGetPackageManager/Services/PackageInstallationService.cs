@@ -16,12 +16,15 @@ namespace NuGetPackageManager.Services
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private readonly IFrameworkNameProvider _frameworkNameProvider;
+        private readonly IMessageDialogService _messageDialogService;
 
-        public PackageInstallationService(IFrameworkNameProvider frameworkNameProvider)
+        public PackageInstallationService(IFrameworkNameProvider frameworkNameProvider, IMessageDialogService messageDialogService)
         {
             Argument.IsNotNull(() => frameworkNameProvider);
+            Argument.IsNotNull(() => messageDialogService);
 
             _frameworkNameProvider = frameworkNameProvider;
+            _messageDialogService = messageDialogService;
         }
 
         public async Task Install(PackageIdentity identity, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken)
@@ -44,6 +47,11 @@ namespace NuGetPackageManager.Services
         public async Task Install(PackageIdentity identity, IExtensibleProject project, IReadOnlyList<SourceRepository> repositories, CancellationToken cancellationToken)
         {
             var targetFramework = TryParseFrameworkName(project.Framework, _frameworkNameProvider);
+
+            //test this
+            var pc = new ProjectContext(NuGet.ProjectManagement.FileConflictAction.PromptUser, _messageDialogService);
+
+            pc.ResolveFileConflict("test resolving");
 
             using (var cacheContext = new SourceCacheContext())
             {

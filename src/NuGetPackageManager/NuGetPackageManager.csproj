@@ -46,6 +46,7 @@
     <None Remove="Views\ProjectsView.xaml" />
     <None Remove="Views\SettingsControlView.xaml" />
     <None Remove="Views\SettingsWindow.xaml" />
+    <None Remove="Windows\DialogHost.xaml" />
   </ItemGroup>
 
   <ItemGroup>
