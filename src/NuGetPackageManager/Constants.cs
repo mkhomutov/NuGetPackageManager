@@ -13,5 +13,7 @@ namespace NuGetPackageManager
         public const string ConfigKeySeparator = "|";
 
         public const string PackageInstallationConflictMessage = "Conflict during package installation";
+
+        public const string DefaultGlobalPackageCacheFolder = "";
     }
 }

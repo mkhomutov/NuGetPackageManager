@@ -1,11 +1,15 @@
 ﻿using Catel;
 using Catel.Logging;
 using Catel.Reflection;
+using NuGet.Common;
 using NuGet.Frameworks;
+using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using NuGet.Resolver;
 using NuGet.Versioning;
+using NuGetPackageManager.Loggers;
 using NuGetPackageManager.Management;
 using System;
 using System.Collections.Generic;
@@ -19,6 +23,8 @@ namespace NuGetPackageManager.Services
     public class PackageInstallationService : IPackageInstallationService
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
+        private static readonly ILogger NuGetLog = new DebugLogger(true);
 
         private readonly IFrameworkNameProvider _frameworkNameProvider;
         private readonly IMessageDialogService _messageDialogService;
@@ -70,6 +76,8 @@ namespace NuGetPackageManager.Services
 
             var respos = _sourceRepositoryProvider.GetRepositories();
 
+            var availabePackageStorage = new HashSet<SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
+
             using (var cacheContext = NullSourceCacheContext.Instance)
             {
                 foreach (var repository in repositories)
@@ -79,20 +87,40 @@ namespace NuGetPackageManager.Services
 
                     var uri = regResource.GetUri(identity.Id);
 
-                    var availablePackages = await ResolvePackagesRecursivelyAsync(identity, targetFramework, dependencyInfoResource, cacheContext, cancellationToken, uri);
+                    await ResolvePackagesRecursivelyAsync(identity, targetFramework, dependencyInfoResource, cacheContext, 
+                        availabePackageStorage, cancellationToken);
 
                 }
             }
+
+            var resolverContext = GetPackageContext(identity, availabePackageStorage);
+
+            var resolver = new PackageResolver();
+
+            var packagesInstallationList = resolver.Resolve(resolverContext, cancellationToken);
+
+            var availablePackagesToInstall = packagesInstallationList
+                .Select(
+                    x => availabePackageStorage
+                        .Single(p => PackageIdentityComparer.Default.Equals(p, x)));
+
+            using (var cacheContext = NullSourceCacheContext.Instance)
+            {
+                var downloaded = await DownloadDependencyGraphAsync(availablePackagesToInstall, cacheContext, cancellationToken);
+            }
         }
 
-        private async Task<HashSet<SourcePackageDependencyInfo>> ResolvePackagesRecursivelyAsync(PackageIdentity identity, NuGetFramework targetFramework, 
+        private async Task ResolvePackagesRecursivelyAsync(PackageIdentity identity, NuGetFramework targetFramework, 
             DependencyInfoResource dependencyInfoResource,
             SourceCacheContext cacheContext, 
-            CancellationToken cancellationToken, Uri testUri)
+            HashSet<SourcePackageDependencyInfo> storage,
+            CancellationToken cancellationToken)
         {
+            Argument.IsNotNull(() => storage);
+
             var logger = new Loggers.DebugLogger(true);
 
-            HashSet<SourcePackageDependencyInfo> packageStore = new HashSet<SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
+            HashSet<SourcePackageDependencyInfo> packageStore = storage;
 
             Stack<SourcePackageDependencyInfo> downloadStack = new Stack<SourcePackageDependencyInfo>();
 
@@ -103,7 +131,7 @@ namespace NuGetPackageManager.Services
             if (dependencyInfo == null)
             {
                 Log.Error($"Cannot resolve {identity} package for target framework {targetFramework}");
-                return packageStore;
+                return;
             }
 
             downloadStack.Push(dependencyInfo); //and add it to package store
@@ -140,8 +168,30 @@ namespace NuGetPackageManager.Services
                     downloadStack.Push(relatedDepInfo);
                 }
             }
+        }
 
-            return packageStore;
+        private async Task<IReadOnlyList<DownloadResourceResult>> DownloadDependencyGraphAsync(IEnumerable<SourcePackageDependencyInfo> packageIdentities, SourceCacheContext cacheContext, CancellationToken cancellationToken)
+        {
+            var downloaded = new List<DownloadResourceResult>();
+
+            foreach(var install in packageIdentities)
+            {
+                var downloadResource = await install.Source.GetResourceAsync<DownloadResource>(cancellationToken);
+
+                var downloadResult = await downloadResource.GetDownloadResourceResultAsync
+                    (
+                        install,
+                        new PackageDownloadContext(cacheContext), 
+                        Constants.DefaultGlobalPackageCacheFolder,
+                        NuGetLog,
+                        cancellationToken
+                    );
+
+
+                downloaded.Add(downloadResult);
+            }
+
+            return downloaded;
         }
 
         private NuGetFramework TryParseFrameworkName(string frameworkString, IFrameworkNameProvider frameworkNameProvider)
@@ -155,6 +205,30 @@ namespace NuGetPackageManager.Services
                 Log.Error(e, "Incorrect target framework");
                 throw;
             }
+        }
+
+        private PackageResolverContext GetPackageContext(PackageIdentity package, IEnumerable<SourcePackageDependencyInfo> flatDependencies)
+        {
+            var idArray = new[] { package.Id };
+
+            var requiredPackages = Enumerable.Empty<string>();
+
+            var packagesConfig = Enumerable.Empty<PackageReference>();
+
+            var prefferedVersion = Enumerable.Empty<PackageIdentity>();
+
+            var resolverContext = new PackageResolverContext(
+                DependencyBehavior.Lowest,
+                idArray,
+                requiredPackages,
+                packagesConfig,
+                prefferedVersion,
+                flatDependencies,
+                _sourceRepositoryProvider.GetRepositories().Select(x => x.PackageSource),
+                NuGetLog
+            );
+
+            return resolverContext;
         }
     }
 }
