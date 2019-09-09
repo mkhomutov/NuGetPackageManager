@@ -1,18 +1,15 @@
-﻿using Catel;
-using Catel.Logging;
-using Catel.MVVM;
-using Catel.Reflection;
-using Catel.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Threading;
-
-namespace NuGetPackageManager.Windows
+﻿namespace NuGetPackageManager.Windows
 {
+    using Catel;
+    using Catel.Logging;
+    using Catel.MVVM;
+    using Catel.Reflection;
+    using Catel.Services;
+    using System;
+    using System.Threading.Tasks;
+    using System.Windows;
+    using System.Windows.Threading;
+
     /// <summary>
     /// Synchronous implementation of Catel IUIVisualizerService
     /// It used only for compatibility purposes
@@ -21,6 +18,7 @@ namespace NuGetPackageManager.Windows
     public class SynchronousUIVisualizerService : UIVisualizerService
     {
         private readonly IViewLocator _viewLocator;
+
         private readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         public SynchronousUIVisualizerService(IViewLocator viewLocator) : base(viewLocator)
@@ -35,7 +33,7 @@ namespace NuGetPackageManager.Windows
             EnsureViewIsRegistered(name);
 
             var window = CreateWindow(name, data, completedProc, true);
-            
+
             if (window != null)
             {
                 //aware this place
@@ -46,7 +44,7 @@ namespace NuGetPackageManager.Windows
                 task.Wait();
 
                 return task.Result;
-               
+
             }
 
             return false;
@@ -72,7 +70,7 @@ namespace NuGetPackageManager.Windows
             HandleCloseSubscription(window, data, (sender, args) => tcs.TrySetResult(args.Result), showModal);
 
             var showMethodInfo = showModal ? window.GetType().GetMethodEx("ShowDialog") : window.GetType().GetMethodEx("Show");
-            
+
             if (showModal && showMethodInfo is null)
             {
                 Log.Warning("Method 'ShowDialog' not found on '{0}', falling back to 'Show'", window.GetType().Name);

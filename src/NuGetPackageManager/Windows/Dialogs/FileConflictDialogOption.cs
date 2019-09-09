@@ -1,12 +1,8 @@
-﻿using NuGet.ProjectManagement;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Windows.Dialogs
+﻿namespace NuGetPackageManager.Windows.Dialogs
 {
+    using NuGet.ProjectManagement;
+    using System;
+
     public class FileConflictDialogOption : IDialogOption<FileConflictAction>
     {
         public FileConflictDialogOption(Func<FileConflictAction> optionCallback)

@@ -1,25 +1,23 @@
-﻿using Catel;
-using Catel.Logging;
-using Catel.Reflection;
-using NuGet.Common;
-using NuGet.Frameworks;
-using NuGet.Packaging;
-using NuGet.Packaging.Core;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
-using NuGet.Resolver;
-using NuGet.Versioning;
-using NuGetPackageManager.Loggers;
-using NuGetPackageManager.Management;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using Catel;
+    using Catel.Logging;
+    using NuGet.Common;
+    using NuGet.Frameworks;
+    using NuGet.Packaging;
+    using NuGet.Packaging.Core;
+    using NuGet.Protocol;
+    using NuGet.Protocol.Core.Types;
+    using NuGet.Resolver;
+    using NuGet.Versioning;
+    using NuGetPackageManager.Loggers;
+    using NuGetPackageManager.Management;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class PackageInstallationService : IPackageInstallationService
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
@@ -27,18 +25,16 @@ namespace NuGetPackageManager.Services
         private static readonly ILogger NuGetLog = new DebugLogger(true);
 
         private readonly IFrameworkNameProvider _frameworkNameProvider;
-        private readonly IMessageDialogService _messageDialogService;
+
         private readonly ISourceRepositoryProvider _sourceRepositoryProvider;
 
-        public PackageInstallationService(IFrameworkNameProvider frameworkNameProvider, IMessageDialogService messageDialogService, 
+        public PackageInstallationService(IFrameworkNameProvider frameworkNameProvider,
             ISourceRepositoryProvider sourceRepositoryProvider)
         {
             Argument.IsNotNull(() => frameworkNameProvider);
-            Argument.IsNotNull(() => messageDialogService);
             Argument.IsNotNull(() => sourceRepositoryProvider);
 
             _frameworkNameProvider = frameworkNameProvider;
-            _messageDialogService = messageDialogService;
             _sourceRepositoryProvider = sourceRepositoryProvider;
         }
 
@@ -53,7 +49,7 @@ namespace NuGetPackageManager.Services
                     await InstallAsync(identity, proj, repositories, cancellationToken);
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw;
             }
@@ -82,7 +78,7 @@ namespace NuGetPackageManager.Services
 
                     var uri = regResource.GetUri(identity.Id);
 
-                    await ResolvePackagesRecursivelyAsync(identity, targetFramework, dependencyInfoResource, cacheContext, 
+                    await ResolvePackagesRecursivelyAsync(identity, targetFramework, dependencyInfoResource, cacheContext,
                         availabePackageStorage, cancellationToken);
 
                 }
@@ -105,9 +101,9 @@ namespace NuGetPackageManager.Services
             }
         }
 
-        private async Task ResolvePackagesRecursivelyAsync(PackageIdentity identity, NuGetFramework targetFramework, 
+        private async Task ResolvePackagesRecursivelyAsync(PackageIdentity identity, NuGetFramework targetFramework,
             DependencyInfoResource dependencyInfoResource,
-            SourceCacheContext cacheContext, 
+            SourceCacheContext cacheContext,
             HashSet<SourcePackageDependencyInfo> storage,
             CancellationToken cancellationToken)
         {
@@ -130,7 +126,7 @@ namespace NuGetPackageManager.Services
             }
 
             downloadStack.Push(dependencyInfo); //and add it to package store
-           
+
 
             var singleVersion = new VersionRange(minVersion: identity.Version, includeMinVersion: true, maxVersion: identity.Version, includeMaxVersion: true);
 
@@ -169,14 +165,14 @@ namespace NuGetPackageManager.Services
         {
             var downloaded = new List<DownloadResourceResult>();
 
-            foreach(var install in packageIdentities)
+            foreach (var install in packageIdentities)
             {
                 var downloadResource = await install.Source.GetResourceAsync<DownloadResource>(cancellationToken);
 
                 var downloadResult = await downloadResource.GetDownloadResourceResultAsync
                     (
                         install,
-                        new PackageDownloadContext(cacheContext), 
+                        new PackageDownloadContext(cacheContext),
                         Constants.DefaultGlobalPackageCacheFolder,
                         NuGetLog,
                         cancellationToken

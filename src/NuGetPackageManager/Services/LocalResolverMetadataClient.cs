@@ -1,23 +1,22 @@
-﻿using Newtonsoft.Json.Linq;
-using NuGet.Common;
-using NuGet.Frameworks;
-using NuGet.Packaging;
-using NuGet.Packaging.Core;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
-using NuGet.Versioning;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using static NuGetPackageManager.Services.RegistrationInfo;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using Newtonsoft.Json.Linq;
+    using NuGet.Common;
+    using NuGet.Frameworks;
+    using NuGet.Packaging;
+    using NuGet.Packaging.Core;
+    using NuGet.Protocol;
+    using NuGet.Protocol.Core.Types;
+    using NuGet.Versioning;
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using static NuGetPackageManager.Services.RegistrationInfo;
+
     public class ResolverMetadataClient
     {
         /// <summary>
@@ -189,7 +188,9 @@ namespace NuGetPackageManager.Services
     public class RegistrationInfo
     {
         public string Id { get; set; }
+
         public bool IncludePrerelease { get; set; }
+
         public IList<PackageInfo> Packages { get; private set; }
 
         public RegistrationInfo()
@@ -211,9 +212,13 @@ namespace NuGetPackageManager.Services
         public class PackageInfo
         {
             public RegistrationInfo Registration { get; set; }
+
             public bool Listed { get; set; }
+
             public NuGetVersion Version { get; set; }
+
             public Uri PackageContent { get; set; }
+
             public IList<DependencyInfo> Dependencies { get; private set; }
 
             public PackageInfo()
@@ -230,7 +235,9 @@ namespace NuGetPackageManager.Services
         public class DependencyInfo
         {
             public string Id { get; set; }
+
             public VersionRange Range { get; set; }
+
             public RegistrationInfo RegistrationInfo { get; set; }
 
             public override string ToString()

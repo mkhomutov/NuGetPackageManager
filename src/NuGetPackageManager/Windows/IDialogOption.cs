@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Windows
+﻿namespace NuGetPackageManager.Windows
 {
+    using System;
+
     public interface IDialogOption
     {
         /// <summary>
@@ -23,7 +19,7 @@ namespace NuGetPackageManager.Windows
         /// </summary>
         bool IsCancelBehavior { get; }
 
-        bool IsDefault { get;}
+        bool IsDefault { get; }
 
         string Caption { get; }
     }

@@ -1,13 +1,9 @@
-﻿using Catel;
-using Catel.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Windows
+﻿namespace NuGetPackageManager.Windows
 {
+    using Catel;
+    using Catel.Logging;
+    using System;
+
     public class DialogResult<T> : DialogResult
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
@@ -29,7 +25,7 @@ namespace NuGetPackageManager.Windows
                     throw new InvalidCastException();
                 }
             }
-            catch(InvalidCastException e)
+            catch (InvalidCastException e)
             {
                 Log.Error(e, $"Cannot set result value, expected type {typeof(T)} was {result.GetType()}");
             }
@@ -40,7 +36,6 @@ namespace NuGetPackageManager.Windows
     {
         public virtual void SetResult(IDialogOption result)
         {
-
         }
     }
 }

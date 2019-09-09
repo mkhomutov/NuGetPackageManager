@@ -1,12 +1,8 @@
-﻿using NuGetPackageManager.Windows;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using NuGetPackageManager.Windows;
+    using System.Threading.Tasks;
+
     public interface IMessageDialogService
     {
         Task<T> ShowDialogAsync<T>(string title, string message, bool addCloseButton, params IDialogOption[] options);

@@ -2,18 +2,9 @@
 using Catel.MVVM;
 using Catel.Windows;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace NuGetPackageManager.Windows
 {
@@ -54,24 +45,24 @@ namespace NuGetPackageManager.Windows
         private void CreateDataWindowButtonForDialog(IDialogOption option)
         {
             DataWindowButton btn = null;
-            
-            if(option.IsApplyBehavior)
+
+            if (option.IsApplyBehavior)
             {
-                btn = DataWindowButton.FromAsync(option.Caption, async() => await OnApplyExecuteAsync(), OnApplyCanExecute);
+                btn = DataWindowButton.FromAsync(option.Caption, async () => await OnApplyExecuteAsync(), OnApplyCanExecute);
 
                 btn.IsDefault = option.IsDefault;
             }
 
-            if(option.IsOkBehavior)
+            if (option.IsOkBehavior)
             {
                 btn = DataWindowButton.FromAsync(option.Caption, async () => await OnOkExecuteAsync(), OnOkCanExecute);
-                
+
                 btn.IsDefault = option.IsDefault;
             }
 
-            if(option.IsCancelBehavior)
+            if (option.IsCancelBehavior)
             {
-                btn = DataWindowButton.FromAsync(option.Caption, async() => await OnCancelExecuteAsync(), OnCancelCanExecute);
+                btn = DataWindowButton.FromAsync(option.Caption, async () => await OnCancelExecuteAsync(), OnCancelCanExecute);
                 btn.IsCancel = true;
             }
 

@@ -1,13 +1,9 @@
-﻿using Catel.MVVM;
-using Catel.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Windows.Service
+﻿namespace NuGetPackageManager.Windows.Service
 {
+    using Catel.MVVM;
+    using Catel.Services;
+    using System;
+
     public interface ISynchronousUiVisualizer
     {
         bool? ShowDialog(IViewModel viewModel, EventHandler<UICompletedEventArgs> completedProc = null);

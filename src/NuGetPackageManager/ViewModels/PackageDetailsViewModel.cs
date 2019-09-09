@@ -54,7 +54,7 @@
             try
             {
                 //by default last version always selected for user actions
-                 SelectedVersion = Package.LastVersion;
+                SelectedVersion = Package.LastVersion;
 
                 VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 

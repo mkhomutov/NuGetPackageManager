@@ -1,12 +1,8 @@
-﻿using Catel.MVVM;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Windows
+﻿namespace NuGetPackageManager.Windows
 {
+    using Catel.MVVM;
+    using System.Threading.Tasks;
+
     public class DialogHostViewModel : ViewModelBase, IDialogViewModel
     {
         public DialogHostViewModel(DialogCustomization options, DialogResult result, string title, string message)
@@ -26,13 +22,12 @@ namespace NuGetPackageManager.Windows
         public DialogCustomization Dialog { get; }
 
         public TaskCommand<IDialogOption> RunOption { get; set; }
-        
+
         private async Task RunOptionExecute(IDialogOption option)
         {
-           Result.SetResult(option);
+            Result.SetResult(option);
         }
 
         public DialogResult Result { get; }
-
     }
 }

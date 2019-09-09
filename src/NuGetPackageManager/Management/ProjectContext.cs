@@ -6,17 +6,16 @@
     using NuGet.ProjectManagement;
     using NuGetPackageManager.Loggers;
     using NuGetPackageManager.Services;
-    using NuGetPackageManager.Windows;
     using NuGetPackageManager.Windows.Dialogs;
     using System;
-    using System.Threading.Tasks;
     using System.Xml.Linq;
 
     public class ProjectContext : INuGetProjectContext
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         private static readonly ILogger NugetLogger = new DebugLogger(true);
-        
+
         private readonly IMessageDialogService _messageDialogService;
 
         public ProjectContext(FileConflictAction fileConflictAction, IMessageDialogService messageDialogService)
@@ -42,18 +41,22 @@
 
         void INuGetProjectContext.Log(MessageLevel level, string message, params object[] args)
         {
-            switch(level)
+            switch (level)
             {
-                case MessageLevel.Debug : Log.Debug(message);
+                case MessageLevel.Debug:
+                    Log.Debug(message);
                     break;
 
-                case MessageLevel.Error : Log.Error(message);
+                case MessageLevel.Error:
+                    Log.Error(message);
                     break;
 
-                case MessageLevel.Info : Log.Info(message);
+                case MessageLevel.Info:
+                    Log.Info(message);
                     break;
 
-                case MessageLevel.Warning : Log.Warning(message);
+                case MessageLevel.Warning:
+                    Log.Warning(message);
                     break;
             }
         }
@@ -78,14 +81,14 @@
         private FileConflictAction ShowConflictPrompt()
         {
 
-           var result =  _messageDialogService.ShowDialog<FileConflictAction>(NuGetPackageManager.Constants.PackageInstallationConflictMessage,
-                "content of dialog",
-                false,
-                FileConflictDialogOption.OverWrite,
-                FileConflictDialogOption.OverWriteAll,
-                FileConflictDialogOption.Ignore,
-                FileConflictDialogOption.IgnoreAll
-            );
+            var result = _messageDialogService.ShowDialog<FileConflictAction>(NuGetPackageManager.Constants.PackageInstallationConflictMessage,
+                 "content of dialog",
+                 false,
+                 FileConflictDialogOption.OverWrite,
+                 FileConflictDialogOption.OverWriteAll,
+                 FileConflictDialogOption.Ignore,
+                 FileConflictDialogOption.IgnoreAll
+             );
 
             return result;
         }

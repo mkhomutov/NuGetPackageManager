@@ -1,23 +1,19 @@
-﻿using Catel;
-using Catel.IoC;
-using Catel.MVVM;
-using Catel.Services;
-using Catel.Windows;
-using Nito.AsyncEx;
-using NuGetPackageManager.Services;
-using NuGetPackageManager.Windows.Service;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Windows
+﻿namespace NuGetPackageManager.Windows
 {
+    using Catel;
+    using Catel.IoC;
+    using Catel.MVVM;
+    using Catel.Services;
+    using NuGetPackageManager.Services;
+    using NuGetPackageManager.Windows.Service;
+    using System.Threading.Tasks;
+
     public class MessageDialogService : IMessageDialogService
     {
         private readonly IUIVisualizerService _uIVisualizerService;
+
         private readonly ITypeFactory _typeFactory;
+
         private readonly ISynchronousUiVisualizer _syncUiVisualizer;
 
         static MessageDialogService()
@@ -62,7 +58,6 @@ namespace NuGetPackageManager.Windows
 
             return result.Result;
         }
-
 
         private IViewModel CreateDialogViewModel(DialogResult result, string title, string message, bool addCloseButton, IDialogOption[] options)
         {
