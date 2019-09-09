@@ -63,11 +63,6 @@ namespace NuGetPackageManager.Services
         {
             var targetFramework = TryParseFrameworkName(project.Framework, _frameworkNameProvider);
 
-            //test this
-            var pc = new ProjectContext(NuGet.ProjectManagement.FileConflictAction.PromptUser, _messageDialogService);
-
-            pc.ResolveFileConflict("test resolving");
-
             var settings = new NuGet.Configuration.NullSettings();
 
             var packageManager = new NuGet.PackageManagement.NuGetPackageManager(_sourceRepositoryProvider, settings, @"D:\Dev\NuGetTest");
