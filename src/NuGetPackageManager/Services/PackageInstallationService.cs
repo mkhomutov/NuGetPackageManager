@@ -1,11 +1,16 @@
 ﻿using Catel;
 using Catel.Logging;
+using Catel.Reflection;
 using NuGet.Frameworks;
 using NuGet.Packaging.Core;
+using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using NuGet.Versioning;
 using NuGetPackageManager.Management;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,17 +22,21 @@ namespace NuGetPackageManager.Services
 
         private readonly IFrameworkNameProvider _frameworkNameProvider;
         private readonly IMessageDialogService _messageDialogService;
+        private readonly ISourceRepositoryProvider _sourceRepositoryProvider;
 
-        public PackageInstallationService(IFrameworkNameProvider frameworkNameProvider, IMessageDialogService messageDialogService)
+        public PackageInstallationService(IFrameworkNameProvider frameworkNameProvider, IMessageDialogService messageDialogService, 
+            ISourceRepositoryProvider sourceRepositoryProvider)
         {
             Argument.IsNotNull(() => frameworkNameProvider);
             Argument.IsNotNull(() => messageDialogService);
+            Argument.IsNotNull(() => sourceRepositoryProvider);
 
             _frameworkNameProvider = frameworkNameProvider;
             _messageDialogService = messageDialogService;
+            _sourceRepositoryProvider = sourceRepositoryProvider;
         }
 
-        public async Task Install(PackageIdentity identity, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken)
+        public async Task InstallAsync(PackageIdentity identity, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken)
         {
             try
             {
@@ -35,7 +44,7 @@ namespace NuGetPackageManager.Services
 
                 foreach (var proj in projects)
                 {
-                    await Install(identity, proj, repositories, cancellationToken);
+                    await InstallAsync(identity, proj, repositories, cancellationToken);
                 }
             }
             catch(Exception)
@@ -44,7 +53,7 @@ namespace NuGetPackageManager.Services
             }
         }
 
-        public async Task Install(PackageIdentity identity, IExtensibleProject project, IReadOnlyList<SourceRepository> repositories, CancellationToken cancellationToken)
+        public async Task InstallAsync(PackageIdentity identity, IExtensibleProject project, IReadOnlyList<SourceRepository> repositories, CancellationToken cancellationToken)
         {
             var targetFramework = TryParseFrameworkName(project.Framework, _frameworkNameProvider);
 
@@ -53,16 +62,86 @@ namespace NuGetPackageManager.Services
 
             pc.ResolveFileConflict("test resolving");
 
-            using (var cacheContext = new SourceCacheContext())
+            var settings = new NuGet.Configuration.NullSettings();
+
+            var packageManager = new NuGet.PackageManagement.NuGetPackageManager(_sourceRepositoryProvider, settings, @"D:\Dev\NuGetTest");
+
+            var resContext = new NuGet.PackageManagement.ResolutionContext();
+
+            var respos = _sourceRepositoryProvider.GetRepositories();
+
+            using (var cacheContext = NullSourceCacheContext.Instance)
             {
                 foreach (var repository in repositories)
                 {
                     var dependencyInfoResource = await repository.GetResourceAsync<DependencyInfoResource>();
+                    var regResource = await repository.GetResourceAsync<RegistrationResourceV3>();
 
-                    var dependencyInfo = await dependencyInfoResource.ResolvePackage(
-                        identity, targetFramework, cacheContext, new Loggers.DebugLogger(true), cancellationToken);
+                    var uri = regResource.GetUri(identity.Id);
+
+                    var availablePackages = await ResolvePackagesRecursivelyAsync(identity, targetFramework, dependencyInfoResource, cacheContext, cancellationToken, uri);
+
                 }
             }
+        }
+
+        private async Task<HashSet<SourcePackageDependencyInfo>> ResolvePackagesRecursivelyAsync(PackageIdentity identity, NuGetFramework targetFramework, 
+            DependencyInfoResource dependencyInfoResource,
+            SourceCacheContext cacheContext, 
+            CancellationToken cancellationToken, Uri testUri)
+        {
+            var logger = new Loggers.DebugLogger(true);
+
+            HashSet<SourcePackageDependencyInfo> packageStore = new HashSet<SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
+
+            Stack<SourcePackageDependencyInfo> downloadStack = new Stack<SourcePackageDependencyInfo>();
+
+            //get top dependency
+            var dependencyInfo = await dependencyInfoResource.ResolvePackage(
+                            identity, targetFramework, cacheContext, logger, cancellationToken);
+
+            if (dependencyInfo == null)
+            {
+                Log.Error($"Cannot resolve {identity} package for target framework {targetFramework}");
+                return packageStore;
+            }
+
+            downloadStack.Push(dependencyInfo); //and add it to package store
+           
+
+            var singleVersion = new VersionRange(minVersion: identity.Version, includeMinVersion: true, maxVersion: identity.Version, includeMaxVersion: true);
+
+            //commented code used for testing
+            //var httpClient = typeof(DependencyInfoResourceV3).GetFieldEx("_client").GetValue(dependencyInfoResource);
+            //var regInfo = await ResolverMetadataClient.GetRegistrationInfo(httpClient as HttpSource, testUri, identity.Id, singleVersion, cacheContext, targetFramework, logger, cancellationToken);
+
+            while (downloadStack.Count > 0)
+            {
+                var rootDependency = downloadStack.Pop();
+
+                //store all new packges
+                if (!packageStore.Contains(rootDependency))
+                {
+                    packageStore.Add(rootDependency);
+                }
+                else
+                {
+                    continue;
+                }
+
+                foreach (var dependency in rootDependency.Dependencies)
+                {
+                    //currently we using restricted version during child dependency resolving 
+                    //but possibly it should be configured in project
+                    var relatedIdentity = new PackageIdentity(dependency.Id, dependency.VersionRange.MinVersion);
+
+                    var relatedDepInfo = await dependencyInfoResource.ResolvePackage(relatedIdentity, targetFramework, cacheContext, logger, cancellationToken);
+
+                    downloadStack.Push(relatedDepInfo);
+                }
+            }
+
+            return packageStore;
         }
 
         private NuGetFramework TryParseFrameworkName(string frameworkString, IFrameworkNameProvider frameworkNameProvider)

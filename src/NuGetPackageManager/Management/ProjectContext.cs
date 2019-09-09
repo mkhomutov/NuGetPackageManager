@@ -1,8 +1,10 @@
 ﻿namespace NuGetPackageManager.Management
 {
     using Catel.Logging;
+    using NuGet.Common;
     using NuGet.Packaging;
     using NuGet.ProjectManagement;
+    using NuGetPackageManager.Loggers;
     using NuGetPackageManager.Services;
     using NuGetPackageManager.Windows;
     using NuGetPackageManager.Windows.Dialogs;
@@ -13,6 +15,7 @@
     public class ProjectContext : INuGetProjectContext
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger NugetLogger = new DebugLogger(true);
         
         private readonly IMessageDialogService _messageDialogService;
 
@@ -39,8 +42,20 @@
 
         void INuGetProjectContext.Log(MessageLevel level, string message, params object[] args)
         {
-            //todo
-            throw new NotImplementedException();
+            switch(level)
+            {
+                case MessageLevel.Debug : Log.Debug(message);
+                    break;
+
+                case MessageLevel.Error : Log.Error(message);
+                    break;
+
+                case MessageLevel.Info : Log.Info(message);
+                    break;
+
+                case MessageLevel.Warning : Log.Warning(message);
+                    break;
+            }
         }
 
         public void ReportError(string message)
@@ -52,7 +67,6 @@
         {
             if (FileConflictAction == FileConflictAction.PromptUser)
             {
-                //todo conflict resolution window
                 var resolution = ShowConflictPrompt();
 
                 FileConflictAction = resolution;
@@ -64,7 +78,7 @@
         private FileConflictAction ShowConflictPrompt()
         {
 
-            _messageDialogService.ShowDialog<FileConflictAction>(NuGetPackageManager.Constants.PackageInstallationConflictMessage,
+           var result =  _messageDialogService.ShowDialog<FileConflictAction>(NuGetPackageManager.Constants.PackageInstallationConflictMessage,
                 "content of dialog",
                 false,
                 FileConflictDialogOption.OverWrite,
@@ -73,7 +87,7 @@
                 FileConflictDialogOption.IgnoreAll
             );
 
-            return FileConflictAction;
+            return result;
         }
     }
 }

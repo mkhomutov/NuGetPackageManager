@@ -7,6 +7,6 @@
 
     public interface IPackageInstallationService
     {
-        Task Install(PackageIdentity identity, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken);
+        Task InstallAsync(PackageIdentity identity, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken);
     }
 }

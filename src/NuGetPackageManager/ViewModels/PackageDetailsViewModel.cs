@@ -54,7 +54,7 @@
             try
             {
                 //by default last version always selected for user actions
-                SelectedVersion = Package.LastVersion;
+                 SelectedVersion = Package.LastVersion;
 
                 VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 
@@ -143,7 +143,7 @@
             using (var cts = new CancellationTokenSource())
             {
                 var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
-                await _installationService.Install(identity, NuGetActionTarget.TargetProjects, cts.Token);
+                await _installationService.InstallAsync(identity, NuGetActionTarget.TargetProjects, cts.Token);
             }
         }
 
