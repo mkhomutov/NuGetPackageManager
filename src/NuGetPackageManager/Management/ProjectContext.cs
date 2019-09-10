@@ -70,7 +70,7 @@
         {
             if (FileConflictAction == FileConflictAction.PromptUser)
             {
-                var resolution = ShowConflictPrompt();
+                var resolution = ShowConflictPrompt(message);
 
                 FileConflictAction = resolution;
             }
@@ -78,11 +78,11 @@
             return FileConflictAction;
         }
 
-        private FileConflictAction ShowConflictPrompt()
+        private FileConflictAction ShowConflictPrompt(string message)
         {
 
             var result = _messageDialogService.ShowDialog<FileConflictAction>(NuGetPackageManager.Constants.PackageInstallationConflictMessage,
-                 "content of dialog",
+                 message,
                  false,
                  FileConflictDialogOption.OverWrite,
                  FileConflictDialogOption.OverWriteAll,

@@ -8,9 +8,6 @@ using System.Windows.Input;
 
 namespace NuGetPackageManager.Windows
 {
-    /// <summary>
-    /// Логика взаимодействия для DialogHost.xaml
-    /// </summary>
     public partial class DialogHost : Catel.Windows.DataWindow
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
