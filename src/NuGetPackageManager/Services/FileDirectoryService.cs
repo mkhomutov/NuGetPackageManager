@@ -1,14 +1,11 @@
-﻿using Catel;
-using NuGet.Common;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using Catel;
+    using NuGet.Common;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+
     public class FileDirectoryService : IFileDirectoryService
     {
         public static readonly string DefaultGlobalPackagesFolderPath = "packages" + Path.DirectorySeparatorChar;

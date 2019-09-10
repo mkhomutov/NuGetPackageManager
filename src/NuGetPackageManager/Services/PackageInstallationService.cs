@@ -30,7 +30,6 @@
 
         private readonly IFileDirectoryService _fileDirectoryService;
 
-
         public PackageInstallationService(IFrameworkNameProvider frameworkNameProvider,
             ISourceRepositoryProvider sourceRepositoryProvider,
             IFileDirectoryService fileDirectoryService)
@@ -171,7 +170,7 @@
         {
             var downloaded = new List<DownloadResourceResult>();
 
-            string globalFolderPath = _fileDirectoryService.GetGloabalPackagesFolder(); 
+            string globalFolderPath = _fileDirectoryService.GetGloabalPackagesFolder();
 
             foreach (var install in packageIdentities)
             {

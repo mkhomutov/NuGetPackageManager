@@ -1,7 +1,3 @@
-using NuGetPackageManager.Controls.Helpers;
-using System.Windows;
-using System.Windows.Controls;
-
 namespace NuGetPackageManager.Views
 {
     /// <summary>

@@ -3,7 +3,6 @@ using Catel.IoC;
 using NuGet.Credentials;
 using NuGet.Frameworks;
 using NuGet.Protocol.Core.Types;
-using NuGetPackageManager;
 using NuGetPackageManager.Cache;
 using NuGetPackageManager.Management;
 using NuGetPackageManager.Models;

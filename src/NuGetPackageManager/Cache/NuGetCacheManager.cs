@@ -1,20 +1,19 @@
-﻿using Catel;
-using Catel.Logging;
-using NuGet.Common;
-using NuGet.Configuration;
-using NuGetPackageManager.Services;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Cache
+﻿namespace NuGetPackageManager.Cache
 {
+    using Catel;
+    using Catel.Logging;
+    using NuGet.Common;
+    using NuGet.Configuration;
+    using NuGetPackageManager.Services;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+
     public class NuGetCacheManager : INuGetCacheManager
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         private readonly IFileDirectoryService _fileDirectoryService;
 
         public NuGetCacheManager(IFileDirectoryService fileDirectoryService)
