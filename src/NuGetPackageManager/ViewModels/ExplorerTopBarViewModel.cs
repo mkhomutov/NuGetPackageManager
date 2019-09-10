@@ -6,33 +6,50 @@
     using Catel.Logging;
     using Catel.MVVM;
     using Catel.Services;
+    using NuGetPackageManager.Cache;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Services;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public class ExplorerTopBarViewModel : ViewModelBase
     {
+
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         private readonly ITypeFactory _typeFactory;
 
         private readonly IUIVisualizerService _uIVisualizerService;
 
+        private readonly INuGetCacheManager _nuGetCacheManager;
+
+        private readonly IPleaseWaitService _pleaseWaitService;
+
+        private readonly IMessageService _messageService;
+
         private readonly NugetConfigurationService _configurationService;
 
-        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
-        public ExplorerTopBarViewModel(ExplorerSettingsContainer settings, ITypeFactory typeFactory, IUIVisualizerService uIVisualizerService, IConfigurationService configurationService)
+        public ExplorerTopBarViewModel(ExplorerSettingsContainer settings, ITypeFactory typeFactory, IUIVisualizerService uIVisualizerService, IConfigurationService configurationService,
+            INuGetCacheManager nuGetCacheManager, IPleaseWaitService pleaseWaitService, IMessageService messageService)
         {
             Argument.IsNotNull(() => typeFactory);
             Argument.IsNotNull(() => uIVisualizerService);
             Argument.IsNotNull(() => configurationService);
             Argument.IsNotNull(() => settings);
+            Argument.IsNotNull(() => nuGetCacheManager);
+            Argument.IsNotNull(() => pleaseWaitService);
+            Argument.IsNotNull(() => messageService);
 
             _typeFactory = typeFactory;
             _uIVisualizerService = uIVisualizerService;
             _configurationService = configurationService as NugetConfigurationService;
+            _nuGetCacheManager = nuGetCacheManager;
+            _pleaseWaitService = pleaseWaitService;
+            _messageService = messageService;
 
             Settings = settings;
 
@@ -75,7 +92,10 @@
         {
             ShowPackageSourceSettings = new TaskCommand(OnShowPackageSourceSettingsExecuteAsync);
             ShowExtensibles = new TaskCommand(OnShowExtensibles);
+            RunNuGetCachesClearing = new Command(OnRunNuGetCachesClearing);
         }
+
+        #region commands
 
         public TaskCommand ShowPackageSourceSettings { get; set; }
 
@@ -107,6 +127,19 @@
                 var result = await _uIVisualizerService.ShowDialogAsync(extensiblesVM);
             }
         }
+
+        public Command RunNuGetCachesClearing { get; set; }
+
+        private void OnRunNuGetCachesClearing()
+        {
+            _pleaseWaitService.Push(Constants.CacheClearingOperation);
+            _nuGetCacheManager.ClearAll();
+            _pleaseWaitService.Pop();
+
+            _messageService.ShowAsync("Operation finished", Constants.CacheClearingOperation, MessageButton.OK, MessageImage.Information);
+        }
+
+        #endregion
 
         private void ReadFeedsFromConfiguration(ExplorerSettingsContainer settings)
         {

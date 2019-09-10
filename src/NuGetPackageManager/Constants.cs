@@ -14,6 +14,6 @@ namespace NuGetPackageManager
 
         public const string PackageInstallationConflictMessage = "Conflict during package installation";
 
-        public const string DefaultGlobalPackageCacheFolder = "";
+        public const string CacheClearingOperation = "Cache Clearing";
     }
 }

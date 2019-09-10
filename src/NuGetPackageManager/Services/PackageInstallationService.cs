@@ -28,14 +28,20 @@
 
         private readonly ISourceRepositoryProvider _sourceRepositoryProvider;
 
+        private readonly IFileDirectoryService _fileDirectoryService;
+
+
         public PackageInstallationService(IFrameworkNameProvider frameworkNameProvider,
-            ISourceRepositoryProvider sourceRepositoryProvider)
+            ISourceRepositoryProvider sourceRepositoryProvider,
+            IFileDirectoryService fileDirectoryService)
         {
             Argument.IsNotNull(() => frameworkNameProvider);
             Argument.IsNotNull(() => sourceRepositoryProvider);
+            Argument.IsNotNull(() => fileDirectoryService);
 
             _frameworkNameProvider = frameworkNameProvider;
             _sourceRepositoryProvider = sourceRepositoryProvider;
+            _fileDirectoryService = fileDirectoryService;
         }
 
         public async Task InstallAsync(PackageIdentity identity, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken)
@@ -165,6 +171,8 @@
         {
             var downloaded = new List<DownloadResourceResult>();
 
+            string globalFolderPath = _fileDirectoryService.GetGloabalPackagesFolder(); 
+
             foreach (var install in packageIdentities)
             {
                 var downloadResource = await install.Source.GetResourceAsync<DownloadResource>(cancellationToken);
@@ -173,7 +181,7 @@
                     (
                         install,
                         new PackageDownloadContext(cacheContext),
-                        Constants.DefaultGlobalPackageCacheFolder,
+                        globalFolderPath,
                         NuGetLog,
                         cancellationToken
                     );

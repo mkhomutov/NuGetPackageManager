@@ -14,8 +14,7 @@ namespace NuGetPackageManager.Views
             InitializeComponent();
             ShowInTaskbar = true;
 
-            var control = Application.Current.FindResource(typeof(RadioButton));
-            var value = XamlExportHelper.Save(control);
+            WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
         }
     }
 }
