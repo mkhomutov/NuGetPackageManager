@@ -25,6 +25,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="34"/>
             <ColumnDefinition Width="34"/>
+            <ColumnDefinition Width="34"/>
         </Grid.ColumnDefinitions>
 
         <!-- navigation panel-->
@@ -52,7 +53,7 @@
 
 
         <TextBlock Text="Manage NuGet Packages"
-                   Grid.Column="5" Grid.ColumnSpan="4"
+                   Grid.Column="5" Grid.ColumnSpan="5"
                    HorizontalAlignment="Right"
                    FontSize="16"
                    Margin="0 0 10 10"/>
@@ -110,7 +111,7 @@
 
         <TextBlock Grid.Row="1" Grid.Column="5"
                    VerticalAlignment="Center"
-                   Margin="3 0 3 0">
+                   Margin="4 0 3 0">
             Package source: 
         </TextBlock>
         <ComboBox Grid.Row="1" Grid.Column="6" 
@@ -119,10 +120,20 @@
                   Margin="3 0 3 0"
                   IsSynchronizedWithCurrentItem="True"
                   SelectedItem="{Binding ObservedFeed}"/>
-        <!--select source feed -->
-        <Button Grid.Row="1" Grid.Column="7"
+        <!--select source feed-->
+         <Button Grid.Row="1" Grid.Column="7"
+                Command="{Binding ShowExtensibles}"
+                Margin="3 0 3 0"
+                Height="24" Width="24">
+            <Viewbox>
+                <Canvas Width="24" Height="24">
+                    <Path Data="{Binding Source={StaticResource App-box}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
+                </Canvas>
+            </Viewbox>
+        </Button>
+        <Button Grid.Row="1" Grid.Column="8"
                 Command="{Binding ShowPackageSourceSettings}"
-                Margin="0 0 10 0"
+                Margin="0 0 3 0"
                 Height="24" Width="24">
             <Viewbox>
                 <Canvas Width="24" Height="24">
@@ -130,13 +141,14 @@
                 </Canvas>
             </Viewbox>
         </Button>
-        <Button Grid.Row="1" Grid.Column="8"
-                Command="{Binding ShowExtensibles}"
+        <Button Grid.Row="1" Grid.Column="9"
+                Command="{Binding RunNuGetCachesClearing}"
+                ToolTip="Clear all NuGet caches, including global packages folder"
                 Margin="0 0 10 0"
                 Height="24" Width="24">
             <Viewbox>
                 <Canvas Width="24" Height="24">
-                    <Path Data="{Binding Source={StaticResource App-box}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
+                    <Path Data="{Binding Source={StaticResource Broom}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
                 </Canvas>
             </Viewbox>
         </Button>

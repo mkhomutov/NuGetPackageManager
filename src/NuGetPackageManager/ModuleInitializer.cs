@@ -3,10 +3,12 @@ using Catel.IoC;
 using NuGet.Credentials;
 using NuGet.Frameworks;
 using NuGet.Protocol.Core.Types;
+using NuGetPackageManager.Cache;
 using NuGetPackageManager.Management;
 using NuGetPackageManager.Models;
 using NuGetPackageManager.Providers;
 using NuGetPackageManager.Services;
+using NuGetPackageManager.Windows;
 using SourceRepositoryProvider = NuGetPackageManager.Providers.SourceRepositoryProvider;
 
 /// <summary>
@@ -47,6 +49,12 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<IExtensibleProjectManager, ExtensibleProjectManager>();
 
         serviceLocator.RegisterType<IFrameworkNameProvider, DefaultFrameworkNameProvider>();
+
+        serviceLocator.RegisterType<IMessageDialogService, MessageDialogService>();
+
+        serviceLocator.RegisterType<IFileDirectoryService, FileDirectoryService>();
+
+        serviceLocator.RegisterType<INuGetCacheManager, NuGetCacheManager>();
 
         //add all project extensions
 

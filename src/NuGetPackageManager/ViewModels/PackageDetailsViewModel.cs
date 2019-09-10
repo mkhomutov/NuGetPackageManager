@@ -143,7 +143,7 @@
             using (var cts = new CancellationTokenSource())
             {
                 var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
-                await _installationService.Install(identity, NuGetActionTarget.TargetProjects, cts.Token);
+                await _installationService.InstallAsync(identity, NuGetActionTarget.TargetProjects, cts.Token);
             }
         }
 
