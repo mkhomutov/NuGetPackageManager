@@ -1,5 +1,6 @@
 ﻿using NuGetPackageManager.Models;
 using System.Collections.Generic;
+using System.IO;
 
 namespace NuGetPackageManager
 {
@@ -8,6 +9,8 @@ namespace NuGetPackageManager
         string Name { get; }
 
         string Framework { get; }
+
+        string ContentPath { get; }
 
         IReadOnlyList<NuGetPackage> PackageList { get; }
 

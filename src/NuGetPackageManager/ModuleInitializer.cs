@@ -60,7 +60,9 @@ public static class ModuleInitializer
 
         var manager = serviceLocator.ResolveType<IExtensibleProjectManager>();
 
-        manager.Register<ExampleFolderPackageManagement>();
-        manager.Register<ExamplePackageManagement>();
+        var directoryService = serviceLocator.ResolveType<IFileDirectoryService>();
+
+        manager.Register<ExampleFolderPackageManagement>(directoryService.GetApplicationRoamingFolder());
+        manager.Register<ExamplePackageManagement>(directoryService.GetApplicationRoamingFolder());
     }
 }

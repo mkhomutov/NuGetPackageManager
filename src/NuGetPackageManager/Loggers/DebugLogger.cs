@@ -89,7 +89,7 @@
 
         public void LogVerbose(string data)
         {
-            throw new NotImplementedException();
+            Log.Info(data);
         }
 
         public void LogWarning(string data)

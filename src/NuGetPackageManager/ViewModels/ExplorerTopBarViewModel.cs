@@ -9,6 +9,8 @@
     using NuGetPackageManager.Cache;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Services;
+    using Orc.Notifications;
+    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
@@ -31,9 +33,11 @@
 
         private readonly NugetConfigurationService _configurationService;
 
+        private readonly INotificationService _notificationService;
+
 
         public ExplorerTopBarViewModel(ExplorerSettingsContainer settings, ITypeFactory typeFactory, IUIVisualizerService uIVisualizerService, IConfigurationService configurationService,
-            INuGetCacheManager nuGetCacheManager, IPleaseWaitService pleaseWaitService, IMessageService messageService)
+            INuGetCacheManager nuGetCacheManager, IPleaseWaitService pleaseWaitService, IMessageService messageService, INotificationService notificationService)
         {
             Argument.IsNotNull(() => typeFactory);
             Argument.IsNotNull(() => uIVisualizerService);
@@ -42,6 +46,7 @@
             Argument.IsNotNull(() => nuGetCacheManager);
             Argument.IsNotNull(() => pleaseWaitService);
             Argument.IsNotNull(() => messageService);
+            Argument.IsNotNull(() => notificationService);
 
             _typeFactory = typeFactory;
             _uIVisualizerService = uIVisualizerService;
@@ -49,6 +54,7 @@
             _nuGetCacheManager = nuGetCacheManager;
             _pleaseWaitService = pleaseWaitService;
             _messageService = messageService;
+            _notificationService = notificationService;
 
             Settings = settings;
 
@@ -98,7 +104,6 @@
 
         public TaskCommand ShowPackageSourceSettings { get; set; }
 
-
         private async Task OnShowPackageSourceSettingsExecuteAsync()
         {
             var nugetSettingsVm = _typeFactory.CreateInstanceWithParametersAndAutoCompletion<SettingsViewModel>(Settings);
@@ -131,11 +136,29 @@
 
         private void OnRunNuGetCachesClearing()
         {
-            _pleaseWaitService.Push(Constants.CacheClearingOperation);
-            _nuGetCacheManager.ClearAll();
-            _pleaseWaitService.Pop();
+            try
+            {
+                _pleaseWaitService.Push();
 
-            _messageService.ShowAsync("Operation finished", Constants.CacheClearingOperation, MessageButton.OK, MessageImage.Information);
+                var noErrors = _nuGetCacheManager.ClearAll();
+
+                _pleaseWaitService.Pop();
+
+                if (noErrors)
+                {
+                    _messageService.ShowInformationAsync(Constants.Messages.CacheClearEndedSuccessful, Constants.PackageManagement);
+                }
+                else
+                {
+                    _messageService.ShowWarningAsync(Constants.Messages.CachedClearEndedWithError, Constants.PackageManagement);
+                }
+            }
+            catch(Exception e)
+            {
+                Log.Error(e, Constants.Messages.CacheClearFailed);
+
+                _messageService.ShowErrorAsync(Constants.Messages.CacheClearFailed, Constants.PackageManagement);
+            }   
         }
 
         #endregion

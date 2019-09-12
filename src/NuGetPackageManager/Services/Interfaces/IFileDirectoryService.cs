@@ -6,6 +6,8 @@
     {
         void DeleteDirectoryTree(string folderPath, out List<string> failedEntries);
 
-        string GetGloabalPackagesFolder();
+        string GetGlobalPackagesFolder();
+
+        string GetApplicationRoamingFolder();
     }
 }

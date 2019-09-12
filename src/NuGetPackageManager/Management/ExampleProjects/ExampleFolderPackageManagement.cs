@@ -8,11 +8,18 @@
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
+        public ExampleFolderPackageManagement(string rootPath)
+        {
+            ContentPath = System.IO.Path.Combine(rootPath, nameof(ExamplePackageManagement));
+        }
+
         public string Name => "Plain project extensible example with additinal logging";
 
         public IReadOnlyList<NuGetPackage> PackageList { get; set; }
 
         public string Framework => ".NETStandard,Version=v2.0";
+
+        public string ContentPath { get; }
 
         public void Install()
         {

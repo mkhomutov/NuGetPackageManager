@@ -85,7 +85,7 @@
             Register<T>(new object[] { });
         }
 
-        public void Register<T>(object[] parameters) where T : IExtensibleProject
+        public void Register<T>(params object[] parameters) where T : IExtensibleProject
         {
             var instance = _typeFactory.CreateInstanceWithParametersAndAutoCompletion<T>(parameters);
 

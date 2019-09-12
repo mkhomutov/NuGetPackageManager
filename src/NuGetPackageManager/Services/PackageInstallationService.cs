@@ -3,13 +3,16 @@
     using Catel;
     using Catel.Logging;
     using NuGet.Common;
+    using NuGet.Configuration;
     using NuGet.Frameworks;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
+    using NuGet.Packaging.Signing;
     using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
     using NuGet.Resolver;
     using NuGet.Versioning;
+    using NuGetPackageManager.Extensions;
     using NuGetPackageManager.Loggers;
     using NuGetPackageManager.Management;
     using System;
@@ -64,9 +67,7 @@
         {
             var targetFramework = TryParseFrameworkName(project.Framework, _frameworkNameProvider);
 
-            var settings = new NuGet.Configuration.NullSettings();
-
-            var packageManager = new NuGet.PackageManagement.NuGetPackageManager(_sourceRepositoryProvider, settings, @"D:\Dev\NuGetTest");
+            //var packageManager = new NuGet.PackageManagement.NuGetPackageManager(_sourceRepositoryProvider, new NuGet.Configuration.NullSettings(), @"D:\Dev\NuGetTest");
 
             var resContext = new NuGet.PackageManagement.ResolutionContext();
 
@@ -83,13 +84,13 @@
 
                     var uri = regResource.GetUri(identity.Id);
 
-                    await ResolvePackagesRecursivelyAsync(identity, targetFramework, dependencyInfoResource, cacheContext,
+                    await ResolveDependenciesRecursivelyAsync(identity, targetFramework, dependencyInfoResource, cacheContext,
                         availabePackageStorage, cancellationToken);
 
                 }
             }
 
-            var resolverContext = GetPackageContext(identity, availabePackageStorage);
+            var resolverContext = GetResolverContext(identity, availabePackageStorage);
 
             var resolver = new PackageResolver();
 
@@ -102,11 +103,15 @@
 
             using (var cacheContext = NullSourceCacheContext.Instance)
             {
-                var downloaded = await DownloadDependencyGraphAsync(availablePackagesToInstall, cacheContext, cancellationToken);
+                var downloadResults = await DownloadPackagesResourcesAsync(availablePackagesToInstall, cacheContext, cancellationToken);
+
+                var extractionContext = GetExtractionContext();
+
+                await ExtractPackagesResourcesAsync(downloadResults, project, extractionContext, cancellationToken);
             }
         }
 
-        private async Task ResolvePackagesRecursivelyAsync(PackageIdentity identity, NuGetFramework targetFramework,
+        private async Task ResolveDependenciesRecursivelyAsync(PackageIdentity identity, NuGetFramework targetFramework,
             DependencyInfoResource dependencyInfoResource,
             SourceCacheContext cacheContext,
             HashSet<SourcePackageDependencyInfo> storage,
@@ -166,31 +171,62 @@
             }
         }
 
-        private async Task<IReadOnlyList<DownloadResourceResult>> DownloadDependencyGraphAsync(IEnumerable<SourcePackageDependencyInfo> packageIdentities, SourceCacheContext cacheContext, CancellationToken cancellationToken)
+        private async Task<IReadOnlyList<DownloadResourceResult>> DownloadPackagesResourcesAsync(
+            IEnumerable<SourcePackageDependencyInfo> packageIdentities, SourceCacheContext cacheContext, CancellationToken cancellationToken)
         {
-            var downloaded = new List<DownloadResourceResult>();
-
-            string globalFolderPath = _fileDirectoryService.GetGloabalPackagesFolder();
-
-            foreach (var install in packageIdentities)
+            try
             {
-                var downloadResource = await install.Source.GetResourceAsync<DownloadResource>(cancellationToken);
+                var downloaded = new List<DownloadResourceResult>();
 
-                var downloadResult = await downloadResource.GetDownloadResourceResultAsync
-                    (
-                        install,
-                        new PackageDownloadContext(cacheContext),
-                        globalFolderPath,
-                        NuGetLog,
-                        cancellationToken
-                    );
+                string globalFolderPath = _fileDirectoryService.GetGlobalPackagesFolder();
+
+                foreach (var package in packageIdentities)
+                {
+                    var downloadResource = await package.Source.GetResourceAsync<DownloadResource>(cancellationToken);
+
+                    var downloadResult = await downloadResource.GetDownloadResourceResultAsync
+                        (
+                            package,
+                            new PackageDownloadContext(cacheContext),
+                            globalFolderPath,
+                            NuGetLog,
+                            cancellationToken
+                        );
 
 
-                downloaded.Add(downloadResult);
+                    downloaded.Add(downloadResult);
+                }
+
+                return downloaded;
+            }
+            catch(Exception)
+            {
+                throw;
+            }
+        }
+
+        private async Task ExtractPackagesResourcesAsync(
+            IEnumerable<DownloadResourceResult> downloadResources, IExtensibleProject project, PackageExtractionContext extractionContext, CancellationToken cancellationToken)
+        {
+            var pathResolver = new PackagePathResolver(project.ContentPath);
+
+            foreach (var downloadPart in downloadResources)
+            {
+                Log.Info($"Extracting package {downloadPart.GetResourceRoot()} to {project} project folder..");
+
+                var extractedPaths = await PackageExtractor.ExtractPackageAsync(
+                    downloadPart.PackageSource,
+                    downloadPart.PackageStream,
+                    pathResolver,
+                    extractionContext,
+                    cancellationToken
+                );
+
+                Log.Info($"Successfully unpacked {extractedPaths.Count()} files");
             }
 
-            return downloaded;
         }
+
 
         private NuGetFramework TryParseFrameworkName(string frameworkString, IFrameworkNameProvider frameworkNameProvider)
         {
@@ -205,7 +241,7 @@
             }
         }
 
-        private PackageResolverContext GetPackageContext(PackageIdentity package, IEnumerable<SourcePackageDependencyInfo> flatDependencies)
+        private PackageResolverContext GetResolverContext(PackageIdentity package, IEnumerable<SourcePackageDependencyInfo> flatDependencies)
         {
             var idArray = new[] { package.Id };
 
@@ -227,6 +263,23 @@
             );
 
             return resolverContext;
+        }
+
+        private PackageExtractionContext GetExtractionContext()
+        {
+            //todo provide read certs?
+            var signaturesCerts = Enumerable.Empty<TrustedSignerAllowListEntry>().ToList();
+
+            var policyContextForClient = ClientPolicyContext.GetClientPolicy(Settings.LoadDefaultSettings(null), NuGetLog);
+
+            var extractionContext = new PackageExtractionContext(
+                PackageSaveMode.Defaultv3,
+                XmlDocFileSaveMode.Skip,
+                policyContextForClient,
+                NuGetLog
+            );
+
+            return extractionContext;
         }
     }
 }

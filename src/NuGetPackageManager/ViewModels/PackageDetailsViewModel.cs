@@ -140,10 +140,17 @@
 
         private async Task InstallPackageExecute()
         {
-            using (var cts = new CancellationTokenSource())
+            try
             {
-                var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
-                await _installationService.InstallAsync(identity, NuGetActionTarget.TargetProjects, cts.Token);
+                using (var cts = new CancellationTokenSource())
+                {
+                    var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
+                    await _installationService.InstallAsync(identity, NuGetActionTarget.TargetProjects, cts.Token);
+                }
+            }
+            catch(Exception e)
+            {
+                Log.Error(e, $"Error when installing package {Package.Identity}, installation was failed");
             }
         }
 
