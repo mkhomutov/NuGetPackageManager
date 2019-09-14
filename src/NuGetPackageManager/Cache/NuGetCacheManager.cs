@@ -26,8 +26,8 @@
         {
             bool noErrors = true;
             noErrors &= ClearNuGetFoler(SettingsUtility.GetHttpCacheFolder(), "Http-cache");
-            noErrors &=  ClearNuGetFoler(_fileDirectoryService.GetGlobalPackagesFolder(), "Global-packages");
-            noErrors &=  ClearNuGetFoler(NuGetEnvironment.GetFolderPath(NuGetFolderPath.Temp), "Temp");
+            noErrors &= ClearNuGetFoler(_fileDirectoryService.GetGlobalPackagesFolder(), "Global-packages");
+            noErrors &= ClearNuGetFoler(NuGetEnvironment.GetFolderPath(NuGetFolderPath.Temp), "Temp");
 
             Log.Info("Cache clearing operation finished");
 

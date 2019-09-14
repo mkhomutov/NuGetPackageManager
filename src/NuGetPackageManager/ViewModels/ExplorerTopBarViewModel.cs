@@ -18,7 +18,6 @@
 
     public class ExplorerTopBarViewModel : ViewModelBase
     {
-
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private readonly ITypeFactory _typeFactory;
@@ -34,7 +33,6 @@
         private readonly NugetConfigurationService _configurationService;
 
         private readonly INotificationService _notificationService;
-
 
         public ExplorerTopBarViewModel(ExplorerSettingsContainer settings, ITypeFactory typeFactory, IUIVisualizerService uIVisualizerService, IConfigurationService configurationService,
             INuGetCacheManager nuGetCacheManager, IPleaseWaitService pleaseWaitService, IMessageService messageService, INotificationService notificationService)
@@ -100,8 +98,6 @@
             RunNuGetCachesClearing = new Command(OnRunNuGetCachesClearing);
         }
 
-        #region commands
-
         public TaskCommand ShowPackageSourceSettings { get; set; }
 
         private async Task OnShowPackageSourceSettingsExecuteAsync()
@@ -153,15 +149,13 @@
                     _messageService.ShowWarningAsync(Constants.Messages.CachedClearEndedWithError, Constants.PackageManagement);
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e, Constants.Messages.CacheClearFailed);
 
                 _messageService.ShowErrorAsync(Constants.Messages.CacheClearFailed, Constants.PackageManagement);
-            }   
+            }
         }
-
-        #endregion
 
         private void ReadFeedsFromConfiguration(ExplorerSettingsContainer settings)
         {

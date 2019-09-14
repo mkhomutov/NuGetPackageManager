@@ -1,10 +1,6 @@
 ﻿using NuGet.Protocol.Core.Types;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NuGetPackageManager.Extensions
 {
@@ -14,7 +10,7 @@ namespace NuGetPackageManager.Extensions
         {
             var fileStream = downloadResourceResult.PackageStream as FileStream;
 
-            if(fileStream != null)
+            if (fileStream != null)
             {
                 return fileStream.Name;
             }

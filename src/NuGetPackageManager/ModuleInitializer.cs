@@ -9,6 +9,7 @@ using NuGetPackageManager.Models;
 using NuGetPackageManager.Providers;
 using NuGetPackageManager.Services;
 using NuGetPackageManager.Windows;
+using NuGetPackageManager.Windows.Service;
 using SourceRepositoryProvider = NuGetPackageManager.Providers.SourceRepositoryProvider;
 
 /// <summary>
@@ -55,6 +56,10 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<IFileDirectoryService, FileDirectoryService>();
 
         serviceLocator.RegisterType<INuGetCacheManager, NuGetCacheManager>();
+
+        serviceLocator.RegisterType<IAnimationService, AnimationService>();
+
+        serviceLocator.RegisterType<IProgressManager, ProgressManager>();
 
         //add all project extensions
 

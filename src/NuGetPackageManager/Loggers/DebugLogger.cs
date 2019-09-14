@@ -2,7 +2,6 @@
 {
     using Catel.Logging;
     using NuGet.Common;
-    using System;
     using System.Threading.Tasks;
 
     public class DebugLogger : ILogger

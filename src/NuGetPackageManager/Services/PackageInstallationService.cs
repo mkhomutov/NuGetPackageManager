@@ -199,7 +199,7 @@
 
                 return downloaded;
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw;
             }

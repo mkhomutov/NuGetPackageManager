@@ -13,6 +13,7 @@
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
+    using NuGetPackageManager.Windows;
     using System;
     using System.Collections.ObjectModel;
     using System.Linq;
@@ -22,21 +23,29 @@
     public class PackageDetailsViewModel : ViewModelBase
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         private IPackageMetadataProvider _packageMetadataProvider;
+
         private IRepositoryService _repositoryService;
+
         private IPackageInstallationService _installationService;
+
         private IModelProvider<ExplorerSettingsContainer> _settingsProvider;
 
+        private IProgressManager _progressManager;
+
         public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
-            IPackageInstallationService installationService)
+            IPackageInstallationService installationService, IProgressManager progressManager)
         {
             Argument.IsNotNull(() => repositoryService);
             Argument.IsNotNull(() => settingsProvider);
             Argument.IsNotNull(() => installationService);
+            Argument.IsNotNull(() => progressManager);
 
             _repositoryService = repositoryService;
             _settingsProvider = settingsProvider;
             _installationService = installationService;
+            _progressManager = progressManager;
 
             //create package from metadata
             if (packageMetadata != null)
@@ -104,7 +113,6 @@
 
         public int SelectedVersionIndex { get; set; }
 
-        #region command
         public Command LoadInfoAboutVersions { get; set; }
 
         private void LoadInfoAboutVersionsExecute()
@@ -142,13 +150,19 @@
         {
             try
             {
+                _progressManager.ShowBar(this);
+
                 using (var cts = new CancellationTokenSource())
                 {
                     var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
                     await _installationService.InstallAsync(identity, NuGetActionTarget.TargetProjects, cts.Token);
                 }
+
+                await Task.Delay(200);
+
+                _progressManager.HideBar(this);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e, $"Error when installing package {Package.Identity}, installation was failed");
             }
@@ -158,10 +172,7 @@
 
         private async Task UninstallPackageExecute()
         {
-
         }
-
-        #endregion
 
         private IPackageMetadataProvider InitMetadataProvider()
         {

@@ -32,6 +32,7 @@
     <None Remove="Resources\default-package-icon.png" />
     <None Remove="Resources\Download_grey_16x.png" />
     <None Remove="Resources\Upload_gray_16x.png" />
+    <None Remove="Themes\Animations.xaml" />
     <None Remove="Themes\Brushes.xaml" />
     <None Remove="Themes\Generic.xaml" />
     <None Remove="Themes\MaterialIcons.xaml" />
