@@ -17,6 +17,7 @@
     using NuGetPackageManager.Management;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -107,7 +108,7 @@
 
                 var extractionContext = GetExtractionContext();
 
-                await ExtractPackagesResourcesAsync(downloadResults, project, extractionContext, cancellationToken);
+                await ExtractPackagesResourcesAsync(downloadResults.Values, project, extractionContext, cancellationToken);
             }
         }
 
@@ -171,12 +172,12 @@
             }
         }
 
-        private async Task<IReadOnlyList<DownloadResourceResult>> DownloadPackagesResourcesAsync(
+        private async Task<IDictionary<SourcePackageDependencyInfo, DownloadResourceResult>> DownloadPackagesResourcesAsync(
             IEnumerable<SourcePackageDependencyInfo> packageIdentities, SourceCacheContext cacheContext, CancellationToken cancellationToken)
         {
             try
             {
-                var downloaded = new List<DownloadResourceResult>();
+                var downloaded = new Dictionary<SourcePackageDependencyInfo, DownloadResourceResult>();
 
                 string globalFolderPath = _fileDirectoryService.GetGlobalPackagesFolder();
 
@@ -193,8 +194,7 @@
                             cancellationToken
                         );
 
-
-                    downloaded.Add(downloadResult);
+                    downloaded.Add(package, downloadResult);
                 }
 
                 return downloaded;
@@ -280,6 +280,50 @@
             );
 
             return extractionContext;
+        }
+
+        private async Task CheckLibAndFrameworkItems(IDictionary<SourcePackageDependencyInfo, DownloadResourceResult> downloadedPackagesDictionary,
+            NuGetFramework targetFramework, CancellationToken cancellationToken)
+        {
+            var frameworkReducer = new FrameworkReducer();
+
+            foreach (var package in downloadedPackagesDictionary.Keys)
+            {
+                var packageReader = downloadedPackagesDictionary[package].PackageReader;
+
+                var libraries = await packageReader.GetLibItemsAsync(cancellationToken);
+
+                var bestMatches = frameworkReducer.GetNearest(targetFramework, libraries.Select(x => x.TargetFramework));
+
+                var frameworkItems = await packageReader.GetFrameworkItemsAsync(cancellationToken);
+
+                var nearestFrameworkItems = frameworkReducer.GetNearest(targetFramework, frameworkItems.Select(x => x.TargetFramework));
+
+                foreach (var libItemGroup in libraries)
+                {
+                    var satelliteFiles = await GetSatelliteFilesForLibrary(libItemGroup, packageReader, cancellationToken);
+                }
+            }
+        }
+
+        private async Task<List<string>> GetSatelliteFilesForLibrary(FrameworkSpecificGroup libraryFrameworkSpecificGroup, PackageReaderBase packageReader, 
+            CancellationToken cancellationToken)
+        {
+            var satelliteFiles = new List<string>();
+
+            var nuspec = await packageReader.GetNuspecAsync(cancellationToken);
+            var nuspecReader = new NuspecReader(nuspec);
+
+
+            var satelliteFilesInGroup = libraryFrameworkSpecificGroup.Items
+            .Where(item =>
+                Path.GetDirectoryName(item)
+                    .Split(Path.DirectorySeparatorChar)
+                    .Contains(nuspecReader.GetLanguage(), StringComparer.OrdinalIgnoreCase)).ToList();
+
+            satelliteFiles.AddRange(satelliteFilesInGroup);
+
+            return satelliteFiles;
         }
     }
 }
