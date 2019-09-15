@@ -22,13 +22,16 @@
             _fileDirectoryService = fileDirectoryService;
         }
 
-        public void ClearAll()
+        public bool ClearAll()
         {
-            ClearNuGetFoler(SettingsUtility.GetHttpCacheFolder(), "Http-cache");
-            ClearNuGetFoler(_fileDirectoryService.GetGloabalPackagesFolder(), "Global-packages");
-            ClearNuGetFoler(NuGetEnvironment.GetFolderPath(NuGetFolderPath.Temp), "Temp");
+            bool noErrors = true;
+            noErrors &= ClearNuGetFoler(SettingsUtility.GetHttpCacheFolder(), "Http-cache");
+            noErrors &= ClearNuGetFoler(_fileDirectoryService.GetGlobalPackagesFolder(), "Global-packages");
+            noErrors &= ClearNuGetFoler(NuGetEnvironment.GetFolderPath(NuGetFolderPath.Temp), "Temp");
 
             Log.Info("Cache clearing operation finished");
+
+            return noErrors;
         }
 
         private bool ClearNuGetFoler(string folderPath, string folderDescription)
@@ -55,7 +58,7 @@
             }
             catch (IOException)
             {
-                Log.Error("Cache clear ended unsuccessfully, directory in use by another process");
+                Log.Error("Cache clear ended unsuccessfully, directory is in use by another process");
             }
             finally
             {

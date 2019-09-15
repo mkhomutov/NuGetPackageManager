@@ -62,9 +62,6 @@
             set { SetValue(SuccessProperty, value); }
         }
 
-        //private static readonly DependencyPropertyKey SuccessPropertyKey =
-        //   DependencyProperty.RegisterReadOnly("Success", typeof(bool), typeof(RotationProgressBar), new PropertyMetadata(false));
-
         // Using a DependencyProperty as the backing store for Success.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty SuccessProperty = DependencyProperty.Register("Success", typeof(bool), typeof(RotationProgressBar), new PropertyMetadata(false));
     }

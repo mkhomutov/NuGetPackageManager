@@ -32,6 +32,7 @@
     <None Remove="Resources\default-package-icon.png" />
     <None Remove="Resources\Download_grey_16x.png" />
     <None Remove="Resources\Upload_gray_16x.png" />
+    <None Remove="Themes\Animations.xaml" />
     <None Remove="Themes\Brushes.xaml" />
     <None Remove="Themes\Generic.xaml" />
     <None Remove="Themes\MaterialIcons.xaml" />
@@ -68,6 +69,7 @@
     <PackageReference Include="NuGet.Protocol" Version="4.9.4" />
     <PackageReference Include="Obsolete.Fody" Version="5.0.0" />
     <PackageReference Include="Orc.Controls" Version="3.2.10" />
+    <PackageReference Include="Orc.Notifications" Version="3.1.0" />
     <PackageReference Include="WpfAnalyzers" Version="2.2.0.2" PrivateAssets="all" />
   </ItemGroup>
 

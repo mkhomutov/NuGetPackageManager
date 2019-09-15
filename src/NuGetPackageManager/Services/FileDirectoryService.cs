@@ -10,9 +10,14 @@
     {
         public static readonly string DefaultGlobalPackagesFolderPath = "packages" + Path.DirectorySeparatorChar;
 
-        public string GetGloabalPackagesFolder()
+        public string GetGlobalPackagesFolder()
         {
             return Path.Combine(NuGetEnvironment.GetFolderPath(NuGetFolderPath.NuGetHome), DefaultGlobalPackagesFolderPath);
+        }
+
+        public string GetApplicationRoamingFolder()
+        {
+            return Catel.IO.Path.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming, Constants.CompanyName, Constants.ProductName);
         }
 
         public void DeleteDirectoryTree(string folderPath, out List<string> failedEntries)

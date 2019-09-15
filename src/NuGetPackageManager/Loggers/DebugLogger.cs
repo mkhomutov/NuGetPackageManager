@@ -2,7 +2,6 @@
 {
     using Catel.Logging;
     using NuGet.Common;
-    using System;
     using System.Threading.Tasks;
 
     public class DebugLogger : ILogger
@@ -89,7 +88,7 @@
 
         public void LogVerbose(string data)
         {
-            throw new NotImplementedException();
+            Log.Info(data);
         }
 
         public void LogWarning(string data)

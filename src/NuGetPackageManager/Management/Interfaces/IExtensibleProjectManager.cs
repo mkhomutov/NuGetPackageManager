@@ -10,7 +10,7 @@
 
         void Register<T>() where T : IExtensibleProject;
 
-        void Register<T>(object[] parameters) where T : IExtensibleProject;
+        void Register<T>(params object[] parameters) where T : IExtensibleProject;
 
         void Enable(IExtensibleProject extensibleProject);
 

@@ -9,6 +9,7 @@ using NuGetPackageManager.Models;
 using NuGetPackageManager.Providers;
 using NuGetPackageManager.Services;
 using NuGetPackageManager.Windows;
+using NuGetPackageManager.Windows.Service;
 using SourceRepositoryProvider = NuGetPackageManager.Providers.SourceRepositoryProvider;
 
 /// <summary>
@@ -56,11 +57,17 @@ public static class ModuleInitializer
 
         serviceLocator.RegisterType<INuGetCacheManager, NuGetCacheManager>();
 
+        serviceLocator.RegisterType<IAnimationService, AnimationService>();
+
+        serviceLocator.RegisterType<IProgressManager, ProgressManager>();
+
         //add all project extensions
 
         var manager = serviceLocator.ResolveType<IExtensibleProjectManager>();
 
-        manager.Register<ExampleFolderPackageManagement>();
-        manager.Register<ExamplePackageManagement>();
+        var directoryService = serviceLocator.ResolveType<IFileDirectoryService>();
+
+        manager.Register<ExampleFolderPackageManagement>(directoryService.GetApplicationRoamingFolder());
+        manager.Register<ExamplePackageManagement>(directoryService.GetApplicationRoamingFolder());
     }
 }

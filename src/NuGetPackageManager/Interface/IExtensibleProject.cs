@@ -9,6 +9,8 @@ namespace NuGetPackageManager
 
         string Framework { get; }
 
+        string ContentPath { get; }
+
         IReadOnlyList<NuGetPackage> PackageList { get; }
 
         void Install();

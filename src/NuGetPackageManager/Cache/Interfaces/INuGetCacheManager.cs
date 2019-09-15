@@ -2,6 +2,6 @@
 {
     public interface INuGetCacheManager
     {
-        void ClearAll();
+        bool ClearAll();
     }
 }
