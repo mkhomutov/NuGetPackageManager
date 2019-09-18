@@ -52,7 +52,6 @@
 
         <Button Grid.Row="2" Grid.Column="2"
                 Margin="3 0 10 2"
-                IsEnabled="False"
                 Command="{Binding UninstallPackage}">
             Uninstall
         </Button>

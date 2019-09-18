@@ -11,9 +11,9 @@
 
     public class ProjectsViewModel : ViewModelBase
     {
-        private readonly IExtensibleProjectManager _extensiblesManager;
+        private readonly IExtensibleProjectLocator _extensiblesManager;
 
-        public ProjectsViewModel(NuGetActionTarget projectsModel, IExtensibleProjectManager extensiblesManager)
+        public ProjectsViewModel(NuGetActionTarget projectsModel, IExtensibleProjectLocator extensiblesManager)
         {
             Argument.IsNotNull(() => extensiblesManager);
             Argument.IsNotNull(() => projectsModel);

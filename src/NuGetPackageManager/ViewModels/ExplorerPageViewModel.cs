@@ -86,6 +86,18 @@
             commandManager.RegisterCommand(nameof(RefreshCurrentPage), RefreshCurrentPage, this);
         }
 
+        private void OnPackagesCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            {
+                //item added on first place, collection was empty
+                if (e.NewStartingIndex == 0)
+                {
+                    SelectedPackage = Packages.FirstOrDefault();
+                }
+            }
+        }
+
         public static CancellationTokenSource VerificationTokenSource { get; set; } = new CancellationTokenSource();
 
         private PageContinuation PageInfo { get; set; }
@@ -164,6 +176,8 @@
 
                 _packages = new FastObservableCollection<IPackageSearchMetadata>();
 
+                _packages.CollectionChanged += OnPackagesCollectionChanged;
+
                 //todo validation
                 if (Settings.ObservedFeed != null && !String.IsNullOrEmpty(Settings.ObservedFeed.Source))
                 {
@@ -181,6 +195,11 @@
             {
                 Log.Error(ex);
             }
+        }
+
+        protected async override Task OnClosedAsync(bool? result)
+        {
+            _packages.CollectionChanged -= OnPackagesCollectionChanged;
         }
 
         private void StartLoadingTimer()
@@ -361,7 +380,9 @@
             {
                 IsLoadingInProcess = true;
 
-                if (PageInfo.Current < 0)
+                bool isFirstLoad = pageInfo.Current < 0;
+
+                if (isFirstLoad)
                 {
                     Packages.Clear();
                 }

@@ -1,13 +1,16 @@
-﻿using NuGet.Protocol.Core.Types;
+﻿using Catel;
+using NuGet.Protocol.Core.Types;
 using System;
 using System.IO;
 
-namespace NuGetPackageManager.Extensions
+namespace NuGetPackageManager
 {
     public static class DownloadResourceResultExntesions
     {
         public static string GetResourceRoot(this DownloadResourceResult downloadResourceResult)
         {
+            Argument.IsNotNull(() => downloadResourceResult);
+
             var fileStream = downloadResourceResult.PackageStream as FileStream;
 
             if (fileStream != null)

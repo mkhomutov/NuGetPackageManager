@@ -10,7 +10,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public class ExtensibleProjectManager : IExtensibleProjectManager
+    public class ExtensibleProjectLocator : IExtensibleProjectLocator
     {
         private readonly static ILog Log = LogManager.GetCurrentClassLogger();
 
@@ -22,7 +22,7 @@
 
         private readonly HashSet<IExtensibleProject> _enabledProjects = new HashSet<IExtensibleProject>();
 
-        public ExtensibleProjectManager(ITypeFactory typeFactory, IConfigurationService configurationService)
+        public ExtensibleProjectLocator(ITypeFactory typeFactory, IConfigurationService configurationService)
         {
             Argument.IsNotNull(() => typeFactory);
             Argument.IsNotNull(() => configurationService);

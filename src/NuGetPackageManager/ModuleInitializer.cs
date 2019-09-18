@@ -47,7 +47,8 @@ public static class ModuleInitializer
 
         serviceLocator.RegisterType<IRepositoryService, RepositoryService>();
 
-        serviceLocator.RegisterType<IExtensibleProjectManager, ExtensibleProjectManager>();
+        serviceLocator.RegisterType<IExtensibleProjectLocator, ExtensibleProjectLocator>();
+        serviceLocator.RegisterType<INuGetExtensibleProjectManager, NuGetExtensibleProjectManager>();
 
         serviceLocator.RegisterType<IFrameworkNameProvider, DefaultFrameworkNameProvider>();
 
@@ -63,7 +64,7 @@ public static class ModuleInitializer
 
         //add all project extensions
 
-        var manager = serviceLocator.ResolveType<IExtensibleProjectManager>();
+        var manager = serviceLocator.ResolveType<IExtensibleProjectLocator>();
 
         var directoryService = serviceLocator.ResolveType<IFileDirectoryService>();
 

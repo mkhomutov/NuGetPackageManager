@@ -34,18 +34,22 @@
 
         private IProgressManager _progressManager;
 
+        private INuGetExtensibleProjectManager _projectManager;
+
         public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
-            IPackageInstallationService installationService, IProgressManager progressManager)
+            IPackageInstallationService installationService, IProgressManager progressManager, INuGetExtensibleProjectManager projectManager)
         {
             Argument.IsNotNull(() => repositoryService);
             Argument.IsNotNull(() => settingsProvider);
             Argument.IsNotNull(() => installationService);
             Argument.IsNotNull(() => progressManager);
+            Argument.IsNotNull(() => projectManager);
 
             _repositoryService = repositoryService;
             _settingsProvider = settingsProvider;
             _installationService = installationService;
             _progressManager = progressManager;
+            _projectManager = projectManager;
 
             //create package from metadata
             if (packageMetadata != null)
@@ -55,7 +59,7 @@
 
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
             InstallPackage = new TaskCommand(InstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
-            UninstallPackage = new TaskCommand(UninstallPackageExecute);
+            UninstallPackage = new TaskCommand(UninstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
         }
 
         protected async override Task InitializeAsync()
@@ -172,6 +176,27 @@
 
         private async Task UninstallPackageExecute()
         {
+            try
+            {
+                var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
+
+                foreach (var project in NuGetActionTarget.TargetProjects)
+                {
+                    var isInstalled = _projectManager.IsPackageInstalled(project, identity);
+
+                    if (isInstalled)
+                    {
+                        using (var cts = new CancellationTokenSource())
+                        {
+                            await _installationService.UninstallAsync(identity, project, cts.Token);
+                        }
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                Log.Error(e, $"Error when uninstalling package {Package.Identity}, uninstall was failed");
+            }
         }
 
         private IPackageMetadataProvider InitMetadataProvider()
