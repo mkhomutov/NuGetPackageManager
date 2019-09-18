@@ -14,7 +14,6 @@
     using NuGet.Resolver;
     using NuGet.Versioning;
     using NuGetPackageManager.Cache;
-    using NuGetPackageManager.Extensions;
     using NuGetPackageManager.Loggers;
     using NuGetPackageManager.Management;
     using System;
@@ -88,7 +87,7 @@
             }
 
         }
-        
+
 
         public async Task UninstallAsync(PackageIdentity package, IExtensibleProject project, CancellationToken cancellationToken)
         {
@@ -104,7 +103,7 @@
                     _fileDirectoryService.DeleteDirectoryTree(folderProject.GetInstalledPath(package), out failedEntries);
                 }
             }
-            catch(IOException e)
+            catch (IOException e)
             {
                 Log.Error(e, "Package files cannot be complete deleted by unexpected error (may be directory in use by another process?");
             }
@@ -355,7 +354,7 @@
             }
         }
 
-        private async Task<List<string>> GetSatelliteFilesForLibrary(FrameworkSpecificGroup libraryFrameworkSpecificGroup, PackageReaderBase packageReader, 
+        private async Task<List<string>> GetSatelliteFilesForLibrary(FrameworkSpecificGroup libraryFrameworkSpecificGroup, PackageReaderBase packageReader,
             CancellationToken cancellationToken)
         {
             var satelliteFiles = new List<string>();

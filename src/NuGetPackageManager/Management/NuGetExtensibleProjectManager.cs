@@ -1,18 +1,8 @@
-﻿using NuGet.Commands;
-using NuGet.Packaging;
-using NuGet.Packaging.Core;
-using NuGet.ProjectManagement;
-using NuGet.ProjectModel;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Management
+﻿namespace NuGetPackageManager.Management
 {
+    using NuGet.Packaging.Core;
+    using NuGet.ProjectManagement;
+
     public class NuGetExtensibleProjectManager : INuGetExtensibleProjectManager
     {
         public bool IsPackageInstalled(IExtensibleProject project, PackageIdentity package)

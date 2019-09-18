@@ -1,12 +1,10 @@
-﻿using Catel.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Loggers
+﻿namespace NuGetPackageManager.Loggers
 {
+    using Catel.Logging;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     public class LogHelper
     {
         public static void LogUnclearedPaths(List<string> unclearedPaths, ILog log)

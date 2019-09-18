@@ -7,7 +7,6 @@
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Loggers;
     using NuGetPackageManager.Services;
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -44,7 +43,7 @@
             //create http cache context from source cache instance
             var baseCache = _sourceContext;
 
-            if(directDownload)
+            if (directDownload)
             {
                 baseCache = _sourceContext.Clone();
                 baseCache.DirectDownload = directDownload;

@@ -193,7 +193,7 @@
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e, $"Error when uninstalling package {Package.Identity}, uninstall was failed");
             }

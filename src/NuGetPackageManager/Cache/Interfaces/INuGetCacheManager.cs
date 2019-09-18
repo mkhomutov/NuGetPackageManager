@@ -1,5 +1,4 @@
 ﻿using NuGet.Protocol.Core.Types;
-using System;
 
 namespace NuGetPackageManager.Cache
 {
