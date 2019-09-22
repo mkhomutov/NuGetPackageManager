@@ -7,10 +7,12 @@
     using System.Threading.Tasks;
     using Catel;
     using Catel.Logging;
+    using NuGet.Configuration;
     using NuGet.Frameworks;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
     using NuGet.ProjectManagement;
+    using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Packaging;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
@@ -24,21 +26,24 @@
         private readonly IPackageInstallationService _packageInstallationService;
         private readonly IFrameworkNameProvider _frameworkNameProvider;
         private readonly INuGetProjectContextProvider _nuGetProjectContextProvider;
+        private readonly ISourceRepositoryProvider _repositoryProvider;
 
         const string MetadataTargetFramework = "TargetFramework";
         const string MetadataName = "Name";
 
 
         public NuGetExtensibleProjectManager(IPackageInstallationService packageInstallationService, IFrameworkNameProvider frameworkNameProvider, 
-            INuGetProjectContextProvider nuGetProjectContextProvider)
+            INuGetProjectContextProvider nuGetProjectContextProvider, ISourceRepositoryProvider repositoryProvider)
         {
             Argument.IsNotNull(() => packageInstallationService);
             Argument.IsNotNull(() => frameworkNameProvider);
             Argument.IsNotNull(() => nuGetProjectContextProvider);
+            Argument.IsNotNull(() => repositoryProvider);
 
             _packageInstallationService = packageInstallationService;
             _frameworkNameProvider = frameworkNameProvider;
             _nuGetProjectContextProvider = nuGetProjectContextProvider;
+            _repositoryProvider = repositoryProvider;
         }
 
         public async Task<IEnumerable<PackageReference>> GetInstalledPackagesAsync(IExtensibleProject project, CancellationToken token)
@@ -146,6 +151,16 @@
             var packagesConfigProject = new PackagesConfigNuGetProject(project.ContentPath, metadata.Data);
 
             return packagesConfigProject;
+        }
+
+        public IEnumerable<SourceRepository> AsLocalRepositories(IEnumerable<IExtensibleProject> projects)
+        {
+            var repos = projects.Select(x => _repositoryProvider
+                .CreateRepository(
+                        new PackageSource(x.ContentPath), NuGet.Protocol.FeedType.FileSystemV3
+                ));
+
+            return repos;
         }
     }
 }

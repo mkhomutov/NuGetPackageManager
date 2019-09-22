@@ -23,7 +23,7 @@ namespace NuGetPackageManager.Services
         private readonly INuGetExtensibleProjectManager _projectManager;
         private readonly IRepositoryService _repositoryService;
 
-        public IPackageMetadataProvider PackageMetadataProvider { get; set; }
+        public Lazy<IPackageMetadataProvider> PackageMetadataProvider { get; set; }
 
         public LocalPackagesLoaderService(IRepositoryService repositoryService, IExtensibleProjectLocator extensibleProjectLocator, 
             INuGetExtensibleProjectManager nuGetExtensibleProjectManager)
@@ -36,7 +36,7 @@ namespace NuGetPackageManager.Services
             _projectManager = nuGetExtensibleProjectManager;
             _repositoryService = repositoryService;
 
-            InitializeMetdataProvider();
+            PackageMetadataProvider = new Lazy<IPackageMetadataProvider>(() => InitializeMetdataProvider());
         }
 
         public async Task<IEnumerable<IPackageSearchMetadata>> LoadAsync(string searchTerm, PageContinuation pageContinuation, SearchFilter searchFilter, CancellationToken token)
@@ -48,11 +48,11 @@ namespace NuGetPackageManager.Services
             var observedProjects = _extensibleProjectLocator.GetAllExtensibleProjects();
 
             //get local search resources for all active projects folders
-            IEnumerable<FindLocalPackagesResource> localResourcesList = 
-                observedProjects.Select(x => x.ContentPath)
-                .Select(x =>
-                    Repository.Factory.GetCoreV3(x)
-                        .GetResource<FindLocalPackagesResource>()).ToList();
+            //IEnumerable<FindLocalPackagesResource> localResourcesList = 
+            //    observedProjects.Select(x => x.ContentPath)
+            //    .Select(x =>
+            //        Repository.Factory.GetCoreV3(x)
+            //            .GetResource<FindLocalPackagesResource>()).ToList();
 
             List<PackageIdentity> packages = new List<PackageIdentity>();
 
@@ -102,25 +102,30 @@ namespace NuGetPackageManager.Services
             }
         }
 
-        public void InitializeMetdataProvider()
+        public IPackageMetadataProvider InitializeMetdataProvider()
         {
             //todo provide more automatic way
             //create package metadata provider from context
             var context = _repositoryService.AcquireContext();
 
+            var projects = _extensibleProjectLocator.GetAllExtensibleProjects();
+
+            var localRepos = _projectManager.AsLocalRepositories(projects);
+
             var repos = context.Repositories ?? context.PackageSources.Select(src => _repositoryService.GetRepository(src));
 
-            PackageMetadataProvider = new PackageMetadataProvider(repos, null);
+            return new PackageMetadataProvider(repos, localRepos);
         }
 
         public async Task<IPackageSearchMetadata> GetPackageMetadataAsync(PackageIdentity identity, bool includePrerelease, CancellationToken cancellationToken)
         {
             // first we try and load the metadata from a local package
-            var packageMetadata = await PackageMetadataProvider.GetLocalPackageMetadataAsync(identity, includePrerelease, cancellationToken);
+            var packageMetadata = await PackageMetadataProvider.Value.GetLocalPackageMetadataAsync(identity, includePrerelease, cancellationToken);
+
             if (packageMetadata == null)
             {
                 // and failing that we go to the network
-                packageMetadata = await PackageMetadataProvider.GetPackageMetadataAsync(identity, includePrerelease, cancellationToken);
+                packageMetadata = await PackageMetadataProvider.Value.GetPackageMetadataAsync(identity, includePrerelease, cancellationToken);
             }
             return packageMetadata;
         }

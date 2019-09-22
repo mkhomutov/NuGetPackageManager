@@ -21,36 +21,56 @@
 
         private readonly IEnumerable<SourceRepository> _sourceRepositories;
 
-        private readonly IEnumerable<SourceRepository> _optionalLocalRepository;
+        private readonly IEnumerable<SourceRepository> _optionalLocalRepositories;
+
+        private readonly SourceRepository _localRepository;
 
         public PackageMetadataProvider(IEnumerable<SourceRepository> sourceRepositories,
-            IEnumerable<SourceRepository> optionalLocalRepository)
+            IEnumerable<SourceRepository> optionalGlobalLocalRepositories)
         {
             Argument.IsNotNull(() => sourceRepositories);
 
             _sourceRepositories = sourceRepositories;
-            _optionalLocalRepository = optionalLocalRepository;
+            _optionalLocalRepositories = optionalGlobalLocalRepositories;
         }
 
-        public Task<IPackageSearchMetadata> GetLocalPackageMetadataAsync(PackageIdentity identity, bool includePrerelease, CancellationToken cancellationToken)
+        public PackageMetadataProvider(SourceRepository localRepository, IEnumerable<SourceRepository> sourceRepositories,
+            IEnumerable<SourceRepository> optionalGlobalLocalRepositories) : this(sourceRepositories, optionalGlobalLocalRepositories)
+        {
+            Argument.IsNotNull(() => localRepository);
+
+            _localRepository = localRepository;
+        }
+
+        public async Task<IPackageSearchMetadata> GetLocalPackageMetadataAsync(PackageIdentity identity, bool includePrerelease, CancellationToken cancellationToken)
         {
             var sources = new List<SourceRepository>();
 
-            if(_sourceRepositories != null)
+            if (_optionalLocalRepositories != null)
+            {
+                sources.AddRange(_optionalLocalRepositories);
+            }
+
+            if (_sourceRepositories != null)
             {
                 sources.AddRange(_sourceRepositories);
             }
-
-            if(_optionalLocalRepository != null)
-            {
-                sources.AddRange(_optionalLocalRepository);
-            }
-
+  
             // Take the package from the first source it is found in
             foreach (var source in sources)
             {
-                var result = 
+                var result = await GetPackageMetadataFromLocalSourceAsync(source, identity, cancellationToken);
+
+                if(result != null)
+                {
+                    //TODO why additional fetching needed?
+                    //return result.WithVersions(
+                    //    () => FetchAndMergeVersionsAsync(identity, includePrerelease, ))
+                    return result;
+                }
             }
+
+            return null;
         }
 
         public async Task<IPackageSearchMetadata> GetPackageMetadataAsync(PackageIdentity identity, bool includePrerelease, CancellationToken cancellationToken)
@@ -116,7 +136,7 @@
                     includePrerelease,
                     includeUnlisted,
                     sourceCacheContext,
-                    new Loggers.DebugLogger(true),
+                    NuGetLogger,
                     cancellationToken);
 
                 return packages;
@@ -162,6 +182,15 @@
 
                 return packageMetadata?.WithVersions(versions);
             }
+        }
+
+        //TODO
+        private async Task<IEnumerable<VersionInfo>> FetchAndMergeVersionsAsync(PackageIdentity identity, bool includePrerelease, CancellationToken token)
+        {
+            var rp = _localRepository;
+
+            Log.Info(rp.ToString());
+            return null;
         }
     }
 }
