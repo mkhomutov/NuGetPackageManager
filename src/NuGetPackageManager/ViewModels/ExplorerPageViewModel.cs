@@ -2,6 +2,8 @@
 {
     using Catel;
     using Catel.Collections;
+    using Catel.Data;
+    using Catel.IoC;
     using Catel.Logging;
     using Catel.MVVM;
     using Catel.Services;
@@ -9,6 +11,7 @@
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Pagination;
+    using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
     using NuGetPackageManager.Web;
     using System;
@@ -72,6 +75,12 @@
             Argument.IsNotNull(() => repositoryService);
 
             _packagesLoaderService = packagesLoaderService;
+
+            if(Title != "Browse")
+            {
+                _packagesLoaderService = this.GetServiceLocator().ResolveType<IPackagesLoaderService>(Title);
+            }
+
             _dispatcherService = dispatcherService;
             _packageMetadataMediaDownloadService = packageMetadataMediaDownloadService;
             _nuGetFeedVerificationService = nuGetFeedVerificationService;
@@ -98,7 +107,24 @@
             }
         }
 
+        //handle settings changes and force reloading if needed
+        private async void OnSettingsPropertyPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (Settings.ObservedFeed == null)
+            {
+                return;
+            }
+
+            if (String.Equals(e.PropertyName, nameof(Settings.IsPreReleaseIncluded)) ||
+                String.Equals(e.PropertyName, nameof(Settings.SearchString)) || String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
+            {
+                StartLoadingTimerOrInvalidateData();
+            }
+        }
+
         public static CancellationTokenSource VerificationTokenSource { get; set; } = new CancellationTokenSource();
+
+        public static CancellationTokenSource DelayCancellationTokenSource { get; set; } = new CancellationTokenSource();
 
         private PageContinuation PageInfo { get; set; }
 
@@ -134,33 +160,21 @@
             }
         }
 
-        //handle settings changes and force reloading if needed
-        private async void OnSettingsPropertyPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (Settings.ObservedFeed == null)
-            {
-                return;
-            }
-
-            if (String.Equals(e.PropertyName, nameof(Settings.IsPreReleaseIncluded)) ||
-                String.Equals(e.PropertyName, nameof(Settings.SearchString)) || String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
-            {
-                if (IsActive)
-                {
-                    StartLoadingTimer();
-                }
-            }
-        }
-
         public bool IsActive { get; set; }
+
+        /// <summary>
+        /// Show is data should be reloaded
+        /// when viewmodel became active
+        /// </summary>
+        public bool Invalidated { get; set; }
 
         public bool IsCancellationTokenAlive { get; set; }
 
         public bool IsLoadingInProcess { get; set; }
 
-        public bool IsCancellationForced { get; set; }
+        public bool IsFirstLoaded { get; set; } = true;
 
-        public static CancellationTokenSource DelayCancellationTokenSource { get; set; } = new CancellationTokenSource();
+        public bool IsCancellationForced { get; set; }
 
         public CancellationTokenSource PageLoadingTokenSource { get; set; }
 
@@ -184,6 +198,9 @@
                     var currentFeed = Settings.ObservedFeed;
                     PageInfo = new PageContinuation(PageSize, Settings.ObservedFeed.GetPackageSource());
                     var searchParams = new PackageSearchParameters(Settings.IsPreReleaseIncluded, Settings.SearchString);
+
+                    IsFirstLoaded = false;
+
                     await VerifySourceAndLoadPackagesAsync(PageInfo, currentFeed, searchParams);
                 }
                 else
@@ -197,9 +214,36 @@
             }
         }
 
+        protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
+        {
+            if(IsFirstLoaded)
+            {
+                return;
+            }
+
+            if (String.Equals(e.PropertyName, nameof(IsActive)) && IsActive)
+            {
+                StartLoadingTimerOrInvalidateData();
+            }
+
+            base.OnPropertyChanged(e);
+        }
+
         protected async override Task OnClosedAsync(bool? result)
         {
             _packages.CollectionChanged -= OnPackagesCollectionChanged;
+        }
+
+        private void StartLoadingTimerOrInvalidateData()
+        {
+            if(IsActive)
+            {
+                StartLoadingTimer();
+            }
+            else
+            {
+                Invalidated = true;
+            }
         }
 
         private void StartLoadingTimer()
@@ -277,6 +321,10 @@
                     }
                     IsCancellationTokenAlive = false;
                     PageLoadingTokenSource = null;
+                }
+                else
+                {
+                    Invalidated = true;
                 }
             }
             catch (OperationCanceledException e)

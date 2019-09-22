@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NuGetPackageManager.Interfaces
+namespace NuGetPackageManager.Providers
 {
     /// <summary>
     /// Contract for a generalized package metadata provider associated with a package source(s).

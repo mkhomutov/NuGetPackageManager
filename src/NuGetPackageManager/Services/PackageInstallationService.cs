@@ -1,6 +1,7 @@
 ﻿namespace NuGetPackageManager.Services
 {
     using Catel;
+    using Catel.IoC;
     using Catel.Logging;
     using NuGet.Common;
     using NuGet.Configuration;
@@ -37,10 +38,13 @@
 
         private readonly INuGetCacheManager _nuGetCacheManager;
 
+        private readonly ITypeFactory _typeFactory;
+
+
         public PackageInstallationService(IFrameworkNameProvider frameworkNameProvider,
             ISourceRepositoryProvider sourceRepositoryProvider,
-            IFileDirectoryService fileDirectoryService
-            )
+            IFileDirectoryService fileDirectoryService,
+            ITypeFactory typeFactory)
         {
             Argument.IsNotNull(() => frameworkNameProvider);
             Argument.IsNotNull(() => sourceRepositoryProvider);
@@ -51,8 +55,9 @@
             _sourceRepositoryProvider = sourceRepositoryProvider;
             _fileDirectoryService = fileDirectoryService;
 
+            _typeFactory = typeFactory;
+
             _nuGetCacheManager = new NuGetCacheManager(_fileDirectoryService);
-            // = nuGetCacheManager;
         }
 
         public async Task InstallAsync(PackageIdentity package, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken)
@@ -114,49 +119,63 @@
             }
         }
 
-        public async Task InstallAsync(PackageIdentity identity, IExtensibleProject project, IReadOnlyList<SourceRepository> repositories, CancellationToken cancellationToken)
+        public async Task<IDictionary<SourcePackageDependencyInfo, DownloadResourceResult>> InstallAsync(
+            PackageIdentity identity, 
+            IExtensibleProject project, 
+            IReadOnlyList<SourceRepository> repositories, 
+            CancellationToken cancellationToken)
         {
-            var targetFramework = TryParseFrameworkName(project.Framework, _frameworkNameProvider);
-
-            var resContext = new NuGet.PackageManagement.ResolutionContext();
-
-            var respos = _sourceRepositoryProvider.GetRepositories();
-
-            var availabePackageStorage = new HashSet<SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
-
-            using (var cacheContext = _nuGetCacheManager.GetCacheContext())
+            try
             {
-                foreach (var repository in repositories)
+                var targetFramework = FrameworkParser.TryParseFrameworkName(project.Framework, _frameworkNameProvider);
+
+                var resContext = new NuGet.PackageManagement.ResolutionContext();
+
+                var respos = _sourceRepositoryProvider.GetRepositories();
+
+                var availabePackageStorage = new HashSet<SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
+
+                using (var cacheContext = _nuGetCacheManager.GetCacheContext())
                 {
-                    var dependencyInfoResource = await repository.GetResourceAsync<DependencyInfoResource>();
-                    var regResource = await repository.GetResourceAsync<RegistrationResourceV3>();
+                    foreach (var repository in repositories)
+                    {
+                        var dependencyInfoResource = await repository.GetResourceAsync<DependencyInfoResource>();
+                        var regResource = await repository.GetResourceAsync<RegistrationResourceV3>();
 
-                    var uri = regResource.GetUri(identity.Id);
+                        var uri = regResource.GetUri(identity.Id);
 
-                    await ResolveDependenciesRecursivelyAsync(identity, targetFramework, dependencyInfoResource, cacheContext,
-                        availabePackageStorage, cancellationToken);
+                        await ResolveDependenciesRecursivelyAsync(identity, targetFramework, dependencyInfoResource, cacheContext,
+                            availabePackageStorage, cancellationToken);
 
+                    }
+                }
+
+                var resolverContext = GetResolverContext(identity, availabePackageStorage);
+
+                var resolver = new PackageResolver();
+
+                var packagesInstallationList = resolver.Resolve(resolverContext, cancellationToken);
+
+                var availablePackagesToInstall = packagesInstallationList
+                    .Select(
+                        x => availabePackageStorage
+                            .Single(p => PackageIdentityComparer.Default.Equals(p, x)));
+
+                using (var cacheContext = _nuGetCacheManager.GetCacheContext())
+                {
+                    var downloadResults = await DownloadPackagesResourcesAsync(availablePackagesToInstall, cacheContext, cancellationToken);
+
+                    var extractionContext = GetExtractionContext();
+
+                    await ExtractPackagesResourcesAsync(downloadResults.Values, project, extractionContext, cancellationToken);
+
+                    return downloadResults;
                 }
             }
-
-            var resolverContext = GetResolverContext(identity, availabePackageStorage);
-
-            var resolver = new PackageResolver();
-
-            var packagesInstallationList = resolver.Resolve(resolverContext, cancellationToken);
-
-            var availablePackagesToInstall = packagesInstallationList
-                .Select(
-                    x => availabePackageStorage
-                        .Single(p => PackageIdentityComparer.Default.Equals(p, x)));
-
-            using (var cacheContext = _nuGetCacheManager.GetCacheContext())
+            catch(Exception e)
             {
-                var downloadResults = await DownloadPackagesResourcesAsync(availablePackagesToInstall, cacheContext, cancellationToken);
-
-                var extractionContext = GetExtractionContext();
-
-                await ExtractPackagesResourcesAsync(downloadResults.Values, project, extractionContext, cancellationToken);
+                Log.Error(e);
+                throw;
             }
         }
 
@@ -274,20 +293,7 @@
             }
 
         }
-
-
-        private NuGetFramework TryParseFrameworkName(string frameworkString, IFrameworkNameProvider frameworkNameProvider)
-        {
-            try
-            {
-                return NuGetFramework.ParseFrameworkName(frameworkString, frameworkNameProvider);
-            }
-            catch (ArgumentException e)
-            {
-                Log.Error(e, "Incorrect target framework");
-                throw;
-            }
-        }
+     
 
         private PackageResolverContext GetResolverContext(PackageIdentity package, IEnumerable<SourcePackageDependencyInfo> flatDependencies)
         {
@@ -329,6 +335,7 @@
 
             return extractionContext;
         }
+
 
         private async Task CheckLibAndFrameworkItems(IDictionary<SourcePackageDependencyInfo, DownloadResourceResult> downloadedPackagesDictionary,
             NuGetFramework targetFramework, CancellationToken cancellationToken)

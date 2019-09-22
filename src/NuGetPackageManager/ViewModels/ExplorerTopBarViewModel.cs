@@ -95,7 +95,7 @@
         {
             ShowPackageSourceSettings = new TaskCommand(OnShowPackageSourceSettingsExecuteAsync);
             ShowExtensibles = new TaskCommand(OnShowExtensibles);
-            RunNuGetCachesClearing = new Command(OnRunNuGetCachesClearing);
+            RunNuGetCachesClearing = new TaskCommand(OnRunNuGetCachesClearing);
         }
 
         public TaskCommand ShowPackageSourceSettings { get; set; }
@@ -128,12 +128,19 @@
             }
         }
 
-        public Command RunNuGetCachesClearing { get; set; }
+        public TaskCommand RunNuGetCachesClearing { get; set; }
 
-        private void OnRunNuGetCachesClearing()
+        private async Task OnRunNuGetCachesClearing()
         {
             try
             {
+                var shouldRunClear = await _messageService.ShowAsync("Clean all NuGet caches, including global packages folder?", "NuGet Package Management", MessageButton.OKCancel);
+
+                if(shouldRunClear == MessageResult.Cancel)
+                {
+                    return;
+                }
+
                 _pleaseWaitService.Push();
 
                 var noErrors = _nuGetCacheManager.ClearAll();
@@ -142,18 +149,18 @@
 
                 if (noErrors)
                 {
-                    _messageService.ShowInformationAsync(Constants.Messages.CacheClearEndedSuccessful, Constants.PackageManagement);
+                    await _messageService.ShowInformationAsync(Constants.Messages.CacheClearEndedSuccessful, Constants.PackageManagement);
                 }
                 else
                 {
-                    _messageService.ShowWarningAsync(Constants.Messages.CachedClearEndedWithError, Constants.PackageManagement);
+                    await _messageService.ShowWarningAsync(Constants.Messages.CachedClearEndedWithError, Constants.PackageManagement);
                 }
             }
             catch (Exception e)
             {
                 Log.Error(e, Constants.Messages.CacheClearFailed);
 
-                _messageService.ShowErrorAsync(Constants.Messages.CacheClearFailed, Constants.PackageManagement);
+                await _messageService.ShowErrorAsync(Constants.Messages.CacheClearFailed, Constants.PackageManagement);
             }
         }
 

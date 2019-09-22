@@ -10,7 +10,7 @@
     using System;
     using System.Xml.Linq;
 
-    public class ProjectContext : INuGetProjectContext
+    public class NuGetProjectContext : INuGetProjectContext
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
@@ -18,7 +18,7 @@
 
         private readonly IMessageDialogService _messageDialogService;
 
-        public ProjectContext(FileConflictAction fileConflictAction, IMessageDialogService messageDialogService)
+        public NuGetProjectContext(FileConflictAction fileConflictAction, IMessageDialogService messageDialogService)
         {
             FileConflictAction = fileConflictAction;
 

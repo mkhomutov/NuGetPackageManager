@@ -34,8 +34,6 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<ICredentialProvider, WindowsCredentialProvider>();
         serviceLocator.RegisterType<ICredentialProviderLoaderService, CredentialProviderLoaderService>();
 
-        serviceLocator.RegisterType<IPackagesLoaderService, PackagesLoaderService>();
-
         serviceLocator.RegisterType<IPackageInstallationService, PackageInstallationService>();
 
         var appCache = new ApplcationCacheProvider();
@@ -44,6 +42,7 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<IPackageMetadataMediaDownloadService, PackageMetadataMediaDownloadService>();
 
         serviceLocator.RegisterType<ISourceRepositoryProvider, SourceRepositoryProvider>();
+        serviceLocator.RegisterType<INuGetProjectContextProvider, NuGetProjectContextProvider>();
 
         serviceLocator.RegisterType<IRepositoryService, RepositoryService>();
 
@@ -52,6 +51,7 @@ public static class ModuleInitializer
 
         serviceLocator.RegisterType<IFrameworkNameProvider, DefaultFrameworkNameProvider>();
 
+        serviceLocator.RegisterType<ISynchronousUiVisualizer, SynchronousUIVisualizerService>();
         serviceLocator.RegisterType<IMessageDialogService, MessageDialogService>();
 
         serviceLocator.RegisterType<IFileDirectoryService, FileDirectoryService>();
@@ -61,6 +61,12 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<IAnimationService, AnimationService>();
 
         serviceLocator.RegisterType<IProgressManager, ProgressManager>();
+
+
+        //package loaders
+        serviceLocator.RegisterType<IPackagesLoaderService, PackagesLoaderService>();
+        serviceLocator.RegisterTypeWithTag<IPackagesLoaderService, LocalPackagesLoaderService>("Installed");
+        serviceLocator.RegisterTypeWithTag<IPackagesLoaderService, UpdatePackagesLoaderService>("Updates");
 
         //add all project extensions
 

@@ -5,6 +5,7 @@
     using Catel.MVVM;
     using Catel.Reflection;
     using Catel.Services;
+    using NuGetPackageManager.Windows.Service;
     using System;
     using System.Threading.Tasks;
     using System.Windows;
@@ -15,7 +16,7 @@
     /// It used only for compatibility purposes
     /// to satisfy necessity of calling visualizer from implementations of NuGet Library's synchronous interfaces
     /// </summary>
-    public class SynchronousUIVisualizerService : UIVisualizerService
+    public class SynchronousUIVisualizerService : UIVisualizerService, ISynchronousUiVisualizer
     {
         private readonly IViewLocator _viewLocator;
 

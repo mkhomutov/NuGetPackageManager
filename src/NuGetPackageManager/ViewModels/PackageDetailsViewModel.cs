@@ -8,7 +8,6 @@
     using NuGet.Packaging.Core;
     using NuGet.Protocol.Core.Types;
     using NuGet.Versioning;
-    using NuGetPackageManager.Interfaces;
     using NuGetPackageManager.Management;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Providers;
@@ -156,10 +155,15 @@
             {
                 _progressManager.ShowBar(this);
 
-                using (var cts = new CancellationTokenSource())
+                var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
+
+                foreach (var project in NuGetActionTarget.TargetProjects)
                 {
-                    var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
-                    await _installationService.InstallAsync(identity, NuGetActionTarget.TargetProjects, cts.Token);
+
+                    using (var cts = new CancellationTokenSource())
+                    {
+                        await _projectManager.InstallPackageForProject(project, identity, cts.Token);
+                    }
                 }
 
                 await Task.Delay(200);
@@ -182,14 +186,17 @@
 
                 foreach (var project in NuGetActionTarget.TargetProjects)
                 {
-                    var isInstalled = _projectManager.IsPackageInstalled(project, identity);
-
-                    if (isInstalled)
+                    using (var cts = new CancellationTokenSource())
                     {
-                        using (var cts = new CancellationTokenSource())
+                        var isInstalled = await _projectManager.IsPackageInstalledAsync(project, identity, cts.Token);
+
+                        if (!isInstalled)
                         {
-                            await _installationService.UninstallAsync(identity, project, cts.Token);
+                            continue;
                         }
+
+                        //todo use pm implementation
+                        await _installationService.UninstallAsync(identity, project, cts.Token);
                     }
                 }
             }
