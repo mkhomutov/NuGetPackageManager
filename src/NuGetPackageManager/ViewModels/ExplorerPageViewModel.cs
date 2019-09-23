@@ -221,8 +221,15 @@
                 return;
             }
 
-            if (String.Equals(e.PropertyName, nameof(IsActive)) && IsActive)
+            if(String.Equals(e.PropertyName, nameof(Invalidated)) && Invalidated)
             {
+                Log.Info($"ViewModel {this} data was invalidated");
+            }
+
+            if (String.Equals(e.PropertyName, nameof(IsActive)) && Invalidated)
+            {
+                //this happen when page selecting and old gathered package data 
+                //doesnt match to current user search query
                 StartLoadingTimerOrInvalidateData();
             }
 
@@ -447,6 +454,8 @@
                         Packages.AddRange(packages);
                     }
                 );
+
+                Invalidated = false;
 
                 Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString} from {PageInfo.Source}'");
 
