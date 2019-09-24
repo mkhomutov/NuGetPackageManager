@@ -1,4 +1,5 @@
-﻿using Catel.MVVM.Views;
+﻿using Catel.MVVM;
+using Catel.MVVM.Views;
 using NuGet.Protocol.Core.Types;
 using System.Windows;
 
@@ -15,14 +16,16 @@ namespace NuGetPackageManager.Views
             InitializeComponent();
         }
 
-        [ViewToViewModel(viewModelPropertyName: "SelectedPackage", MappingType = ViewToViewModelMappingType.TwoWayViewModelWins)]
-        public IPackageSearchMetadata SelectedItemOnPage
+        [ViewToViewModel(viewModelPropertyName: "SelectedPackageItem", MappingType = ViewToViewModelMappingType.TwoWayViewModelWins)]
+        public IViewModel SelectedItemOnPage
         {
-            get { return (IPackageSearchMetadata)GetValue(SelectedItemOnPageProperty); }
+            get { return (IViewModel)GetValue(SelectedItemOnPageProperty); }
             set { SetValue(SelectedItemOnPageProperty, value); }
         }
 
         public static readonly DependencyProperty SelectedItemOnPageProperty =
-            DependencyProperty.Register(nameof(SelectedItemOnPage), typeof(IPackageSearchMetadata), typeof(ExplorerPageView), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(SelectedItemOnPage), typeof(IViewModel), typeof(ExplorerPageView), new PropertyMetadata(null));
+
+
     }
 }

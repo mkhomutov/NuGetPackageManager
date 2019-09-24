@@ -36,6 +36,10 @@
         <Setter Property="Template" Value="{StaticResource RotationProgressBar}"/>
     </Style>
 
+    <Style TargetType="local:Badged">
+        <Setter Property="Template" Value="{StaticResource Badged}"/>
+    </Style>
+
     <Style x:Key="DefaultListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="Padding" Value="4,1"/>

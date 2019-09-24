@@ -18,13 +18,13 @@
             <mvvm:BindingProxy Data="{Binding }" x:Key="ContextProxy"/>
         </Grid.Resources>
         <nugetc:InfiniteScrollListBox x:Name="infinitybox"
-                                      ItemsSource="{Binding Packages}"
+                                      ItemsSource="{Binding PackageItems}"
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       Command="{Binding LoadNextPackagePage}"
                                       IsCommandExecuting="{Binding IsCancellationTokenAlive}"
                                       HorizontalContentAlignment="Stretch"
-                                      SelectedItem="{Binding SelectedPackage}"
+                                      SelectedItem="{Binding SelectedPackageItem}"
                                       Height="800">
             <nugetc:InfiniteScrollListBox.ItemTemplate>
                 <DataTemplate>
@@ -46,10 +46,24 @@
                                 <RowDefinition Height="50"/>
                             </Grid.RowDefinitions>
 
-                            <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}, IsAsync=True}"
+                            <nugetc:Badged VerticalAlignment="Top" Margin="0 4 4 0"
+                                           Grid.RowSpan="3"
+                                           BorderBrush="WhiteSmoke"
+                                           Background="{DynamicResource AvaialableUpdateBadgeBackgroundBrush}"
+                                           IsShowed="{Binding }"
+                                           BadgeForeground="WhiteSmoke">
+                                <nugetc:Badged.Badge>
+                                    <Viewbox>
+                                        <Canvas Width="24" Height="24" ClipToBounds="True">
+                                            <Path Data="{Binding Source={StaticResource Arrow-up-bold}, Path=Data}" 
+                                                  Fill="{Binding RelativeSource={RelativeSource AncestorType=nugetc:Badged}, Path=BadgeForeground}"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                </nugetc:Badged.Badge>
+                                <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}, IsAsync=True}"
                                        RenderOptions.BitmapScalingMode="Fant"
-                                       Height="32" Width="32" Grid.RowSpan="2"
-                                       VerticalAlignment="Top" Margin="0 4 2 0"/>
+                                       Height="32" Width="32"/>
+                            </nugetc:Badged>
 
                             <Grid Grid.Column="1">
                                 <Grid.ColumnDefinitions>
@@ -71,7 +85,7 @@
                                         <TextBlock Text="by:"></TextBlock>
                                         <TextBlock Text="{Binding Authors}"
                                                    TextTrimming="WordEllipsis"/>
-                                    </TextBlock>
+                                </TextBlock>
                                 <TextBlock Text="{Binding Identity.Version}"
                                                Margin="0 0 8 0"
                                                HorizontalAlignment="Right"

@@ -47,11 +47,6 @@
                 Log.Error(ex);
                 return;
             }
-            catch (Exception e)
-            {
-                var b = e;
-                throw;
-            }
         }
     }
 }

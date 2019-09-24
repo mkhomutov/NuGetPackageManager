@@ -33,6 +33,7 @@
         private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
         private readonly INuGetFeedVerificationService _nuGetFeedVerificationService;
         private readonly IDispatcherService _dispatcherService;
+        private readonly ITypeFactory _typeFactory;
 
         private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
 
@@ -62,7 +63,7 @@
 
         public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
             IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService, INuGetFeedVerificationService nuGetFeedVerificationService,
-            ICommandManager commandManager, IDispatcherService dispatcherService, IRepositoryService repositoryService)
+            ICommandManager commandManager, IDispatcherService dispatcherService, IRepositoryService repositoryService, ITypeFactory typeFactory)
         {
             Title = pageTitle;
 
@@ -73,6 +74,7 @@
             Argument.IsNotNull(() => nuGetFeedVerificationService);
             Argument.IsNotNull(() => dispatcherService);
             Argument.IsNotNull(() => repositoryService);
+            Argument.IsNotNull(() => typeFactory);
 
             _packagesLoaderService = packagesLoaderService;
 
@@ -87,6 +89,8 @@
             _repositoryService = repositoryService;
 
             Settings = explorerSettings;
+
+            _typeFactory = typeFactory;
 
             LoadNextPackagePage = new TaskCommand(LoadNextPackagePageExecute);
             CancelPageLoading = new TaskCommand(CancelPageLoadingExecute);
@@ -156,9 +160,14 @@
             set
             {
                 _packages = value;
+
                 RaisePropertyChanged(() => Packages);
             }
         }
+
+        public PackageDetailsViewModel SelectedPackageItem { get; set; }
+
+        public FastObservableCollection<PackageDetailsViewModel> PackageItems { get; set; }
 
         public bool IsActive { get; set; }
 
@@ -192,6 +201,8 @@
 
                 _packages.CollectionChanged += OnPackagesCollectionChanged;
 
+                PackageItems = new FastObservableCollection<PackageDetailsViewModel>();
+
                 //todo validation
                 if (Settings.ObservedFeed != null && !String.IsNullOrEmpty(Settings.ObservedFeed.Source))
                 {
@@ -216,7 +227,9 @@
 
         protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
         {
-            if(IsFirstLoaded)
+            base.OnPropertyChanged(e);
+
+            if (IsFirstLoaded)
             {
                 return;
             }
@@ -232,8 +245,6 @@
                 //doesnt match to current user search query
                 StartLoadingTimerOrInvalidateData();
             }
-
-            base.OnPropertyChanged(e);
         }
 
         protected async override Task OnClosedAsync(bool? result)
@@ -455,6 +466,8 @@
                     }
                 );
 
+                await CreatePackageListItems(packages);
+
                 Invalidated = false;
 
                 Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString} from {PageInfo.Source}'");
@@ -470,6 +483,17 @@
             {
                 IsLoadingInProcess = false;
             }
+        }
+
+        private async Task CreatePackageListItems(IEnumerable<IPackageSearchMetadata> packageSearchMetadataCollection)
+        {
+            var vms = packageSearchMetadataCollection.Select(x => _typeFactory.CreateInstanceWithParametersAndAutoCompletion<PackageDetailsViewModel>(x)).ToList();
+                           
+            _dispatcherService.BeginInvoke(() =>
+                    {
+                        PackageItems.AddRange(vms);
+                    }
+            );
         }
 
         private async Task DownloadAllPicturesForMetadataAsync(IEnumerable<IPackageSearchMetadata> metadatas, CancellationToken token)

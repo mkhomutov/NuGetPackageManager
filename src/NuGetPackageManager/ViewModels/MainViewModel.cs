@@ -45,6 +45,20 @@ namespace NuGetPackageManager.ViewModels
 
         public IPackageSearchMetadata SelectedPackageMetadata { get; set; }
 
+        private IViewModel _selectedPackageItem;
+        public IViewModel SelectedPackageItem
+        {
+            get { return _selectedPackageItem; }
+            set
+            {
+                _selectedPackageItem = null;
+                RaisePropertyChanged(() => SelectedPackageItem);
+                _selectedPackageItem = value;
+                RaisePropertyChanged(() => SelectedPackageItem);
+
+            }
+        }
+
         public ObservableCollection<ExplorerPageViewModel> ExplorerPages { get; set; }
 
         private void CreatePages()

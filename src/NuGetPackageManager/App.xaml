@@ -10,6 +10,7 @@
 
                 <ResourceDictionary Source="/NugetPackageManager;component/Themes/Brushes.xaml"/>
                 <ResourceDictionary Source="/NugetPackageManager;component/Controls/RotationProgressBar.xaml"/>
+                <ResourceDictionary Source="/NuGetPackageManager;component/Controls/Badged.xaml"/>
                 <ResourceDictionary  Source="/NuGetPackageManager;component/Themes/Generic.xaml"/>
                 <ResourceDictionary Source="/NugetPackageManager;component/Themes/MaterialIcons.xaml"/>
                 <ResourceDictionary Source="/NugetPackageManager;component/Themes/Shadows.xaml"/>

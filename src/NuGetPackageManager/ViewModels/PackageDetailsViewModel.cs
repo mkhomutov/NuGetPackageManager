@@ -72,7 +72,7 @@
 
                 _packageMetadataProvider = InitMetadataProvider();
 
-                await LoadSinglePackageMetadataAsync();
+                await LoadSinglePackageMetadataAsync(Package.Identity);
             }
             catch (Exception e)
             {
@@ -80,26 +80,34 @@
             }
         }
 
-        protected async Task LoadSinglePackageMetadataAsync()
-        {
-            await LoadSinglePackageMetadataAsync(Package.Identity);
-        }
-
         protected async Task LoadSinglePackageMetadataAsync(PackageIdentity identity)
         {
-            using (var cts = new CancellationTokenSource())
+            try
             {
-                //todo include prerelease
-                VersionData = await _packageMetadataProvider?.GetPackageMetadataAsync(
-                    identity, _settingsProvider.Model.IsPreReleaseIncluded, cts.Token);
+                using (var cts = new CancellationTokenSource())
+                {
+                    //todo include prerelease
+                    VersionData = await _packageMetadataProvider?.GetPackageMetadataAsync(
+                        identity, _settingsProvider.Model.IsPreReleaseIncluded, cts.Token);
 
-                DependencyInfo = VersionData.DependencySets;
+                    DependencyInfo = VersionData.DependencySets;
+                }
+            }
+            catch(Exception e)
+            {
+                Log.Error(e, "Metadata retrieve error");
             }
         }
 
         [Model]
         [Expose("Title")]
         [Expose("Description")]
+        [Expose("Summary")]
+        [Expose("DownloadCount")]
+        [Expose("Authors")]
+        [Expose("IconUrl")]
+        [Expose("Identity")]
+        [Expose("Status")]
         public NuGetPackage Package { get; set; }
 
         public ObservableCollection<NuGetVersion> VersionsCollection { get; set; }
