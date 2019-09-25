@@ -12,6 +12,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <catel:UserControl.Resources>
         <converters:UriToBitmapConverter x:Key="UriToBitmapConverter"/>
+        <converters:PackageStatusEnumToBoolConverter x:Key="PackageStatusEnumToBoolConverter"/>
     </catel:UserControl.Resources>
     <Grid>
         <Grid.Resources>
@@ -50,7 +51,7 @@
                                            Grid.RowSpan="3"
                                            BorderBrush="WhiteSmoke"
                                            Background="{DynamicResource AvaialableUpdateBadgeBackgroundBrush}"
-                                           IsShowed="{Binding }"
+                                           IsShowed="{Binding Status, Converter={StaticResource PackageStatusEnumToBoolConverter}}"
                                            BadgeForeground="WhiteSmoke">
                                 <nugetc:Badged.Badge>
                                     <Viewbox>

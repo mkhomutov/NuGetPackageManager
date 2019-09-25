@@ -157,7 +157,7 @@
         {
             var repos = projects.Select(x => _repositoryProvider
                 .CreateRepository(
-                        new PackageSource(x.ContentPath), NuGet.Protocol.FeedType.FileSystemV3
+                        new PackageSource(x.ContentPath), NuGet.Protocol.FeedType.FileSystemV2
                 ));
 
             return repos;

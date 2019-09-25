@@ -62,11 +62,12 @@ public static class ModuleInitializer
 
         serviceLocator.RegisterType<IProgressManager, ProgressManager>();
 
-
         //package loaders
         serviceLocator.RegisterType<IPackagesLoaderService, PackagesLoaderService>();
         serviceLocator.RegisterTypeWithTag<IPackagesLoaderService, LocalPackagesLoaderService>("Installed");
         serviceLocator.RegisterTypeWithTag<IPackagesLoaderService, UpdatePackagesLoaderService>("Updates");
+
+        serviceLocator.RegisterType<IDefferedPackageLoaderService, DefferedPackageLoaderService>();
 
         //add all project extensions
 

@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace NuGetPackageManager.Enums
 {
-    public enum PackageStatus
+    public enum PageType
     {
-        NotInstalled = -2,
-        UpdateAvailable = -1,
-        LastVersionInstalled = 0,
-        Pending = 1
+        Browse,
+        Installed,
+        Updates
     }
 }

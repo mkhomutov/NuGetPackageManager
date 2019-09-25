@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Catel.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,9 +11,19 @@ using System.Windows.Media;
 namespace NuGetPackageManager.Controls
 {
     [TemplatePart(Name = BadgeContentPartName, Type = typeof(FrameworkElement))]
+    [TemplatePart(Name = BadgePartName, Type = typeof(FrameworkElement))]
     public class Badged : ContentControl
     {
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         const string BadgeContentPartName = "PART_BadgeContent";
+        const string BadgePartName = "PART_Badge";
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+            SetTemplatePartVisibility(this, ToVisibility(IsShowed));
+        }
 
         public object Badge
         {
@@ -60,13 +71,25 @@ namespace NuGetPackageManager.Controls
             {
                 return;
             }
-            
-            var templateBadge = badged.GetTemplateChild(BadgeContentPartName);
 
-            if(templateBadge != null)
-            {
-                templateBadge.SetCurrentValue(VisibilityProperty, (bool)e.NewValue ? Visibility.Visible : Visibility.Hidden);
-            }   
+            var visibility = badged.ToVisibility((bool)e.NewValue);
+            badged.SetTemplatePartVisibility(badged, visibility);
+        }
+
+        private void SetTemplatePartVisibility(Badged b, Visibility visibility)
+        {
+            var templateBadgeContent = b.GetTemplateChild(BadgeContentPartName);
+            var templateBadge = b.GetTemplateChild(BadgePartName);
+
+            Log.Info($"{b.DataContext}: {visibility}");
+
+            templateBadgeContent?.SetCurrentValue(VisibilityProperty, visibility);
+            templateBadge?.SetCurrentValue(VisibilityProperty, visibility);
+        }
+
+        private Visibility ToVisibility(bool value)
+        {
+            return value ? Visibility.Visible : Visibility.Hidden;
         }
     }
 }

@@ -9,6 +9,7 @@
     using Catel.Services;
     using NuGet.Configuration;
     using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Enums;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Providers;
@@ -32,8 +33,11 @@
         private readonly IRepositoryService _repositoryService;
         private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
         private readonly INuGetFeedVerificationService _nuGetFeedVerificationService;
+        private readonly IDefferedPackageLoaderService _defferedPackageLoaderService;
         private readonly IDispatcherService _dispatcherService;
         private readonly ITypeFactory _typeFactory;
+
+        private readonly PageType _pageType;
 
         private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
 
@@ -63,7 +67,8 @@
 
         public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
             IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService, INuGetFeedVerificationService nuGetFeedVerificationService,
-            ICommandManager commandManager, IDispatcherService dispatcherService, IRepositoryService repositoryService, ITypeFactory typeFactory)
+            ICommandManager commandManager, IDispatcherService dispatcherService, IRepositoryService repositoryService, ITypeFactory typeFactory,
+            IDefferedPackageLoaderService defferedPackageLoaderService)
         {
             Title = pageTitle;
 
@@ -75,6 +80,7 @@
             Argument.IsNotNull(() => dispatcherService);
             Argument.IsNotNull(() => repositoryService);
             Argument.IsNotNull(() => typeFactory);
+            Argument.IsNotNull(() => defferedPackageLoaderService);
 
             _packagesLoaderService = packagesLoaderService;
 
@@ -83,10 +89,17 @@
                 _packagesLoaderService = this.GetServiceLocator().ResolveType<IPackagesLoaderService>(Title);
             }
 
+            
+            if(!Enum.TryParse(Title, out _pageType))
+            {
+                Log.Error("Unrecognized page type");
+            }
+
             _dispatcherService = dispatcherService;
             _packageMetadataMediaDownloadService = packageMetadataMediaDownloadService;
             _nuGetFeedVerificationService = nuGetFeedVerificationService;
             _repositoryService = repositoryService;
+            _defferedPackageLoaderService = defferedPackageLoaderService;
 
             Settings = explorerSettings;
 
@@ -99,14 +112,14 @@
             commandManager.RegisterCommand(nameof(RefreshCurrentPage), RefreshCurrentPage, this);
         }
 
-        private void OnPackagesCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private void OnPackageItemsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
             {
                 //item added on first place, collection was empty
                 if (e.NewStartingIndex == 0)
                 {
-                    SelectedPackage = Packages.FirstOrDefault();
+                    SelectedPackageItem = PackageItems.FirstOrDefault();
                 }
             }
         }
@@ -154,17 +167,6 @@
             }
         }
 
-        public FastObservableCollection<IPackageSearchMetadata> Packages
-        {
-            get { return _packages; }
-            set
-            {
-                _packages = value;
-
-                RaisePropertyChanged(() => Packages);
-            }
-        }
-
         public PackageDetailsViewModel SelectedPackageItem { get; set; }
 
         public FastObservableCollection<PackageDetailsViewModel> PackageItems { get; set; }
@@ -187,8 +189,6 @@
 
         public CancellationTokenSource PageLoadingTokenSource { get; set; }
 
-        public IPackageSearchMetadata SelectedPackage { get; set; }
-
         protected async override Task InitializeAsync()
         {
             try
@@ -199,9 +199,9 @@
 
                 _packages = new FastObservableCollection<IPackageSearchMetadata>();
 
-                _packages.CollectionChanged += OnPackagesCollectionChanged;
-
                 PackageItems = new FastObservableCollection<PackageDetailsViewModel>();
+
+                PackageItems.CollectionChanged += OnPackageItemsCollectionChanged;
 
                 //todo validation
                 if (Settings.ObservedFeed != null && !String.IsNullOrEmpty(Settings.ObservedFeed.Source))
@@ -249,7 +249,7 @@
 
         protected async override Task OnClosedAsync(bool? result)
         {
-            _packages.CollectionChanged -= OnPackagesCollectionChanged;
+            PackageItems.CollectionChanged -= OnPackageItemsCollectionChanged;
         }
 
         private void StartLoadingTimerOrInvalidateData()
@@ -387,6 +387,11 @@
                 IsCancellationTokenAlive = false;
                 Log.Error(ex);
             }
+            finally
+            {
+                await _defferedPackageLoaderService.StartLoadingAsync();
+
+            }
         }
 
         private CancellationTokenSource CreateCanclellationTokenSource()
@@ -450,7 +455,7 @@
 
                 if (isFirstLoad)
                 {
-                    Packages.Clear();
+                    PackageItems.Clear();
                 }
 
                 var packages = await _packagesLoaderService.LoadAsync(
@@ -459,12 +464,6 @@
                 await DownloadAllPicturesForMetadataAsync(packages, cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
-
-                _dispatcherService.BeginInvoke(() =>
-                    {
-                        Packages.AddRange(packages);
-                    }
-                );
 
                 await CreatePackageListItems(packages);
 
@@ -487,13 +486,45 @@
 
         private async Task CreatePackageListItems(IEnumerable<IPackageSearchMetadata> packageSearchMetadataCollection)
         {
-            var vms = packageSearchMetadataCollection.Select(x => _typeFactory.CreateInstanceWithParametersAndAutoCompletion<PackageDetailsViewModel>(x)).ToList();
-                           
+            var vms = packageSearchMetadataCollection.Select(x => _typeFactory.CreateInstanceWithParametersAndAutoCompletion<PackageDetailsViewModel>(x, _pageType)).ToList();
+
+            //create tokens, used for deffer execution of tasks
+            //obtained states/updates of packages
+
+            foreach (var vm in vms)
+            {
+                var deferToken = new DeferToken();
+
+                deferToken.LoadType = DetermineLoadBehavior(_pageType);
+                deferToken.Package = vm.Package;
+
+                deferToken.UpdateAction = (newState) =>
+                {
+                    vm.Status = newState;
+                };
+
+                _defferedPackageLoaderService.Add(deferToken);
+            }
+      
             _dispatcherService.BeginInvoke(() =>
                     {
                         PackageItems.AddRange(vms);
                     }
             );
+
+            PageType DetermineLoadBehavior(PageType page)
+            {
+                switch(page)
+                {
+                    case PageType.Browse: return PageType.Installed;
+
+                    case PageType.Installed: return PageType.Browse;
+
+                    case PageType.Updates: return PageType.Browse;
+                }
+
+                return PageType.Browse;
+            }
         }
 
         private async Task DownloadAllPicturesForMetadataAsync(IEnumerable<IPackageSearchMetadata> metadatas, CancellationToken token)

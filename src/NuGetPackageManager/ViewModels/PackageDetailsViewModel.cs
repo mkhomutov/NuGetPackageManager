@@ -8,8 +8,10 @@
     using NuGet.Packaging.Core;
     using NuGet.Protocol.Core.Types;
     using NuGet.Versioning;
+    using NuGetPackageManager.Enums;
     using NuGetPackageManager.Management;
     using NuGetPackageManager.Models;
+    using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
     using NuGetPackageManager.Windows;
@@ -34,8 +36,9 @@
         private IProgressManager _progressManager;
 
         private INuGetExtensibleProjectManager _projectManager;
+        
 
-        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
+        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, PageType fromPage, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
             IPackageInstallationService installationService, IProgressManager progressManager, INuGetExtensibleProjectManager projectManager)
         {
             Argument.IsNotNull(() => repositoryService);
@@ -56,6 +59,16 @@
                 Package = new NuGetPackage(packageMetadata);
             }
 
+            if(fromPage == PageType.Browse)
+            {
+                //installed version is unknown until installed is loaded
+                Package.InstalledVersion = null;
+            }
+            if(fromPage == PageType.Installed)
+            {
+                Package.InstalledVersion = Package.LastVersion;
+            }
+
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
             InstallPackage = new TaskCommand(InstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
             UninstallPackage = new TaskCommand(UninstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
@@ -65,9 +78,6 @@
         {
             try
             {
-                //by default last version always selected for user actions
-                SelectedVersion = Package.LastVersion;
-
                 VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 
                 _packageMetadataProvider = InitMetadataProvider();
@@ -114,6 +124,11 @@
 
         public object DependencyInfo { get; set; }
 
+        public DeferToken DefferedLoadingToken { get; set; }
+
+        [ViewModelToModel]
+        public PackageStatus Status { get; set; }
+
         public NuGetActionTarget NuGetActionTarget { get; } = new NuGetActionTarget();
 
         public IPackageSearchMetadata VersionData { get; set; }
@@ -130,19 +145,13 @@
         {
             try
             {
-                //todo check is initialized?
-                if (Package.Versions == null)
+                if (Package.LoadVersionsAsync().Wait(500))
                 {
-                    if (Package.LoadVersionsAsync().Wait(500))
-                    {
-
-                        VersionsCollection = new ObservableCollection<NuGetVersion>(Package.Versions);
-
-                    }
-                    else
-                    {
-                        throw new TimeoutException();
-                    }
+                    VersionsCollection = new ObservableCollection<NuGetVersion>(Package.Versions);
+                }
+                else
+                {
+                    throw new TimeoutException();
                 }
             }
             catch (TimeoutException ex)

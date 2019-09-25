@@ -17,17 +17,18 @@ namespace NuGetPackageManager.Models
 
         private readonly IPackageSearchMetadata _packageMetadata;
 
+        private readonly IList<IPackageSearchMetadata> _additionalMetadata = new List<IPackageSearchMetadata>();
+
         public NuGetPackage(IPackageSearchMetadata packageMetadata)
         {
+            _packageMetadata = packageMetadata;
             Title = packageMetadata.Title;
             Description = packageMetadata.Description;
             IconUrl = packageMetadata.IconUrl;
             Authors = packageMetadata.Authors;
             DownloadCount = packageMetadata.DownloadCount;
             Summary = packageMetadata.Summary;
-
-            _packageMetadata = packageMetadata;
-
+            
             LastVersion = packageMetadata.Identity.Version;
         }
 
@@ -47,21 +48,66 @@ namespace NuGetPackageManager.Models
 
         public PackageIdentity Identity => _packageMetadata.Identity;
 
-        public IEnumerable<NuGetVersion> Versions { get; private set; }
+        private List<NuGetVersion> _versions = new List<NuGetVersion>();
+        public IReadOnlyList<NuGetVersion> Versions
+        {
+            get { return _versions; }
+            private set 
+            { 
+                _versions = value.ToList(); 
+            }
+        }
 
-        public IEnumerable<VersionInfo> VersionsInfo { get; private set; }
+        public IEnumerable<VersionInfo> VersionsInfo { get; private set; } = new List<VersionInfo>();
 
         public bool IsLoaded { get; private set; }
 
         public NuGetVersion LastVersion { get; private set; }
 
-        public NuGetVersion InstalledVersion { get; private set; }
+        public NuGetVersion InstalledVersion { get; set; }
+
+        public async Task MergeMetadata(IPackageSearchMetadata searchMetadata)
+        {
+            _additionalMetadata.Add(searchMetadata);
+
+            //merge versions
+            var versInfo = await searchMetadata.GetVersionsAsync();
+
+            if(versInfo != null)
+            {
+                VersionsInfo = VersionsInfo.Intersect(versInfo).Distinct();
+
+                Versions = VersionsInfo.Select(x => x.Version).OrderByDescending(x => x).ToList();
+            }
+            else
+            {
+                //PackageSearchMetadataRegistration
+                var singleVersion = searchMetadata.Identity.Version;
+
+                _versions.Add(singleVersion);
+            }
+
+            LastVersion = Versions.FirstOrDefault();
+        }
+
+
 
         public async Task<IEnumerable<NuGetVersion>> LoadVersionsAsync()
         {
+            if (IsLoaded)
+            {
+                return null;
+            }
+
             var versinfo = await _packageMetadata.GetVersionsAsync();
 
-            Versions = versinfo.Select(x => x.Version).OrderByDescending(x => x);
+            var versions = versinfo.Select(x => x.Version).Union(Versions).OrderByDescending(x => x)
+                .ToList();
+
+            _versions.Clear();
+
+            _versions.AddRange(versions);
+
             VersionsInfo = versinfo;
 
             IsLoaded = true;
@@ -72,6 +118,11 @@ namespace NuGetPackageManager.Models
         protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
+
+            if(_packageMetadata == null)
+            {
+                return;
+            }
 
             if(String.Equals(e.PropertyName, nameof(Status)))
             {

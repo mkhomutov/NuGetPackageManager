@@ -3,12 +3,17 @@
     using Catel;
     using Catel.Logging;
     using NuGet.Common;
+    using NuGet.Packaging;
     using NuGet.Packaging.Core;
+    using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
+    using NuGet.Versioning;
     using NuGetPackageManager.Extensions;
     using NuGetPackageManager.Loggers;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -51,10 +56,10 @@
                 sources.AddRange(_optionalLocalRepositories);
             }
 
-            if (_sourceRepositories != null)
-            {
-                sources.AddRange(_sourceRepositories);
-            }
+            //if (_sourceRepositories != null)
+            //{
+            //    sources.AddRange(_sourceRepositories);
+            //}
   
             // Take the package from the first source it is found in
             foreach (var source in sources)
@@ -185,12 +190,12 @@
         }
 
         //TODO
-        private async Task<IEnumerable<VersionInfo>> FetchAndMergeVersionsAsync(PackageIdentity identity, bool includePrerelease, CancellationToken token)
-        {
-            var rp = _localRepository;
+        //private async Task<IEnumerable<VersionInfo>> FetchAndMergeVersionsAsync(PackageIdentity identity, bool includePrerelease, CancellationToken token)
+        //{
+        //    var rp = _localRepository;
 
-            Log.Info(rp.ToString());
-            return null;
-        }
+        //    Log.Info(rp.ToString());
+        //    return null;
+        //}
     }
 }

@@ -1,5 +1,6 @@
 ﻿namespace NuGetPackageManager.Services
 {
+    using NuGet.Packaging.Core;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Pagination;
     using System.Collections.Generic;
