@@ -73,18 +73,20 @@ namespace NuGetPackageManager.Models
             //merge versions
             var versInfo = await searchMetadata.GetVersionsAsync();
 
+            if(!Versions.Any())
+            {
+                //currently package versions doesn't loaded from metadata,
+                //but we still can add current version to list and check it as our LastVersion
+                
+                var singleVersion = searchMetadata.Identity.Version;
+                _versions.Add(singleVersion);
+            }
+
             if(versInfo != null)
             {
-                VersionsInfo = VersionsInfo.Intersect(versInfo).Distinct();
+                VersionsInfo = VersionsInfo.Union(versInfo).Distinct();
 
                 Versions = VersionsInfo.Select(x => x.Version).OrderByDescending(x => x).ToList();
-            }
-            else
-            {
-                //PackageSearchMetadataRegistration
-                var singleVersion = searchMetadata.Identity.Version;
-
-                _versions.Add(singleVersion);
             }
 
             LastVersion = Versions.FirstOrDefault();
