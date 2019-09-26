@@ -33,7 +33,8 @@ namespace NuGetPackageManager.Controls
 
         // Using a DependencyProperty as the backing store for MyProperty.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty BadgeProperty =
-            DependencyProperty.Register("Badge", typeof(object), typeof(Badged), new PropertyMetadata(null));
+            DependencyProperty.Register("Badge", typeof(object), typeof(Badged), new FrameworkPropertyMetadata(null));
+
 
         public Brush BadgeForeground
         {
@@ -63,6 +64,13 @@ namespace NuGetPackageManager.Controls
         public static readonly DependencyProperty IsShowedProperty =
             DependencyProperty.Register("IsShowed", typeof(bool), typeof(Badged), new PropertyMetadata(true, (s,e) => OnIsShowedChanged(s,e)));
 
+        public event DependencyPropertyChangedEventHandler IsShowedChanged;
+
+        private void RaiseIsShowedChanged(DependencyPropertyChangedEventArgs e)
+        {
+            IsShowedChanged?.Invoke(this, e);
+        }
+
         private static void OnIsShowedChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             var badged = sender as Badged;
@@ -74,6 +82,8 @@ namespace NuGetPackageManager.Controls
 
             var visibility = badged.ToVisibility((bool)e.NewValue);
             badged.SetTemplatePartVisibility(badged, visibility);
+
+            badged.RaiseIsShowedChanged(e);
         }
 
         private void SetTemplatePartVisibility(Badged b, Visibility visibility)

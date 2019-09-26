@@ -27,7 +27,7 @@
                                 Focusable="False"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"
                                 Margin="1 0 1 0"
-                                Content="{TemplateBinding Badge}"/>
+                                Content="{Binding Badge, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"/>
             </Border>
 
         </Grid>
