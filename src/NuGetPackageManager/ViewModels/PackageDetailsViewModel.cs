@@ -158,6 +158,8 @@
 
         public NuGetVersion SelectedVersion { get; set; }
 
+        public PackageIdentity SelectedPackage => new PackageIdentity(Package.Identity.Id, SelectedVersion);
+
         [ViewModelToModel]
         public NuGetVersion InstalledVersion { get; set; }
 
@@ -196,14 +198,12 @@
             {
                 _progressManager.ShowBar(this);
 
-                var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
-
                 foreach (var project in NuGetActionTarget.TargetProjects)
                 {
 
                     using (var cts = new CancellationTokenSource())
                     {
-                        await _projectManager.InstallPackageForProject(project, identity, cts.Token);
+                        await _projectManager.InstallPackageForProject(project, SelectedPackage, cts.Token);
                     }
                 }
 
@@ -223,23 +223,24 @@
         {
             try
             {
-                var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
+                _progressManager.ShowBar(this);
 
                 foreach (var project in NuGetActionTarget.TargetProjects)
                 {
                     using (var cts = new CancellationTokenSource())
                     {
-                        var isInstalled = await _projectManager.IsPackageInstalledAsync(project, identity, cts.Token);
+                        var isInstalled = await _projectManager.IsPackageInstalledAsync(project, SelectedPackage, cts.Token);
 
                         if (!isInstalled)
                         {
                             continue;
                         }
 
-                        //todo use pm implementation
-                        await _installationService.UninstallAsync(identity, project, cts.Token);
+                        await _projectManager.UninstallPackageForProject(project, SelectedPackage, cts.Token);
                     }
                 }
+
+                _progressManager.HideBar(this);
             }
             catch (Exception e)
             {

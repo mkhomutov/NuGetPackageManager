@@ -11,11 +11,12 @@ namespace NuGetPackageManager.Management
     public interface INuGetExtensibleProjectManager
     {
         Task InstallPackageForProject(IExtensibleProject project, PackageIdentity package, CancellationToken token);
+
+        Task UninstallPackageForProject(IExtensibleProject project, PackageIdentity package, CancellationToken token);
         Task<IEnumerable<PackageReference>> GetInstalledPackagesAsync(IExtensibleProject project, CancellationToken token);
         Task<bool> IsPackageInstalledAsync(IExtensibleProject project, PackageIdentity package, CancellationToken token);
         Task<Packaging.PackageCollection> CreatePackagesCollectionFromProjectsAsync(IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken);
         IEnumerable<NuGet.Protocol.Core.Types.SourceRepository> AsLocalRepositories(IEnumerable<IExtensibleProject> projects);
-        Task UninstallPackageForProject(IExtensibleProject project, PackageIdentity package, CancellationToken token);
 
         event AsyncEventHandler<InstallNuGetProjectEventArgs> Install;
 
