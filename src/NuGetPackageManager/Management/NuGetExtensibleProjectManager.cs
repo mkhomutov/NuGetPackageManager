@@ -13,6 +13,7 @@
     using NuGet.Packaging.Core;
     using NuGet.ProjectManagement;
     using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Management.EventArgs;
     using NuGetPackageManager.Packaging;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
@@ -30,8 +31,6 @@
 
         const string MetadataTargetFramework = "TargetFramework";
         const string MetadataName = "Name";
-
-
         public NuGetExtensibleProjectManager(IPackageInstallationService packageInstallationService, IFrameworkNameProvider frameworkNameProvider, 
             INuGetProjectContextProvider nuGetProjectContextProvider, ISourceRepositoryProvider repositoryProvider)
         {
@@ -44,6 +43,31 @@
             _frameworkNameProvider = frameworkNameProvider;
             _nuGetProjectContextProvider = nuGetProjectContextProvider;
             _repositoryProvider = repositoryProvider;
+        }
+
+        public event AsyncEventHandler<InstallNuGetProjectEventArgs> Install;
+
+        async Task OnInstallAsync(IExtensibleProject project, PackageIdentity package, bool result)
+        {
+            var args = new InstallNuGetProjectEventArgs(project, package, result);
+            await Install.SafeInvokeAsync(this, args);
+
+        }
+
+        public event AsyncEventHandler<UninstallNuGetProjectEventArgs> Uninstall;
+
+        async Task OnUninstallAsync(IExtensibleProject project, PackageIdentity package, bool result)
+        {
+            var args = new UninstallNuGetProjectEventArgs(project, package, result);
+            await Uninstall.SafeInvokeAsync(this, args);
+        }
+
+        public event AsyncEventHandler<UpdateNuGetProjectEventArgs> Update;
+
+        async Task OnUpdateAsync()
+        {
+            var args = new UpdateNuGetProjectEventArgs();
+            await Update.SafeInvokeAsync(this, args);
         }
 
         public async Task<IEnumerable<PackageReference>> GetInstalledPackagesAsync(IExtensibleProject project, CancellationToken token)
@@ -112,17 +136,51 @@
 
                 var installerResults = await _packageInstallationService.InstallAsync(package, project, repositories, token);
 
+                bool dependencyInstallResult = true;
+
                 foreach (var packageDownloadResultPair in installerResults)
                 {
                     var dependencyIdentity = packageDownloadResultPair.Key;
                     var downloadResult = packageDownloadResultPair.Value;
 
-                    var result = packageConfigProject.InstallPackageAsync(package, downloadResult, _nuGetProjectContextProvider.GetProjectContext(FileConflictAction.PromptUser), token);
+                    var result = await packageConfigProject.InstallPackageAsync(package, downloadResult, _nuGetProjectContextProvider.GetProjectContext(FileConflictAction.PromptUser), token);
+
+                    if(!result)
+                    {
+                        Log.Error($"Saving package configuration failed in project {project} when installing package {package}");
+                    }
+
+                    dependencyInstallResult &= result;
                 }
+
+                await OnInstallAsync(project, package, dependencyInstallResult);
             }
             catch(Exception e)
             {
-                Log.Error(e, $"The Installation of Package {package} was failed");
+                Log.Error(e, $"The Installation of package {package} was failed");
+            }
+        }
+
+        public async Task UninstallPackageForProject(IExtensibleProject project, PackageIdentity package, CancellationToken token)
+        {
+            try
+            {
+                var packageConfigProject = CreatePackageConfigProjectFromExtensible(project);
+
+                await _packageInstallationService.UninstallAsync(package, project, token);
+
+                var result = await packageConfigProject.UninstallPackageAsync(package, _nuGetProjectContextProvider.GetProjectContext(FileConflictAction.PromptUser), token);
+
+                if(!result)
+                {
+                    Log.Error($"Saving package configuration failed in project {project} when installing package {package}");
+                }
+
+                await OnUninstallAsync(project, package, result);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"Uninstall of package {package} was failed");
             }
         }
 
