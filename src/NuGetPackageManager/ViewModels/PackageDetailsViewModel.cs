@@ -72,8 +72,14 @@
             IsDownloadCountShowed = fromPage != MetadataOrigin.Installed;
 
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
-            InstallPackage = new TaskCommand(InstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
-            UninstallPackage = new TaskCommand(UninstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
+            //() => NuGetActionTarget?.IsValid ?? false
+            InstallPackage = new TaskCommand(OnInstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
+            UninstallPackage = new TaskCommand(OnUninstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
+        }
+
+        private bool OnInstallPackageCanExecute()
+        {
+            return NuGetActionTarget?.IsValid ?? false;
         }
 
         protected async override Task InitializeAsync()
@@ -85,6 +91,8 @@
 
                 VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 
+                NuGetActionTarget.PropertyChanged += OnNuGetActionTargetPropertyPropertyChanged;                   
+
                 _packageMetadataProvider = InitMetadataProvider();
 
                 await LoadSinglePackageMetadataAsync(Package.Identity);
@@ -93,6 +101,13 @@
             {
                 Log.Error(e, "Error ocurred during view model inititalization, probably package metadata is incorrect");
             }
+        }
+
+        protected override Task CloseAsync()
+        {
+            NuGetActionTarget.PropertyChanged -= OnNuGetActionTargetPropertyPropertyChanged;
+
+            return base.CloseAsync();
         }
 
         protected async Task LoadSinglePackageMetadataAsync(PackageIdentity identity)
@@ -114,6 +129,7 @@
             }
         }
 
+
         [Model]
         [Expose("Title")]
         [Expose("Description")]
@@ -133,7 +149,6 @@
 
         [ViewModelToModel]
         public PackageStatus Status { get; set; }
-
 
         public bool IsDownloadCountShowed { get; }
 
@@ -175,7 +190,7 @@
 
         public TaskCommand InstallPackage { get; set; }
 
-        private async Task InstallPackageExecute()
+        private async Task OnInstallPackageExecute()
         {
             try
             {
@@ -204,7 +219,7 @@
 
         public TaskCommand UninstallPackage { get; set; }
 
-        private async Task UninstallPackageExecute()
+        private async Task OnUninstallPackageExecute()
         {
             try
             {
@@ -239,6 +254,12 @@
             var repositories = currentSourceContext.Repositories ?? currentSourceContext.PackageSources.Select(src => _repositoryService.GetRepository(src));
 
             return new PackageMetadataProvider(repositories, null);
+        }
+
+        private void OnNuGetActionTargetPropertyPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            var commandManager = this.GetViewModelCommandManager();
+            commandManager.InvalidateCommands();
         }
 
         protected override async void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
