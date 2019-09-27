@@ -38,7 +38,7 @@
         private INuGetExtensibleProjectManager _projectManager;
         
 
-        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, PageType fromPage, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
+        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, MetadataOrigin fromPage, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
             IPackageInstallationService installationService, IProgressManager progressManager, INuGetExtensibleProjectManager projectManager)
         {
             Argument.IsNotNull(() => repositoryService);
@@ -59,15 +59,17 @@
                 Package = new NuGetPackage(packageMetadata);
             }
 
-            if(fromPage == PageType.Browse)
+            if(fromPage == MetadataOrigin.Browse)
             {
                 //installed version is unknown until installed is loaded
                 Package.InstalledVersion = null;
             }
-            if(fromPage == PageType.Installed)
+            if(fromPage == MetadataOrigin.Installed)
             {
                 Package.InstalledVersion = Package.LastVersion;
             }
+
+            IsDownloadCountShowed = fromPage != MetadataOrigin.Installed;
 
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
             InstallPackage = new TaskCommand(InstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
@@ -78,6 +80,9 @@
         {
             try
             {
+                //select identity version
+                SelectedVersion = Package.Identity.Version;
+
                 VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 
                 _packageMetadataProvider = InitMetadataProvider();
@@ -129,12 +134,16 @@
         [ViewModelToModel]
         public PackageStatus Status { get; set; }
 
+
+        public bool IsDownloadCountShowed { get; }
+
         public NuGetActionTarget NuGetActionTarget { get; } = new NuGetActionTarget();
 
         public IPackageSearchMetadata VersionData { get; set; }
 
         public NuGetVersion SelectedVersion { get; set; }
 
+        [ViewModelToModel]
         public NuGetVersion InstalledVersion { get; set; }
 
         public int SelectedVersionIndex { get; set; }

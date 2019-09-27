@@ -66,7 +66,7 @@ namespace NuGetPackageManager.Models
 
         public NuGetVersion InstalledVersion { get; set; }
 
-        public async Task MergeMetadata(IPackageSearchMetadata searchMetadata)
+        public async Task MergeMetadata(IPackageSearchMetadata searchMetadata, MetadataOrigin pageToken)
         {
             _additionalMetadata.Add(searchMetadata);
 
@@ -91,8 +91,6 @@ namespace NuGetPackageManager.Models
 
             LastVersion = Versions.FirstOrDefault();
         }
-
-
 
         public async Task<IEnumerable<NuGetVersion>> LoadVersionsAsync()
         {

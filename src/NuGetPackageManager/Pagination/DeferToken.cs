@@ -16,7 +16,7 @@ namespace NuGetPackageManager.Pagination
     {
         public Func<IPackageSearchMetadata> PackageSelector { get; set; }
 
-        public PageType LoadType { get; set; }
+        public MetadataOrigin LoadType { get; set; }
 
         public NuGetPackage Package { get; set; }
 

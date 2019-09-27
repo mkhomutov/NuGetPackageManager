@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NuGetPackageManager.Enums
 {
-    public enum PageType
+    public enum MetadataOrigin
     {
         Browse,
         Installed,

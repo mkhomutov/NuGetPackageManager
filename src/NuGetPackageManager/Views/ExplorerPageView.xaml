@@ -93,15 +93,16 @@
                         
                         </Border>-->
 
-                        <Grid Margin="0 8 0 0">
+                        <Grid Margin="0 8 0 0"
+                              Height="96">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="60"/>
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="18"/>
-                                <RowDefinition Height="28"/>
-                                <RowDefinition Height="50"/>
+                                <RowDefinition Height="auto" MinHeight="8"/>
+                                <RowDefinition/>
                             </Grid.RowDefinitions>
 
                             <nugetc:Badged VerticalAlignment="Top" Margin="0 4 4 0"
@@ -163,7 +164,9 @@
 
 
                             <Grid Grid.Column="1" Grid.Row="1"
-                                      Margin="0 4 0 0">
+                                      Margin="0 4 0 0"
+                                      Visibility="{Binding IsDownloadCountShowed, Converter={catel:BooleanToCollapsingVisibilityConverter}}"
+                                      Height="28">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="90"/>
@@ -178,8 +181,12 @@
                                     </Style>
                                 </Grid.Resources>
 
-                                <TextBlock Text="{Binding DownloadCount}" Grid.Column="0"/>
-                                <TextBlock Grid.Column="1" Margin="4 0 0 0">total downloads</TextBlock>
+                                <TextBlock Text="{Binding DownloadCount}" Grid.Column="0"
+                                           Visibility="{Binding IsDownloadCountShowed, Converter={catel:BooleanToCollapsingVisibilityConverter}}"/>
+                                <TextBlock Grid.Column="1" Margin="4 0 0 0"
+                                           Visibility="{Binding IsDownloadCountShowed, Converter={catel:BooleanToCollapsingVisibilityConverter}}">
+                                    total downloads
+                                </TextBlock>
                             </Grid>
 
                             <TextBlock Text="{Binding Summary }" TextWrapping="WrapWithOverflow"

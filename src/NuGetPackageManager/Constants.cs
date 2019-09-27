@@ -20,6 +20,8 @@ namespace NuGetPackageManager
 
         public const string PackageManagement = "Package management";
 
+        public const string NotInstalled = "not installed";
+
         public static class Messages
         {
             public const string CacheClearEndedSuccessful = "NuGet cache cleared";

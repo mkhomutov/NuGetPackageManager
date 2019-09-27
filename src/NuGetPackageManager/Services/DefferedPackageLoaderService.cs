@@ -107,7 +107,7 @@ namespace NuGetPackageManager.Services
 
         private Task<IPackageSearchMetadata> CreateTaskFromToken(DeferToken token, CancellationToken ct)
         {
-            if(token.LoadType == Enums.PageType.Installed)
+            if(token.LoadType == Enums.MetadataOrigin.Installed)
             {
                 //from local
                 return packageMetadataProvider.GetLocalPackageMetadataAsync(token.Package.Identity, token.Package.Identity.Version.IsPrerelease, ct);

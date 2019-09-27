@@ -37,7 +37,7 @@
         private readonly IDispatcherService _dispatcherService;
         private readonly ITypeFactory _typeFactory;
 
-        private readonly PageType _pageType;
+        private readonly MetadataOrigin _pageType;
 
         private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
 
@@ -531,18 +531,18 @@
                     }
             );
 
-            PageType DetermineLoadBehavior(PageType page)
+            MetadataOrigin DetermineLoadBehavior(MetadataOrigin page)
             {
                 switch(page)
                 {
-                    case PageType.Browse: return PageType.Installed;
+                    case MetadataOrigin.Browse: return MetadataOrigin.Installed;
 
-                    case PageType.Installed: return PageType.Browse;
+                    case MetadataOrigin.Installed: return MetadataOrigin.Browse;
 
-                    case PageType.Updates: return PageType.Browse;
+                    case MetadataOrigin.Updates: return MetadataOrigin.Browse;
                 }
 
-                return PageType.Browse;
+                return MetadataOrigin.Browse;
             }
         }
 
