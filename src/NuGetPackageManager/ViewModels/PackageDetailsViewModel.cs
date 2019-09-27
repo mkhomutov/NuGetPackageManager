@@ -100,7 +100,7 @@
                     VersionData = await _packageMetadataProvider?.GetPackageMetadataAsync(
                         identity, _settingsProvider.Model.IsPreReleaseIncluded, cts.Token);
 
-                    DependencyInfo = VersionData.DependencySets;
+                    DependencyInfo = VersionData?.DependencySets;
                 }
             }
             catch(Exception e)

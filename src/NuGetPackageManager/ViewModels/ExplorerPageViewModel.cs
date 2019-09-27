@@ -229,21 +229,35 @@
         {
             base.OnPropertyChanged(e);
 
+            if (String.Equals(e.PropertyName, nameof(Invalidated)))
+            {
+                if ((bool)e.NewValue)
+                {
+                    Log.Info($"ViewModel {this} data was invalidated");
+                }
+            }
+
+            if (String.Equals(e.PropertyName, nameof(IsActive)))
+            {
+                if ((bool)e.NewValue)
+                {
+                    Log.Info($"Switched page: {Title} is active");
+                }
+            }
+
             if (IsFirstLoaded)
             {
                 return;
             }
 
-            if(String.Equals(e.PropertyName, nameof(Invalidated)) && Invalidated)
+            if (String.Equals(e.PropertyName, nameof(IsActive)))
             {
-                Log.Info($"ViewModel {this} data was invalidated");
-            }
-
-            if (String.Equals(e.PropertyName, nameof(IsActive)) && Invalidated)
-            {
-                //this happen when page selecting and old gathered package data 
-                //doesnt match to current user search query
-                StartLoadingTimerOrInvalidateData();
+                if (Invalidated)
+                {
+                    //this happen when page selecting and old gathered package data 
+                    //doesnt match to current user search query
+                    StartLoadingTimerOrInvalidateData();
+                }
             }
         }
 
@@ -272,6 +286,8 @@
             }
 
             SingleDelayTimer.Start();
+
+            Log.Debug("Start loading delay timer");
         }
 
         private async void OnTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -451,12 +467,15 @@
             {
                 IsLoadingInProcess = true;
 
+                Log.Info($"Start query {Title} page");
+
                 bool isFirstLoad = pageInfo.Current < 0;
 
                 if (isFirstLoad)
                 {
                     PackageItems.Clear();
                 }
+
 
                 var packages = await _packagesLoaderService.LoadAsync(
                     searchParameters.SearchString, pageInfo, new SearchFilter(searchParameters.IsPrereleaseIncluded), cancellationToken);

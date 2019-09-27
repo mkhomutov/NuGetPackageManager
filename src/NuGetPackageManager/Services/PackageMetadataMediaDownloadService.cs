@@ -38,9 +38,12 @@
                     return;
                 }
 
-                var data = await iconDownloader.GetByUrlAsync(packageMetadata.IconUrl);
+                using (var webClient = new WebClient())
+                {
+                    var data = await iconDownloader.GetByUrlAsync(packageMetadata.IconUrl, webClient);
+                    iconCache.SaveToCache(packageMetadata.IconUrl, data);
+                }
                 //store to cache
-                iconCache.SaveToCache(packageMetadata.IconUrl, data);
             }
             catch (WebException ex)
             {

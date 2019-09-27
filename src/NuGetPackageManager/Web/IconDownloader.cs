@@ -1,13 +1,15 @@
 ﻿namespace NuGetPackageManager.Web
 {
+    using Catel.Logging;
     using System;
     using System.Net;
     using System.Threading.Tasks;
 
     public class IconDownloader
     {
-        //readonly HttpSource httpSource = new HttpSource();
-        readonly WebClient webClient = new WebClient();
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
+        int count = 0;
 
         public IconDownloader()
         {
@@ -17,9 +19,22 @@
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
-        public async Task<byte[]> GetByUrlAsync(Uri uri)
+        public async Task<byte[]> GetByUrlAsync(Uri uri, WebClient client)
         {
-            return await webClient.DownloadDataTaskAsync(uri);
+            count += 1;
+
+            Log.Debug($"Begin webclient request {count} on {uri}");
+
+            //while (client.IsBusy)
+            //{
+            //    Log.Debug("Waiting for ending current download");
+            //    await Task.Delay(200);
+            //}
+            var array = await client.DownloadDataTaskAsync(uri);
+
+            Log.Debug($"Webclient request {count} ended");
+
+            return array;
         }
     }
 }
