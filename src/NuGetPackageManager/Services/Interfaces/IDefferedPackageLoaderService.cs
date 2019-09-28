@@ -1,15 +1,12 @@
-﻿using NuGetPackageManager.Pagination;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using NuGetPackageManager.Pagination;
+    using System.Threading.Tasks;
+
     public interface IDefferedPackageLoaderService
     {
         void Add(DeferToken token);
+
         Task StartLoadingAsync();
     }
 }

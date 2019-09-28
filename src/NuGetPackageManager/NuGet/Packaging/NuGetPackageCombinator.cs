@@ -1,16 +1,12 @@
-﻿using Catel;
-using Catel.Logging;
-using NuGet.Protocol.Core.Types;
-using NuGetPackageManager.Enums;
-using NuGetPackageManager.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Packaging
+﻿namespace NuGetPackageManager.Packaging
 {
+    using Catel;
+    using Catel.Logging;
+    using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Enums;
+    using NuGetPackageManager.Models;
+    using System.Threading.Tasks;
+
     public class NuGetPackageCombinator
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
@@ -32,7 +28,7 @@ namespace NuGetPackageManager.Packaging
                 //created from local installed nupkg metadata.
             }
 
-            if(tokenPage == MetadataOrigin.Installed)
+            if (tokenPage == MetadataOrigin.Installed)
             {
                 //then original package retrived from real source and should be merged with
                 //installed local metadata
@@ -49,7 +45,7 @@ namespace NuGetPackageManager.Packaging
                 }
             }
 
-            if(tokenPage == MetadataOrigin.Updates)
+            if (tokenPage == MetadataOrigin.Updates)
             {
                 return PackageStatus.NotInstalled;
             }

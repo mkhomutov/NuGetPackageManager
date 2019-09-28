@@ -36,7 +36,7 @@
         private IProgressManager _progressManager;
 
         private INuGetExtensibleProjectManager _projectManager;
-        
+
 
         public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, MetadataOrigin fromPage, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
             IPackageInstallationService installationService, IProgressManager progressManager, INuGetExtensibleProjectManager projectManager)
@@ -90,7 +90,7 @@
 
                 VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 
-                NuGetActionTarget.PropertyChanged += OnNuGetActionTargetPropertyPropertyChanged;                   
+                NuGetActionTarget.PropertyChanged += OnNuGetActionTargetPropertyPropertyChanged;
 
                 _packageMetadataProvider = InitMetadataProvider();
 
@@ -122,7 +122,7 @@
                     DependencyInfo = VersionData?.DependencySets;
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e, "Metadata retrieve error");
             }
@@ -197,7 +197,7 @@
             {
                 _progressManager.ShowBar(this);
 
-                using(var cts = new CancellationTokenSource())
+                using (var cts = new CancellationTokenSource())
                 {
                     await _projectManager.InstallPackageForMultipleProject(NuGetActionTarget.TargetProjects, SelectedPackage, cts.Token);
                 }

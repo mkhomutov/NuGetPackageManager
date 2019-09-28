@@ -1,20 +1,19 @@
-﻿using Catel;
-using Catel.Logging;
-using NuGet.Protocol.Core.Types;
-using NuGetPackageManager.Enums;
-using NuGetPackageManager.Management;
-using NuGetPackageManager.Packaging;
-using NuGetPackageManager.Pagination;
-using NuGetPackageManager.Providers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using Catel;
+    using Catel.Logging;
+    using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Enums;
+    using NuGetPackageManager.Management;
+    using NuGetPackageManager.Packaging;
+    using NuGetPackageManager.Pagination;
+    using NuGetPackageManager.Providers;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class DefferedPackageLoaderService : IDefferedPackageLoaderService
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
@@ -26,13 +25,16 @@ namespace NuGetPackageManager.Services
         private bool isLoading = false;
 
         private readonly IPackagesLoaderService _packagesLoaderService;
+
         private readonly IRepositoryService _repositoryService;
+
         private readonly INuGetExtensibleProjectManager _projectManager;
+
         private readonly IExtensibleProjectLocator _extensibleProjectLocator;
 
         private IPackageMetadataProvider packageMetadataProvider;
 
-        public DefferedPackageLoaderService(IPackagesLoaderService packagesLoaderService, IRepositoryService repositoryService, 
+        public DefferedPackageLoaderService(IPackagesLoaderService packagesLoaderService, IRepositoryService repositoryService,
             INuGetExtensibleProjectManager nuGetExtensibleProjectManager, IExtensibleProjectLocator extensibleProjectLocator)
         {
             Argument.IsNotNull(() => packagesLoaderService);
@@ -47,7 +49,7 @@ namespace NuGetPackageManager.Services
 
         public async Task StartLoadingAsync()
         {
-            if(isLoading)
+            if (isLoading)
             {
                 return;
             }
@@ -93,7 +95,7 @@ namespace NuGetPackageManager.Services
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e, "Background loading task was failed");
             }
@@ -107,7 +109,7 @@ namespace NuGetPackageManager.Services
 
         private Task<IPackageSearchMetadata> CreateTaskFromToken(DeferToken token, CancellationToken ct)
         {
-            if(token.LoadType == Enums.MetadataOrigin.Installed)
+            if (token.LoadType == Enums.MetadataOrigin.Installed)
             {
                 //from local
                 return packageMetadataProvider.GetLocalPackageMetadataAsync(token.Package.Identity, token.Package.Identity.Version.IsPrerelease, ct);
@@ -118,7 +120,6 @@ namespace NuGetPackageManager.Services
 
         public void CancelLoading()
         {
-
         }
 
         public IPackageMetadataProvider InitializeMetadataProvider()

@@ -1,31 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Catel;
-using NuGet.Packaging.Core;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
-using NuGet.Protocol.LocalRepositories;
-using NuGet.Versioning;
-using NuGetPackageManager.Management;
-using NuGetPackageManager.Packaging;
-using NuGetPackageManager.Pagination;
-using NuGetPackageManager.Providers;
-
-namespace NuGetPackageManager.Services
+﻿namespace NuGetPackageManager.Services
 {
+    using Catel;
+    using NuGet.Packaging.Core;
+    using NuGet.Protocol;
+    using NuGet.Protocol.Core.Types;
+    using NuGet.Versioning;
+    using NuGetPackageManager.Management;
+    using NuGetPackageManager.Pagination;
+    using NuGetPackageManager.Providers;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class LocalPackagesLoaderService : IPackagesLoaderService
     {
         private readonly IExtensibleProjectLocator _extensibleProjectLocator;
+
         private readonly INuGetExtensibleProjectManager _projectManager;
+
         private readonly IRepositoryService _repositoryService;
 
         public Lazy<IPackageMetadataProvider> PackageMetadataProvider { get; set; }
 
-        public LocalPackagesLoaderService(IRepositoryService repositoryService, IExtensibleProjectLocator extensibleProjectLocator, 
+        public LocalPackagesLoaderService(IRepositoryService repositoryService, IExtensibleProjectLocator extensibleProjectLocator,
             INuGetExtensibleProjectManager nuGetExtensibleProjectManager)
         {
             Argument.IsNotNull(() => extensibleProjectLocator);
@@ -74,11 +73,11 @@ namespace NuGetPackageManager.Services
                 List<IPackageSearchMetadata> combinedFindedMetadata = new List<IPackageSearchMetadata>();
 
                 //todo do it parallel as in VS
-                foreach(var package in pagedPackages)
+                foreach (var package in pagedPackages)
                 {
                     var metadata = await GetPackageMetadataAsync(package, searchFilter.IncludePrerelease, token);
 
-                    if(metadata != null)
+                    if (metadata != null)
                     {
                         combinedFindedMetadata.Add(metadata);
                     }

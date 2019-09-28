@@ -3,17 +3,12 @@
     using Catel;
     using Catel.Logging;
     using NuGet.Common;
-    using NuGet.Packaging;
     using NuGet.Packaging.Core;
-    using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
-    using NuGet.Versioning;
     using NuGetPackageManager.Extensions;
     using NuGetPackageManager.Loggers;
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
-    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -60,13 +55,13 @@
             //{
             //    sources.AddRange(_sourceRepositories);
             //}
-  
+
             // Take the package from the first source it is found in
             foreach (var source in sources)
             {
                 var result = await GetPackageMetadataFromLocalSourceAsync(source, identity, cancellationToken);
 
-                if(result != null)
+                if (result != null)
                 {
                     //TODO why additional fetching needed?
                     //return result.WithVersions(

@@ -1,17 +1,14 @@
-﻿using Catel.MVVM.Converters;
-using NuGetPackageManager.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media;
-
-namespace NuGetPackageManager.Converters
+﻿namespace NuGetPackageManager.Converters
 {
+    using Catel.MVVM.Converters;
+    using NuGetPackageManager.Enums;
+    using System;
+    using System.Windows.Media;
+
     public class PackageStatusEnumToBrushConverter : ValueConverterBase<PackageStatus, Brush>
     {
         int offset = -1;
+
         readonly Themes.Brushes resourceDictionary;
 
         public PackageStatusEnumToBrushConverter()
@@ -25,7 +22,7 @@ namespace NuGetPackageManager.Converters
         {
             var resourceKeys = parameter as string[];
 
-            if(resourceKeys == null)
+            if (resourceKeys == null)
             {
                 return new SolidColorBrush(Colors.Transparent);
             }

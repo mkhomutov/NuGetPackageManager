@@ -1,14 +1,11 @@
-﻿using NuGet.Packaging;
-using NuGet.Packaging.Core;
-using NuGet.Versioning;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Packaging
+﻿namespace NuGetPackageManager.Packaging
 {
+    using NuGet.Packaging;
+    using NuGet.Packaging.Core;
+    using NuGet.Versioning;
+    using System.Collections.Generic;
+    using System.Linq;
+
     public sealed class PackageCollectionItem : PackageIdentity
     {
         /// <summary>

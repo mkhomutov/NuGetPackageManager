@@ -120,9 +120,9 @@
         }
 
         public async Task<IDictionary<SourcePackageDependencyInfo, DownloadResourceResult>> InstallAsync(
-            PackageIdentity identity, 
-            IExtensibleProject project, 
-            IReadOnlyList<SourceRepository> repositories, 
+            PackageIdentity identity,
+            IExtensibleProject project,
+            IReadOnlyList<SourceRepository> repositories,
             CancellationToken cancellationToken)
         {
             try
@@ -172,7 +172,7 @@
                     return downloadResults;
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e);
                 throw;
@@ -293,7 +293,7 @@
             }
 
         }
-     
+
 
         private PackageResolverContext GetResolverContext(PackageIdentity package, IEnumerable<SourcePackageDependencyInfo> flatDependencies)
         {

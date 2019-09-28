@@ -1,14 +1,7 @@
-﻿using Catel.MVVM;
-using NuGet.Packaging.Core;
-using NuGet.Protocol.Core.Types;
+﻿using NuGet.Protocol.Core.Types;
 using NuGetPackageManager.Enums;
 using NuGetPackageManager.Models;
-using NuGetPackageManager.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NuGetPackageManager.Pagination
 {

@@ -1,10 +1,5 @@
 ﻿namespace NuGetPackageManager.Management
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
     using Catel;
     using Catel.Logging;
     using NuGet.Configuration;
@@ -17,6 +12,11 @@
     using NuGetPackageManager.Packaging;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     public class NuGetExtensibleProjectManager : INuGetExtensibleProjectManager
     {
@@ -34,7 +34,7 @@
 
         private BatchOperationToken batchToken;
 
-        public NuGetExtensibleProjectManager(IPackageInstallationService packageInstallationService, IFrameworkNameProvider frameworkNameProvider, 
+        public NuGetExtensibleProjectManager(IPackageInstallationService packageInstallationService, IFrameworkNameProvider frameworkNameProvider,
             INuGetProjectContextProvider nuGetProjectContextProvider, ISourceRepositoryProvider repositoryProvider)
         {
             Argument.IsNotNull(() => packageInstallationService);
@@ -168,7 +168,7 @@
 
                     var result = await packageConfigProject.InstallPackageAsync(package, downloadResult, _nuGetProjectContextProvider.GetProjectContext(FileConflictAction.PromptUser), token);
 
-                    if(!result)
+                    if (!result)
                     {
                         Log.Error($"Saving package configuration failed in project {project} when installing package {package}");
                     }
@@ -178,7 +178,7 @@
 
                 await OnInstallAsync(project, package, dependencyInstallResult);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e, $"The Installation of package {package} was failed");
             }
@@ -211,7 +211,7 @@
 
                 var result = await packageConfigProject.UninstallPackageAsync(package, _nuGetProjectContextProvider.GetProjectContext(FileConflictAction.PromptUser), token);
 
-                if(!result)
+                if (!result)
                 {
                     Log.Error($"Saving package configuration failed in project {project} when installing package {package}");
                 }
@@ -257,8 +257,8 @@
         public PackagesConfigNuGetProject CreatePackageConfigProjectFromExtensible(IExtensibleProject project)
         {
             NuGetProjectMetadata metadata = null;
-            
-            if(!_storedProjectMetadata.TryGetValue(project, out metadata))
+
+            if (!_storedProjectMetadata.TryGetValue(project, out metadata))
             {
                 metadata = new NuGetProjectMetadata();
 
@@ -296,9 +296,9 @@
 
             public bool IsDisposed { get; private set; }
 
-            public IEnumerable<T> GetInvokationList<T>() where T: NuGetProjectEventArgs
+            public IEnumerable<T> GetInvokationList<T>() where T : NuGetProjectEventArgs
             {
-                if(supressedInvokationEventArgs.All(args => args is T))
+                if (supressedInvokationEventArgs.All(args => args is T))
                 {
                     return supressedInvokationEventArgs.Cast<T>();
                 }
@@ -311,9 +311,9 @@
             {
                 var last = supressedInvokationEventArgs.LastOrDefault();
 
-                if(last != null)
+                if (last != null)
                 {
-                    switch(last)
+                    switch (last)
                     {
                         case BatchedInstallNuGetProjectEventArgs b:
                             {

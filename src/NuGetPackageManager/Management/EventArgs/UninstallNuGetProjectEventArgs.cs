@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NuGet.Packaging.Core;
-
-namespace NuGetPackageManager.Management.EventArgs
+﻿namespace NuGetPackageManager.Management.EventArgs
 {
+    using NuGet.Packaging.Core;
+
     public class UninstallNuGetProjectEventArgs : NuGetProjectEventArgs
     {
         public UninstallNuGetProjectEventArgs(IExtensibleProject project, PackageIdentity package, bool result) : base(project, package)
@@ -21,7 +16,6 @@ namespace NuGetPackageManager.Management.EventArgs
     {
         public BatchedUninstallNuGetProjectEventArgs(UninstallNuGetProjectEventArgs eventArgs) : base(eventArgs.Project, eventArgs.Package, eventArgs.Result)
         {
-
         }
 
         public bool IsBatchEnd { get; set; }

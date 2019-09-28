@@ -136,7 +136,7 @@
             {
                 var shouldRunClear = await _messageService.ShowAsync("Clean all NuGet caches, including global packages folder?", "NuGet Package Management", MessageButton.OKCancel);
 
-                if(shouldRunClear == MessageResult.Cancel)
+                if (shouldRunClear == MessageResult.Cancel)
                 {
                     return;
                 }

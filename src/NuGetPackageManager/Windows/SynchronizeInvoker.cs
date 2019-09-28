@@ -1,19 +1,15 @@
-﻿using Catel.Services;
-using Catel.Windows.Threading;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Threading;
-
-namespace NuGetPackageManager.Windows
+﻿namespace NuGetPackageManager.Windows
 {
+    using Catel.Services;
+    using System;
+    using System.ComponentModel;
+    using System.Threading;
+    using System.Windows.Threading;
+
     public class SynchronizeInvoker : ISynchronizeInvoke
     {
         private readonly Dispatcher _dispatcher;
+
         private readonly IDispatcherService _dispatcherService;
 
         public SynchronizeInvoker(Dispatcher dispatcher, IDispatcherService dispatcherService)
@@ -28,8 +24,8 @@ namespace NuGetPackageManager.Windows
         {
             return new DispatcherAsyncResult(
                 _dispatcher.BeginInvoke(
-                    method, 
-                    DispatcherPriority.Normal, 
+                    method,
+                    DispatcherPriority.Normal,
                     args));
         }
 
@@ -58,8 +54,11 @@ namespace NuGetPackageManager.Windows
             public DispatcherOperation Operation { get; }
 
             public bool IsCompleted => this.result.IsCompleted;
+
             public WaitHandle AsyncWaitHandle => this.result.AsyncWaitHandle;
+
             public object AsyncState => this.result.AsyncState;
+
             public bool CompletedSynchronously => this.result.CompletedSynchronously;
         }
     }

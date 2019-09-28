@@ -15,7 +15,6 @@
     using NuGetPackageManager.Management.EventArgs;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Pagination;
-    using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
     using NuGetPackageManager.Web;
     using NuGetPackageManager.Windows;
@@ -25,8 +24,6 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Windows;
-    using System.Windows.Threading;
 
     public class ExplorerPageViewModel : ViewModelBase
     {
@@ -97,13 +94,13 @@
 
             _packagesLoaderService = packagesLoaderService;
 
-            if(Title != "Browse")
+            if (Title != "Browse")
             {
                 _packagesLoaderService = this.GetServiceLocator().ResolveType<IPackagesLoaderService>(Title);
             }
 
-            
-            if(!Enum.TryParse(Title, out _pageType))
+
+            if (!Enum.TryParse(Title, out _pageType))
             {
                 Log.Error("Unrecognized page type");
             }
@@ -287,7 +284,7 @@
 
         private void StartLoadingTimerOrInvalidateData()
         {
-            if(IsActive)
+            if (IsActive)
             {
                 StartLoadingTimer();
             }
@@ -541,7 +538,7 @@
 
                 _defferedPackageLoaderService.Add(deferToken);
             }
-      
+
             _dispatcherService.BeginInvoke(() =>
                     {
                         PackageItems.AddRange(vms);
@@ -550,7 +547,7 @@
 
             MetadataOrigin DetermineLoadBehavior(MetadataOrigin page)
             {
-                switch(page)
+                switch (page)
                 {
                     case MetadataOrigin.Browse: return MetadataOrigin.Installed;
 
@@ -588,7 +585,7 @@
         {
             var batchedArgs = e as BatchedUninstallNuGetProjectEventArgs;
 
-            if(!batchedArgs.IsBatchEnd)
+            if (!batchedArgs.IsBatchEnd)
             {
                 return;
             }

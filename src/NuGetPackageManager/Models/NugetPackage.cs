@@ -28,7 +28,7 @@ namespace NuGetPackageManager.Models
             Authors = packageMetadata.Authors;
             DownloadCount = packageMetadata.DownloadCount;
             Summary = packageMetadata.Summary;
-            
+
             LastVersion = packageMetadata.Identity.Version;
         }
 
@@ -52,9 +52,9 @@ namespace NuGetPackageManager.Models
         public IReadOnlyList<NuGetVersion> Versions
         {
             get { return _versions; }
-            private set 
-            { 
-                _versions = value.ToList(); 
+            private set
+            {
+                _versions = value.ToList();
             }
         }
 
@@ -73,16 +73,16 @@ namespace NuGetPackageManager.Models
             //merge versions
             var versInfo = await searchMetadata.GetVersionsAsync();
 
-            if(!Versions.Any())
+            if (!Versions.Any())
             {
                 //currently package versions doesn't loaded from metadata,
                 //but we still can add current version to list and check it as our LastVersion
-                
+
                 var singleVersion = searchMetadata.Identity.Version;
                 _versions.Add(singleVersion);
             }
 
-            if(versInfo != null)
+            if (versInfo != null)
             {
                 VersionsInfo = VersionsInfo.Union(versInfo).Distinct();
 
@@ -119,12 +119,12 @@ namespace NuGetPackageManager.Models
         {
             base.OnPropertyChanged(e);
 
-            if(_packageMetadata == null)
+            if (_packageMetadata == null)
             {
                 return;
             }
 
-            if(String.Equals(e.PropertyName, nameof(Status)))
+            if (String.Equals(e.PropertyName, nameof(Status)))
             {
                 Log.Info($"{Identity} status was changed from {e.OldValue} to {e.NewValue}");
             }
