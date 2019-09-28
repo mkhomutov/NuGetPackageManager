@@ -41,10 +41,10 @@ namespace NuGetPackageManager.Views
         {
             var badgedSender = sender as Badged;
 
-            if ((bool)e.NewValue)
-            {
-                badgedSender.SetCurrentValue(Badged.BadgeProperty, ArrowDownResource);
-            }
+            //if ((bool)e.NewValue)
+            //{
+            //    badgedSender.SetCurrentValue(Badged.BadgeProperty, ArrowDownResource);
+            //}
         }
     }
 }

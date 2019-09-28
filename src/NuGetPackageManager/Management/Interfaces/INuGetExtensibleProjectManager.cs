@@ -17,6 +17,8 @@ namespace NuGetPackageManager.Management
         Task<bool> IsPackageInstalledAsync(IExtensibleProject project, PackageIdentity package, CancellationToken token);
         Task<Packaging.PackageCollection> CreatePackagesCollectionFromProjectsAsync(IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken);
         IEnumerable<NuGet.Protocol.Core.Types.SourceRepository> AsLocalRepositories(IEnumerable<IExtensibleProject> projects);
+        Task UninstallPackageForMultipleProject(IReadOnlyList<IExtensibleProject> projects, PackageIdentity package, CancellationToken token);
+        Task InstallPackageForMultipleProject(IReadOnlyList<IExtensibleProject> projects, PackageIdentity package, CancellationToken token);
 
         event AsyncEventHandler<InstallNuGetProjectEventArgs> Install;
 

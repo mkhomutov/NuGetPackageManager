@@ -16,4 +16,14 @@ namespace NuGetPackageManager.Management.EventArgs
 
         public bool Result { get; }
     }
+
+    public class BatchedUninstallNuGetProjectEventArgs : UninstallNuGetProjectEventArgs
+    {
+        public BatchedUninstallNuGetProjectEventArgs(UninstallNuGetProjectEventArgs eventArgs) : base(eventArgs.Project, eventArgs.Package, eventArgs.Result)
+        {
+
+        }
+
+        public bool IsBatchEnd { get; set; }
+    }
 }

@@ -10,7 +10,7 @@
 
         public ExampleFolderPackageManagement(string rootPath)
         {
-            ContentPath = System.IO.Path.Combine(rootPath, nameof(ExamplePackageManagement));
+            ContentPath = System.IO.Path.Combine(rootPath, nameof(ExampleFolderPackageManagement));
         }
 
         public string Name => "Plain project extensible example with additinal logging";

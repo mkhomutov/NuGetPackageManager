@@ -35,6 +35,7 @@
     <None Remove="Resources\Upload_gray_16x.png" />
     <None Remove="Themes\Animations.xaml" />
     <None Remove="Themes\Brushes.xaml" />
+    <None Remove="Themes\CompiledResources.xaml" />
     <None Remove="Themes\Generic.xaml" />
     <None Remove="Themes\MaterialIcons.xaml" />
     <None Remove="Themes\Shadows.xaml" />

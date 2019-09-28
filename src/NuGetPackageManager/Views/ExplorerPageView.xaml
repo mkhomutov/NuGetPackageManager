@@ -16,59 +16,6 @@
         <converters:UriToBitmapConverter x:Key="UriToBitmapConverter"/>
         <converters:PackageStatusEnumToBoolConverter x:Key="PackageStatusEnumToBoolConverter"/>
         <converters:PackageStatusEnumToBrushConverter x:Key="PackageStatusEnumToBrushConverter"/>
-
-        <Viewbox x:Key="ArrowUpBadgeContent">
-            <Canvas Width="24" Height="24" ClipToBounds="True">
-                <Path Data="{Binding Source={StaticResource Arrow-up-bold}, Path=Data}" Fill="WhiteSmoke"/>
-            </Canvas>
-        </Viewbox>
-
-        <Viewbox x:Key="ArrowDownBadgeContent">
-            <Canvas Width="24" Height="24" ClipToBounds="True">
-                <Path Data="{Binding Source={StaticResource Arrow-down-bold}, Path=Data}" Fill="WhiteSmoke"/>
-            </Canvas>
-        </Viewbox>
-
-
-        <Style TargetType="nugetc:Badged" x:Key="PackageStatusBadgeStyle">
-            <Style.Resources>
-                <Viewbox x:Key="DefaultKey">
-                    <Canvas Width="24" Height="24" ClipToBounds="True">
-                        <Path Data="{Binding Source={StaticResource Arrow-up-bold}, Path=Data}" Fill="WhiteSmoke"/>
-                    </Canvas>
-                </Viewbox>
-            </Style.Resources>
-            <Setter Property="Badge" Value="{StaticResource DefaultKey}">
-            </Setter>
-            <Setter Property="Background" Value="{DynamicResource AvaialableUpdateBadgeBackgroundBrush}" />
-            <!--<Style.Triggers>
-                <DataTrigger Binding="{Binding Path=Status}" Value="{x:Static enum:PackageStatus.LastVersionInstalled}">
-                    <Setter Property="Badge">
-                        <Setter.Value>
-                            <Viewbox>
-                                <Canvas Width="24" Height="24" ClipToBounds="True">
-                                    <Path Data="{Binding Source={StaticResource Arrow-up-bold}, Path=Data}" Fill="WhiteSmoke"/>
-                                </Canvas>
-                            </Viewbox>
-                        </Setter.Value>
-                    </Setter>
-                    <Setter Property="Background" Value="{DynamicResource AvaialableUpdateBadgeBackgroundBrush}" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Path=Status}" Value="{x:Static enum:PackageStatus.UpdateAvailable}">
-                    <Setter Property="Badge">
-                        <Setter.Value>
-                            <Viewbox>
-                                <Canvas Width="24" Height="24" ClipToBounds="True">
-                                    <Path Data="{Binding Source={StaticResource Arrow-down-bold}, Path=Data}" Fill="WhiteSmoke"/>
-                                    --><!--Fill="{Binding RelativeSource={RelativeSource AncestorType=nugetc:Badged}, Path=BadgeForeground}"/>--><!--
-                                </Canvas>
-                            </Viewbox>
-                        </Setter.Value>
-                    </Setter>
-                    <Setter Property="Background" Value="{DynamicResource InstalledBadgeBackgroundBrush}" />
-                </DataTrigger>
-            </Style.Triggers>-->
-        </Style>
         
     </catel:UserControl.Resources>
     <Grid>
@@ -124,7 +71,7 @@
                                 <nugetc:Badged.Badge>
                                     <Viewbox>
                                         <Canvas Width="24" Height="24" ClipToBounds="True">
-                                            <Path Data="{Binding Source={StaticResource Arrow-up-bold}, Path=Data}" 
+                                            <Path Data="{Binding Source={StaticResource Arrow-down-bold}, Path=Data}" 
                                                   Fill="{Binding RelativeSource={RelativeSource AncestorType=nugetc:Badged}, Path=BadgeForeground}"/>
                                         </Canvas>
                                     </Viewbox>

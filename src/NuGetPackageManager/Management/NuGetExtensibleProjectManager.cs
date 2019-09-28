@@ -31,6 +31,9 @@
 
         const string MetadataTargetFramework = "TargetFramework";
         const string MetadataName = "Name";
+
+        private BatchOperationToken batchToken;
+
         public NuGetExtensibleProjectManager(IPackageInstallationService packageInstallationService, IFrameworkNameProvider frameworkNameProvider, 
             INuGetProjectContextProvider nuGetProjectContextProvider, ISourceRepositoryProvider repositoryProvider)
         {
@@ -50,8 +53,14 @@
         async Task OnInstallAsync(IExtensibleProject project, PackageIdentity package, bool result)
         {
             var args = new InstallNuGetProjectEventArgs(project, package, result);
-            await Install.SafeInvokeAsync(this, args);
 
+            if (!batchToken.IsDisposed)
+            {
+                batchToken.Add(new BatchedInstallNuGetProjectEventArgs(args));
+                return;
+            }
+
+            await Install.SafeInvokeAsync(this, args);
         }
 
         public event AsyncEventHandler<UninstallNuGetProjectEventArgs> Uninstall;
@@ -59,14 +68,28 @@
         async Task OnUninstallAsync(IExtensibleProject project, PackageIdentity package, bool result)
         {
             var args = new UninstallNuGetProjectEventArgs(project, package, result);
+
+            if (!batchToken.IsDisposed)
+            {
+                batchToken.Add(new BatchedUninstallNuGetProjectEventArgs(args));
+                return;
+            }
+
             await Uninstall.SafeInvokeAsync(this, args);
         }
 
         public event AsyncEventHandler<UpdateNuGetProjectEventArgs> Update;
 
-        async Task OnUpdateAsync()
+        async Task OnUpdateAsync(IExtensibleProject project, PackageIdentity package)
         {
-            var args = new UpdateNuGetProjectEventArgs();
+            var args = new UpdateNuGetProjectEventArgs(project, package);
+
+            //if (!batchToken.IsDisposed)
+            //{
+            //    batchToken.Add(args);
+            //    return;
+            //}
+
             await Update.SafeInvokeAsync(this, args);
         }
 
@@ -121,7 +144,7 @@
 
             var installedReferences = await GetInstalledPackagesAsync(project, token);
 
-            var installedPackage = installedReferences.FirstOrDefault(r => r.PackageIdentity == package);
+            var installedPackage = installedReferences.Where(x => x.PackageIdentity.Equals(package, NuGet.Versioning.VersionComparison.Version)).FirstOrDefault();
 
             return installedPackage != null;
         }
@@ -161,6 +184,23 @@
             }
         }
 
+        public async Task InstallPackageForMultipleProject(IReadOnlyList<IExtensibleProject> projects, PackageIdentity package, CancellationToken token)
+        {
+            using (batchToken = new BatchOperationToken())
+            {
+                foreach (var project in projects)
+                {
+                    await InstallPackageForProject(project, package, token);
+                }
+            }
+
+            //raise supressed events
+            foreach (var args in batchToken.GetInvokationList<InstallNuGetProjectEventArgs>())
+            {
+                await Install.SafeInvokeAsync(this, args);
+            }
+        }
+
         public async Task UninstallPackageForProject(IExtensibleProject project, PackageIdentity package, CancellationToken token)
         {
             try
@@ -181,6 +221,30 @@
             catch (Exception e)
             {
                 Log.Error(e, $"Uninstall of package {package} was failed");
+            }
+        }
+
+        public async Task UninstallPackageForMultipleProject(IReadOnlyList<IExtensibleProject> projects, PackageIdentity package, CancellationToken token)
+        {
+            using (batchToken = new BatchOperationToken())
+            {
+                foreach (var project in projects)
+                {
+                    var isInstalled = await IsPackageInstalledAsync(project, package, token);
+
+                    if (!isInstalled)
+                    {
+                        continue;
+                    }
+
+                    await UninstallPackageForProject(project, package, token);
+                }
+            }
+
+            //raise supressed events
+            foreach (var args in batchToken.GetInvokationList<UninstallNuGetProjectEventArgs>())
+            {
+                await Uninstall.SafeInvokeAsync(this, args);
             }
         }
 
@@ -219,6 +283,56 @@
                 ));
 
             return repos;
+        }
+
+        private class BatchOperationToken : IDisposable
+        {
+            private readonly List<NuGetProjectEventArgs> supressedInvokationEventArgs = new List<NuGetProjectEventArgs>();
+
+            public void Add(NuGetProjectEventArgs eventArgs)
+            {
+                supressedInvokationEventArgs.Add(eventArgs);
+            }
+
+            public bool IsDisposed { get; private set; }
+
+            public IEnumerable<T> GetInvokationList<T>() where T: NuGetProjectEventArgs
+            {
+                if(supressedInvokationEventArgs.All(args => args is T))
+                {
+                    return supressedInvokationEventArgs.Cast<T>();
+                }
+
+                Log.Warning("Mixed batched event args");
+                return Enumerable.Empty<T>();
+            }
+
+            public void Dispose()
+            {
+                var last = supressedInvokationEventArgs.LastOrDefault();
+
+                if(last != null)
+                {
+                    switch(last)
+                    {
+                        case BatchedInstallNuGetProjectEventArgs b:
+                            {
+                                b.IsBatchEnd = true;
+
+                                break;
+                            }
+
+                        case BatchedUninstallNuGetProjectEventArgs b:
+                            {
+                                b.IsBatchEnd = true;
+
+                                break;
+                            }
+                    }
+                }
+
+                IsDisposed = true;
+            }
         }
     }
 }

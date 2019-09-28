@@ -59,12 +59,12 @@
                 Package = new NuGetPackage(packageMetadata);
             }
 
-            if(fromPage == MetadataOrigin.Browse)
+            if (fromPage == MetadataOrigin.Browse)
             {
                 //installed version is unknown until installed is loaded
                 Package.InstalledVersion = null;
             }
-            if(fromPage == MetadataOrigin.Installed)
+            if (fromPage == MetadataOrigin.Installed)
             {
                 Package.InstalledVersion = Package.LastVersion;
             }
@@ -72,7 +72,6 @@
             IsDownloadCountShowed = fromPage != MetadataOrigin.Installed;
 
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
-            //() => NuGetActionTarget?.IsValid ?? false
             InstallPackage = new TaskCommand(OnInstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
             UninstallPackage = new TaskCommand(OnUninstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
         }
@@ -198,13 +197,9 @@
             {
                 _progressManager.ShowBar(this);
 
-                foreach (var project in NuGetActionTarget.TargetProjects)
+                using(var cts = new CancellationTokenSource())
                 {
-
-                    using (var cts = new CancellationTokenSource())
-                    {
-                        await _projectManager.InstallPackageForProject(project, SelectedPackage, cts.Token);
-                    }
+                    await _projectManager.InstallPackageForMultipleProject(NuGetActionTarget.TargetProjects, SelectedPackage, cts.Token);
                 }
 
                 await Task.Delay(200);
@@ -225,20 +220,12 @@
             {
                 _progressManager.ShowBar(this);
 
-                foreach (var project in NuGetActionTarget.TargetProjects)
+                using (var cts = new CancellationTokenSource())
                 {
-                    using (var cts = new CancellationTokenSource())
-                    {
-                        var isInstalled = await _projectManager.IsPackageInstalledAsync(project, SelectedPackage, cts.Token);
-
-                        if (!isInstalled)
-                        {
-                            continue;
-                        }
-
-                        await _projectManager.UninstallPackageForProject(project, SelectedPackage, cts.Token);
-                    }
+                    await _projectManager.UninstallPackageForMultipleProject(NuGetActionTarget.TargetProjects, SelectedPackage, cts.Token);
                 }
+
+                await Task.Delay(200);
 
                 _progressManager.HideBar(this);
             }

@@ -45,15 +45,6 @@ namespace NuGetPackageManager.Controls
         public static readonly DependencyProperty BadgeForegroundProperty =
             DependencyProperty.Register("BadgeForeground", typeof(Brush), typeof(Badged), new PropertyMetadata(null));
 
-        //public Brush BadgeBackground
-        //{
-        //    get { return (Brush)GetValue(BadgeBackgroundProperty); }
-        //    set { SetValue(BadgeBackgroundProperty, value); }
-        //}
-
-        //public static readonly DependencyProperty BadgeBackgroundProperty =
-        //    DependencyProperty.Register("BadgeBackground", typeof(Brush), typeof(Badged), new PropertyMetadata(null));
-
         public bool IsShowed
         {
             get { return (bool)GetValue(IsShowedProperty); }

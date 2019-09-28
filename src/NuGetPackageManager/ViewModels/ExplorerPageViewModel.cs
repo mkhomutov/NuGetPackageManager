@@ -7,20 +7,26 @@
     using Catel.Logging;
     using Catel.MVVM;
     using Catel.Services;
+    using Catel.Windows.Threading;
     using NuGet.Configuration;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Enums;
+    using NuGetPackageManager.Management;
+    using NuGetPackageManager.Management.EventArgs;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
     using NuGetPackageManager.Web;
+    using NuGetPackageManager.Windows;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Windows;
+    using System.Windows.Threading;
 
     public class ExplorerPageViewModel : ViewModelBase
     {
@@ -30,6 +36,7 @@
         private static readonly IHttpExceptionHandler<FatalProtocolException> packageLoadingExceptionHandler = new FatalProtocolExceptionHandler();
 
         private readonly IPackagesLoaderService _packagesLoaderService;
+        private readonly INuGetExtensibleProjectManager _projectManager;
         private readonly IRepositoryService _repositoryService;
         private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
         private readonly INuGetFeedVerificationService _nuGetFeedVerificationService;
@@ -38,6 +45,11 @@
         private readonly ITypeFactory _typeFactory;
 
         private readonly MetadataOrigin _pageType;
+
+        private static void ElapsedHandler(object sender, EventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
 
         private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
 
@@ -68,7 +80,7 @@
         public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
             IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService, INuGetFeedVerificationService nuGetFeedVerificationService,
             ICommandManager commandManager, IDispatcherService dispatcherService, IRepositoryService repositoryService, ITypeFactory typeFactory,
-            IDefferedPackageLoaderService defferedPackageLoaderService)
+            IDefferedPackageLoaderService defferedPackageLoaderService, INuGetExtensibleProjectManager projectManager)
         {
             Title = pageTitle;
 
@@ -81,6 +93,7 @@
             Argument.IsNotNull(() => repositoryService);
             Argument.IsNotNull(() => typeFactory);
             Argument.IsNotNull(() => defferedPackageLoaderService);
+            Argument.IsNotNull(() => projectManager);
 
             _packagesLoaderService = packagesLoaderService;
 
@@ -100,6 +113,7 @@
             _nuGetFeedVerificationService = nuGetFeedVerificationService;
             _repositoryService = repositoryService;
             _defferedPackageLoaderService = defferedPackageLoaderService;
+            _projectManager = projectManager;
 
             Settings = explorerSettings;
 
@@ -197,11 +211,16 @@
                 SingleDelayTimer.Elapsed += OnTimerElapsed;
                 SingleDelayTimer.AutoReset = false;
 
+                SingleDelayTimer.SynchronizingObject = new SynchronizeInvoker(DispatcherHelper.CurrentDispatcher, _dispatcherService);
+
                 _packages = new FastObservableCollection<IPackageSearchMetadata>();
 
                 PackageItems = new FastObservableCollection<PackageDetailsViewModel>();
 
                 PackageItems.CollectionChanged += OnPackageItemsCollectionChanged;
+
+                _projectManager.Install += OnProjectManagerInstall;
+                _projectManager.Uninstall += OnProjectManagerUninstall;
 
                 //todo validation
                 if (Settings.ObservedFeed != null && !String.IsNullOrEmpty(Settings.ObservedFeed.Source))
@@ -406,7 +425,6 @@
             finally
             {
                 await _defferedPackageLoaderService.StartLoadingAsync();
-
             }
         }
 
@@ -453,10 +471,7 @@
 
         private async Task RefreshCurrentPageExecute()
         {
-            if (IsActive)
-            {
-                StartLoadingTimer();
-            }
+            StartLoadingTimerOrInvalidateData();
         }
 
         #endregion
@@ -505,7 +520,9 @@
 
         private async Task CreatePackageListItems(IEnumerable<IPackageSearchMetadata> packageSearchMetadataCollection)
         {
-            var vms = packageSearchMetadataCollection.Select(x => _typeFactory.CreateInstanceWithParametersAndAutoCompletion<PackageDetailsViewModel>(x, _pageType)).ToList();
+            IEnumerable<PackageDetailsViewModel> vms = null;
+
+            vms = packageSearchMetadataCollection.Select(x => _typeFactory.CreateInstanceWithParametersAndAutoCompletion<PackageDetailsViewModel>(x, _pageType)).ToList();
 
             //create tokens, used for deffer execution of tasks
             //obtained states/updates of packages
@@ -565,6 +582,30 @@
             }
 
             await Task.CompletedTask;
+        }
+
+        private async Task OnProjectManagerUninstall(object sender, Management.EventArgs.UninstallNuGetProjectEventArgs e)
+        {
+            var batchedArgs = e as BatchedUninstallNuGetProjectEventArgs;
+
+            if(!batchedArgs.IsBatchEnd)
+            {
+                return;
+            }
+
+            StartLoadingTimerOrInvalidateData();
+        }
+
+        private async Task OnProjectManagerInstall(object sender, Management.EventArgs.InstallNuGetProjectEventArgs e)
+        {
+            var batchedArgs = e as BatchedInstallNuGetProjectEventArgs;
+
+            if (!batchedArgs.IsBatchEnd)
+            {
+                return;
+            }
+
+            StartLoadingTimerOrInvalidateData();
         }
 
         private async Task CanFeedBeLoadedAsync(CancellationToken cancelToken, INuGetSource source)
