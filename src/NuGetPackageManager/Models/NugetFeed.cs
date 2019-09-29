@@ -44,6 +44,8 @@
         [XmlIgnore]
         public bool IsVerified { get; private set; }
 
+        public bool IsSelected { get; set; }
+
         public override string ToString()
         {
             return $"{Name}\n{Source}";

@@ -33,10 +33,28 @@
 
         protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(NuGetFeeds))
+            if (string.Equals(e.PropertyName, nameof(ObservedFeed)))
+            {
+                var source = e.NewValue as INuGetSource;
+
+                if (source != null)
+                {
+                    source.IsSelected = true;
+                }
+
+                var oldSelected = e.OldValue as INuGetSource;
+
+                if (oldSelected != null)
+                {
+                    oldSelected.IsSelected = false;
+                }
+            }
+
+            if (string.Equals(e.PropertyName, nameof(NuGetFeeds)))
             {
                 ObservedFeed = NuGetFeeds.FirstOrDefault();
             }
+
             base.OnPropertyChanged(e);
         }
     }

@@ -178,7 +178,7 @@
 
                     var result = await packageConfigProject.InstallPackageAsync(
                         dependencyIdentity,
-                        downloadResult, 
+                        downloadResult,
                         _nuGetProjectContextProvider.GetProjectContext(FileConflictAction.PromptUser),
                         token);
 
@@ -192,12 +192,12 @@
 
                 await OnInstallAsync(project, package, dependencyInstallResult);
             }
-            catch(ProjectInstallException e)
+            catch (ProjectInstallException e)
             {
                 Log.Error(e, $"The Installation of package {package} was failed");
 
                 //rollback packages
-                foreach(var canceledPackages in e.CurrentBatch)
+                foreach (var canceledPackages in e.CurrentBatch)
                 {
                     await UninstallPackageForProject(project, canceledPackages, token);
                 }

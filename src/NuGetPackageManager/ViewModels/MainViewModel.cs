@@ -1,12 +1,14 @@
 namespace NuGetPackageManager.ViewModels
 {
     using Catel;
+    using Catel.Configuration;
     using Catel.IoC;
     using Catel.MVVM;
     using Catel.Services;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Providers;
+    using NuGetPackageManager.Services;
     using System.Collections.ObjectModel;
     using System.Threading.Tasks;
     using System.Windows.Input;
@@ -14,19 +16,25 @@ namespace NuGetPackageManager.ViewModels
     public class MainViewModel : ViewModelBase
     {
         private readonly IUIVisualizerService _uIVisualizerService;
+        private readonly NugetConfigurationService _configurationService;
 
         private readonly ITypeFactory _typeFactory;
 
 
-        public MainViewModel(ITypeFactory typeFactory, IUIVisualizerService service, ICommandManager commandManager, IModelProvider<ExplorerSettingsContainer> settingsProvider)
+        public MainViewModel(ITypeFactory typeFactory, IUIVisualizerService service, ICommandManager commandManager,
+            IModelProvider<ExplorerSettingsContainer> settingsProvider, IConfigurationService configurationService)
         {
             Argument.IsNotNull(() => service);
             Argument.IsNotNull(() => typeFactory);
             Argument.IsNotNull(() => commandManager);
             Argument.IsNotNull(() => settingsProvider);
+            Argument.IsNotNull(() => configurationService);
+            Argument.IsOfType(() => configurationService, typeof(NugetConfigurationService));
 
             _uIVisualizerService = service;
             _typeFactory = typeFactory;
+
+            _configurationService = configurationService as NugetConfigurationService;
 
             CreateApplicationWideCommands(commandManager);
 
@@ -79,6 +87,17 @@ namespace NuGetPackageManager.ViewModels
             {
                 return _typeFactory.CreateInstanceWithParametersAndAutoCompletion<ExplorerPageViewModel>(Settings, title);
             }
+        }
+
+        protected override Task OnClosingAsync()
+        {
+            //update selected feed
+            for (int i = 0; i < Settings.NuGetFeeds.Count; i++)
+            {
+                _configurationService.SetRoamingValueWithDefaultIdGenerator(Settings.NuGetFeeds[i]);
+            }
+
+            return base.OnClosingAsync();
         }
 
         private void CreateApplicationWideCommands(ICommandManager cm)

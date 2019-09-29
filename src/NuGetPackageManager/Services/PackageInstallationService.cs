@@ -119,7 +119,7 @@
             }
         }
 
-        
+
         public async Task<IDictionary<SourcePackageDependencyInfo, DownloadResourceResult>> InstallAsync(
             PackageIdentity identity,
             IExtensibleProject project,
@@ -173,7 +173,7 @@
                     return downloadResults;
                 }
             }
-            catch(ProjectInstallException)
+            catch (ProjectInstallException)
             {
                 throw;
             }
@@ -278,9 +278,9 @@
         }
 
         private async Task ExtractPackagesResourcesAsync(
-            IDictionary<SourcePackageDependencyInfo, DownloadResourceResult> packageResources, 
-            IExtensibleProject project, 
-            PackageExtractionContext extractionContext, 
+            IDictionary<SourcePackageDependencyInfo, DownloadResourceResult> packageResources,
+            IExtensibleProject project,
+            PackageExtractionContext extractionContext,
             CancellationToken cancellationToken)
         {
             List<PackageIdentity> extractedPackages = new List<PackageIdentity>();
@@ -317,13 +317,13 @@
 
                     Log.Info($"Successfully unpacked {extractedPaths.Count()} files");
 
-                    if(!alreadyInstalled)
+                    if (!alreadyInstalled)
                     {
                         extractedPackages.Add(packageIdentity);
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e, $"An error occured during package extraction");
 

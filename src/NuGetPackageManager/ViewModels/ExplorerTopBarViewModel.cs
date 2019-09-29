@@ -60,7 +60,7 @@
             CommandInitialize();
         }
 
-        [Model]
+        [Model(SupportIEditableObject = false)]
         public ExplorerSettingsContainer Settings { get; set; }
 
         [ViewModelToModel]
@@ -200,6 +200,15 @@
             var allInOneSource = new CombinedNuGetSource(activefeeds);
 
             activefeeds.Insert(0, allInOneSource);
+
+            ObservedFeed = activefeeds.FirstOrDefault(x => x.IsSelected);
+
+            if (ObservedFeed != null)
+            {
+                activefeeds.Remove(ObservedFeed);
+
+                activefeeds.Insert(0, ObservedFeed);
+            }
 
             return activefeeds;
         }
