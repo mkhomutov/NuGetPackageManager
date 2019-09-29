@@ -9,6 +9,7 @@
     using NuGet.ProjectManagement;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Management.EventArgs;
+    using NuGetPackageManager.Management.Exceptions;
     using NuGetPackageManager.Packaging;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
@@ -97,6 +98,8 @@
         {
             try
             {
+                //TODO should local metadata is also be checked?
+
                 //var pathResolver = new PackagePathResolver(project.ContentPath);
 
                 //var directories = System.IO.Directory.GetDirectories(project.ContentPath);
@@ -136,6 +139,13 @@
             return new PackageCollection(packages);
         }
 
+        /// <summary>
+        /// Checks is package installed from records in config repository
+        /// </summary>
+        /// <param name="project"></param>
+        /// <param name="package"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public async Task<bool> IsPackageInstalledAsync(IExtensibleProject project, PackageIdentity package, CancellationToken token)
         {
             //var underluyingFolderProject = new FolderNuGetProject(project.ContentPath);
@@ -166,7 +176,11 @@
                     var dependencyIdentity = packageDownloadResultPair.Key;
                     var downloadResult = packageDownloadResultPair.Value;
 
-                    var result = await packageConfigProject.InstallPackageAsync(package, downloadResult, _nuGetProjectContextProvider.GetProjectContext(FileConflictAction.PromptUser), token);
+                    var result = await packageConfigProject.InstallPackageAsync(
+                        dependencyIdentity,
+                        downloadResult, 
+                        _nuGetProjectContextProvider.GetProjectContext(FileConflictAction.PromptUser),
+                        token);
 
                     if (!result)
                     {
@@ -177,6 +191,17 @@
                 }
 
                 await OnInstallAsync(project, package, dependencyInstallResult);
+            }
+            catch(ProjectInstallException e)
+            {
+                Log.Error(e, $"The Installation of package {package} was failed");
+
+                //rollback packages
+                foreach(var canceledPackages in e.CurrentBatch)
+                {
+                    await UninstallPackageForProject(project, canceledPackages, token);
+                }
+
             }
             catch (Exception e)
             {
@@ -209,14 +234,20 @@
 
                 await _packageInstallationService.UninstallAsync(package, project, token);
 
-                var result = await packageConfigProject.UninstallPackageAsync(package, _nuGetProjectContextProvider.GetProjectContext(FileConflictAction.PromptUser), token);
+                var isRepositoryConfigRecordExist = await IsPackageInstalledAsync(project, package, token);
 
-                if (!result)
+
+                if (isRepositoryConfigRecordExist)
                 {
-                    Log.Error($"Saving package configuration failed in project {project} when installing package {package}");
+                    var result = await packageConfigProject.UninstallPackageAsync(package, _nuGetProjectContextProvider.GetProjectContext(FileConflictAction.PromptUser), token);
+
+                    if (!result)
+                    {
+                        Log.Error($"Saving package configuration failed in project {project} when installing package {package}");
+                    }
                 }
 
-                await OnUninstallAsync(project, package, result);
+                await OnUninstallAsync(project, package, isRepositoryConfigRecordExist);
             }
             catch (Exception e)
             {
@@ -230,13 +261,6 @@
             {
                 foreach (var project in projects)
                 {
-                    var isInstalled = await IsPackageInstalledAsync(project, package, token);
-
-                    if (!isInstalled)
-                    {
-                        continue;
-                    }
-
                     await UninstallPackageForProject(project, package, token);
                 }
             }

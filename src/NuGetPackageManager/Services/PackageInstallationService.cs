@@ -17,6 +17,7 @@
     using NuGetPackageManager.Cache;
     using NuGetPackageManager.Loggers;
     using NuGetPackageManager.Management;
+    using NuGetPackageManager.Management.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -100,7 +101,6 @@
 
             try
             {
-
                 var folderProject = new FolderNuGetProject(project.ContentPath);
 
                 if (folderProject.PackageExists(package))
@@ -119,6 +119,7 @@
             }
         }
 
+        
         public async Task<IDictionary<SourcePackageDependencyInfo, DownloadResourceResult>> InstallAsync(
             PackageIdentity identity,
             IExtensibleProject project,
@@ -167,10 +168,14 @@
 
                     var extractionContext = GetExtractionContext();
 
-                    await ExtractPackagesResourcesAsync(downloadResults.Values, project, extractionContext, cancellationToken);
+                    await ExtractPackagesResourcesAsync(downloadResults, project, extractionContext, cancellationToken);
 
                     return downloadResults;
                 }
+            }
+            catch(ProjectInstallException)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -273,25 +278,61 @@
         }
 
         private async Task ExtractPackagesResourcesAsync(
-            IEnumerable<DownloadResourceResult> downloadResources, IExtensibleProject project, PackageExtractionContext extractionContext, CancellationToken cancellationToken)
+            IDictionary<SourcePackageDependencyInfo, DownloadResourceResult> packageResources, 
+            IExtensibleProject project, 
+            PackageExtractionContext extractionContext, 
+            CancellationToken cancellationToken)
         {
-            var pathResolver = new PackagePathResolver(project.ContentPath);
+            List<PackageIdentity> extractedPackages = new List<PackageIdentity>();
 
-            foreach (var downloadPart in downloadResources)
+            try
             {
-                Log.Info($"Extracting package {downloadPart.GetResourceRoot()} to {project} project folder..");
 
-                var extractedPaths = await PackageExtractor.ExtractPackageAsync(
-                    downloadPart.PackageSource,
-                    downloadPart.PackageStream,
-                    pathResolver,
-                    extractionContext,
-                    cancellationToken
-                );
 
-                Log.Info($"Successfully unpacked {extractedPaths.Count()} files");
+                var pathResolver = new PackagePathResolver(project.ContentPath);
+
+                foreach (var packageResource in packageResources)
+                {
+                    var downloadedPart = packageResource.Value;
+                    var packageIdentity = packageResource.Key;
+
+                    var nupkgPath = pathResolver.GetInstalledPackageFilePath(packageIdentity);
+
+                    bool alreadyInstalled = Directory.Exists(nupkgPath);
+
+                    if (alreadyInstalled)
+                    {
+                        Log.Info($"Package {packageIdentity} already location in extraction directory");
+                    }
+
+                    Log.Info($"Extracting package {downloadedPart.GetResourceRoot()} to {project} project folder..");
+
+                    var extractedPaths = await PackageExtractor.ExtractPackageAsync(
+                        downloadedPart.PackageSource,
+                        downloadedPart.PackageStream,
+                        pathResolver,
+                        extractionContext,
+                        cancellationToken
+                    );
+
+                    Log.Info($"Successfully unpacked {extractedPaths.Count()} files");
+
+                    if(!alreadyInstalled)
+                    {
+                        extractedPackages.Add(packageIdentity);
+                    }
+                }
             }
+            catch(Exception e)
+            {
+                Log.Error(e, $"An error occured during package extraction");
 
+                var extractionEx = new ProjectInstallException(e.Message, e);
+
+                extractionEx.CurrentBatch = extractedPackages;
+
+                throw extractionEx;
+            }
         }
 
 

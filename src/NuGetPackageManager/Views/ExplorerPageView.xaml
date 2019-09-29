@@ -137,7 +137,9 @@
                             </Grid>
 
                             <TextBlock Text="{Binding Summary }" TextWrapping="WrapWithOverflow"
-                                           Grid.Column="1" Grid.Row="2"/>
+                                       Grid.Column="1" Grid.Row="2"
+                                       TextTrimming="WordEllipsis"
+                                       MaxHeight="50"/>
                         </Grid>
                     </Grid>
                 </DataTemplate>

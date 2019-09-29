@@ -72,13 +72,8 @@
             IsDownloadCountShowed = fromPage != MetadataOrigin.Installed;
 
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
-            InstallPackage = new TaskCommand(OnInstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
+            InstallPackage = new TaskCommand(OnInstallPackageExecute, OnInstallPackageCanExecute);
             UninstallPackage = new TaskCommand(OnUninstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
-        }
-
-        private bool OnInstallPackageCanExecute()
-        {
-            return NuGetActionTarget?.IsValid ?? false;
         }
 
         protected async override Task InitializeAsync()
@@ -129,7 +124,7 @@
         }
 
 
-        [Model]
+        [Model(SupportIEditableObject = false)]
         [Expose("Title")]
         [Expose("Description")]
         [Expose("Summary")]
@@ -212,6 +207,13 @@
             }
         }
 
+        private bool OnInstallPackageCanExecute()
+        {
+            var anyProject = NuGetActionTarget?.IsValid ?? false;
+
+            return anyProject && !IsInstalled();
+        }
+
         public TaskCommand UninstallPackage { get; set; }
 
         private async Task OnUninstallPackageExecute()
@@ -264,6 +266,11 @@
                 var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
                 await LoadSinglePackageMetadataAsync(identity);
             }
+        }
+
+        private bool IsInstalled()
+        {
+            return Status == PackageStatus.UpdateAvailable || Status == PackageStatus.LastVersionInstalled;
         }
     }
 }
