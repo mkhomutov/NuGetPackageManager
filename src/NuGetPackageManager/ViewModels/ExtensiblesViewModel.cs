@@ -9,9 +9,9 @@
 
     public class ExtensiblesViewModel : ViewModelBase
     {
-        private readonly IExtensibleProjectManager _extensiblesManager;
+        private readonly IExtensibleProjectLocator _extensiblesManager;
 
-        public ExtensiblesViewModel(IExtensibleProjectManager extensiblesManager)
+        public ExtensiblesViewModel(IExtensibleProjectLocator extensiblesManager)
         {
             Argument.IsNotNull(() => extensiblesManager);
 

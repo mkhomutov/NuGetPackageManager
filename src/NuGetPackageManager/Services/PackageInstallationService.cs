@@ -1,6 +1,7 @@
 ﻿namespace NuGetPackageManager.Services
 {
     using Catel;
+    using Catel.IoC;
     using Catel.Logging;
     using NuGet.Common;
     using NuGet.Configuration;
@@ -8,15 +9,18 @@
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
     using NuGet.Packaging.Signing;
+    using NuGet.ProjectManagement;
     using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
     using NuGet.Resolver;
     using NuGet.Versioning;
-    using NuGetPackageManager.Extensions;
+    using NuGetPackageManager.Cache;
     using NuGetPackageManager.Loggers;
     using NuGetPackageManager.Management;
+    using NuGetPackageManager.Management.Exceptions;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -33,20 +37,31 @@
 
         private readonly IFileDirectoryService _fileDirectoryService;
 
+        private readonly INuGetCacheManager _nuGetCacheManager;
+
+        private readonly ITypeFactory _typeFactory;
+
+
         public PackageInstallationService(IFrameworkNameProvider frameworkNameProvider,
             ISourceRepositoryProvider sourceRepositoryProvider,
-            IFileDirectoryService fileDirectoryService)
+            IFileDirectoryService fileDirectoryService,
+            ITypeFactory typeFactory)
         {
             Argument.IsNotNull(() => frameworkNameProvider);
             Argument.IsNotNull(() => sourceRepositoryProvider);
             Argument.IsNotNull(() => fileDirectoryService);
+            //Argument.IsNotNull(() => nuGetCacheManager);
 
             _frameworkNameProvider = frameworkNameProvider;
             _sourceRepositoryProvider = sourceRepositoryProvider;
             _fileDirectoryService = fileDirectoryService;
+
+            _typeFactory = typeFactory;
+
+            _nuGetCacheManager = new NuGetCacheManager(_fileDirectoryService);
         }
 
-        public async Task InstallAsync(PackageIdentity identity, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken)
+        public async Task InstallAsync(PackageIdentity package, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken)
         {
             try
             {
@@ -54,7 +69,7 @@
 
                 foreach (var proj in projects)
                 {
-                    await InstallAsync(identity, proj, repositories, cancellationToken);
+                    await InstallAsync(package, proj, repositories, cancellationToken);
                 }
             }
             catch (Exception)
@@ -63,51 +78,109 @@
             }
         }
 
-        public async Task InstallAsync(PackageIdentity identity, IExtensibleProject project, IReadOnlyList<SourceRepository> repositories, CancellationToken cancellationToken)
+        public async Task UninstallAsync(PackageIdentity package, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken)
         {
-            var targetFramework = TryParseFrameworkName(project.Framework, _frameworkNameProvider);
-
-            //var packageManager = new NuGet.PackageManagement.NuGetPackageManager(_sourceRepositoryProvider, new NuGet.Configuration.NullSettings(), @"D:\Dev\NuGetTest");
-
-            var resContext = new NuGet.PackageManagement.ResolutionContext();
-
-            var respos = _sourceRepositoryProvider.GetRepositories();
-
-            var availabePackageStorage = new HashSet<SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
-
-            using (var cacheContext = NullSourceCacheContext.Instance)
+            try
             {
-                foreach (var repository in repositories)
+                foreach (var proj in projects)
                 {
-                    var dependencyInfoResource = await repository.GetResourceAsync<DependencyInfoResource>();
-                    var regResource = await repository.GetResourceAsync<RegistrationResourceV3>();
-
-                    var uri = regResource.GetUri(identity.Id);
-
-                    await ResolveDependenciesRecursivelyAsync(identity, targetFramework, dependencyInfoResource, cacheContext,
-                        availabePackageStorage, cancellationToken);
-
+                    await UninstallAsync(package, proj, cancellationToken);
                 }
             }
-
-            var resolverContext = GetResolverContext(identity, availabePackageStorage);
-
-            var resolver = new PackageResolver();
-
-            var packagesInstallationList = resolver.Resolve(resolverContext, cancellationToken);
-
-            var availablePackagesToInstall = packagesInstallationList
-                .Select(
-                    x => availabePackageStorage
-                        .Single(p => PackageIdentityComparer.Default.Equals(p, x)));
-
-            using (var cacheContext = NullSourceCacheContext.Instance)
+            catch (Exception)
             {
-                var downloadResults = await DownloadPackagesResourcesAsync(availablePackagesToInstall, cacheContext, cancellationToken);
+                throw;
+            }
 
-                var extractionContext = GetExtractionContext();
+        }
 
-                await ExtractPackagesResourcesAsync(downloadResults, project, extractionContext, cancellationToken);
+
+        public async Task UninstallAsync(PackageIdentity package, IExtensibleProject project, CancellationToken cancellationToken)
+        {
+            List<string> failedEntries = null;
+
+            try
+            {
+                var folderProject = new FolderNuGetProject(project.ContentPath);
+
+                if (folderProject.PackageExists(package))
+                {
+                    _fileDirectoryService.DeleteDirectoryTree(folderProject.GetInstalledPath(package), out failedEntries);
+                }
+            }
+            catch (IOException e)
+            {
+                Log.Error(e, "Package files cannot be complete deleted by unexpected error (may be directory in use by another process?");
+            }
+            finally
+            {
+                LogHelper.LogUnclearedPaths(failedEntries, Log);
+                LogHelper.LogUnclearedPaths(failedEntries, Log);
+            }
+        }
+
+
+        public async Task<IDictionary<SourcePackageDependencyInfo, DownloadResourceResult>> InstallAsync(
+            PackageIdentity identity,
+            IExtensibleProject project,
+            IReadOnlyList<SourceRepository> repositories,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var targetFramework = FrameworkParser.TryParseFrameworkName(project.Framework, _frameworkNameProvider);
+
+                var resContext = new NuGet.PackageManagement.ResolutionContext();
+
+                var respos = _sourceRepositoryProvider.GetRepositories();
+
+                var availabePackageStorage = new HashSet<SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
+
+                using (var cacheContext = _nuGetCacheManager.GetCacheContext())
+                {
+                    foreach (var repository in repositories)
+                    {
+                        var dependencyInfoResource = await repository.GetResourceAsync<DependencyInfoResource>();
+                        var regResource = await repository.GetResourceAsync<RegistrationResourceV3>();
+
+                        var uri = regResource.GetUri(identity.Id);
+
+                        await ResolveDependenciesRecursivelyAsync(identity, targetFramework, dependencyInfoResource, cacheContext,
+                            availabePackageStorage, cancellationToken);
+
+                    }
+                }
+
+                var resolverContext = GetResolverContext(identity, availabePackageStorage);
+
+                var resolver = new PackageResolver();
+
+                var packagesInstallationList = resolver.Resolve(resolverContext, cancellationToken);
+
+                var availablePackagesToInstall = packagesInstallationList
+                    .Select(
+                        x => availabePackageStorage
+                            .Single(p => PackageIdentityComparer.Default.Equals(p, x)));
+
+                using (var cacheContext = _nuGetCacheManager.GetCacheContext())
+                {
+                    var downloadResults = await DownloadPackagesResourcesAsync(availablePackagesToInstall, cacheContext, cancellationToken);
+
+                    var extractionContext = GetExtractionContext();
+
+                    await ExtractPackagesResourcesAsync(downloadResults, project, extractionContext, cancellationToken);
+
+                    return downloadResults;
+                }
+            }
+            catch (ProjectInstallException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                Log.Error(e);
+                throw;
             }
         }
 
@@ -171,12 +244,12 @@
             }
         }
 
-        private async Task<IReadOnlyList<DownloadResourceResult>> DownloadPackagesResourcesAsync(
+        private async Task<IDictionary<SourcePackageDependencyInfo, DownloadResourceResult>> DownloadPackagesResourcesAsync(
             IEnumerable<SourcePackageDependencyInfo> packageIdentities, SourceCacheContext cacheContext, CancellationToken cancellationToken)
         {
             try
             {
-                var downloaded = new List<DownloadResourceResult>();
+                var downloaded = new Dictionary<SourcePackageDependencyInfo, DownloadResourceResult>();
 
                 string globalFolderPath = _fileDirectoryService.GetGlobalPackagesFolder();
 
@@ -193,8 +266,7 @@
                             cancellationToken
                         );
 
-
-                    downloaded.Add(downloadResult);
+                    downloaded.Add(package, downloadResult);
                 }
 
                 return downloaded;
@@ -206,40 +278,63 @@
         }
 
         private async Task ExtractPackagesResourcesAsync(
-            IEnumerable<DownloadResourceResult> downloadResources, IExtensibleProject project, PackageExtractionContext extractionContext, CancellationToken cancellationToken)
+            IDictionary<SourcePackageDependencyInfo, DownloadResourceResult> packageResources,
+            IExtensibleProject project,
+            PackageExtractionContext extractionContext,
+            CancellationToken cancellationToken)
         {
-            var pathResolver = new PackagePathResolver(project.ContentPath);
+            List<PackageIdentity> extractedPackages = new List<PackageIdentity>();
 
-            foreach (var downloadPart in downloadResources)
-            {
-                Log.Info($"Extracting package {downloadPart.GetResourceRoot()} to {project} project folder..");
-
-                var extractedPaths = await PackageExtractor.ExtractPackageAsync(
-                    downloadPart.PackageSource,
-                    downloadPart.PackageStream,
-                    pathResolver,
-                    extractionContext,
-                    cancellationToken
-                );
-
-                Log.Info($"Successfully unpacked {extractedPaths.Count()} files");
-            }
-
-        }
-
-
-        private NuGetFramework TryParseFrameworkName(string frameworkString, IFrameworkNameProvider frameworkNameProvider)
-        {
             try
             {
-                return NuGetFramework.ParseFrameworkName(frameworkString, frameworkNameProvider);
+
+
+                var pathResolver = new PackagePathResolver(project.ContentPath);
+
+                foreach (var packageResource in packageResources)
+                {
+                    var downloadedPart = packageResource.Value;
+                    var packageIdentity = packageResource.Key;
+
+                    var nupkgPath = pathResolver.GetInstalledPackageFilePath(packageIdentity);
+
+                    bool alreadyInstalled = Directory.Exists(nupkgPath);
+
+                    if (alreadyInstalled)
+                    {
+                        Log.Info($"Package {packageIdentity} already location in extraction directory");
+                    }
+
+                    Log.Info($"Extracting package {downloadedPart.GetResourceRoot()} to {project} project folder..");
+
+                    var extractedPaths = await PackageExtractor.ExtractPackageAsync(
+                        downloadedPart.PackageSource,
+                        downloadedPart.PackageStream,
+                        pathResolver,
+                        extractionContext,
+                        cancellationToken
+                    );
+
+                    Log.Info($"Successfully unpacked {extractedPaths.Count()} files");
+
+                    if (!alreadyInstalled)
+                    {
+                        extractedPackages.Add(packageIdentity);
+                    }
+                }
             }
-            catch (ArgumentException e)
+            catch (Exception e)
             {
-                Log.Error(e, "Incorrect target framework");
-                throw;
+                Log.Error(e, $"An error occured during package extraction");
+
+                var extractionEx = new ProjectInstallException(e.Message, e);
+
+                extractionEx.CurrentBatch = extractedPackages;
+
+                throw extractionEx;
             }
         }
+
 
         private PackageResolverContext GetResolverContext(PackageIdentity package, IEnumerable<SourcePackageDependencyInfo> flatDependencies)
         {
@@ -280,6 +375,51 @@
             );
 
             return extractionContext;
+        }
+
+
+        private async Task CheckLibAndFrameworkItems(IDictionary<SourcePackageDependencyInfo, DownloadResourceResult> downloadedPackagesDictionary,
+            NuGetFramework targetFramework, CancellationToken cancellationToken)
+        {
+            var frameworkReducer = new FrameworkReducer();
+
+            foreach (var package in downloadedPackagesDictionary.Keys)
+            {
+                var packageReader = downloadedPackagesDictionary[package].PackageReader;
+
+                var libraries = await packageReader.GetLibItemsAsync(cancellationToken);
+
+                var bestMatches = frameworkReducer.GetNearest(targetFramework, libraries.Select(x => x.TargetFramework));
+
+                var frameworkItems = await packageReader.GetFrameworkItemsAsync(cancellationToken);
+
+                var nearestFrameworkItems = frameworkReducer.GetNearest(targetFramework, frameworkItems.Select(x => x.TargetFramework));
+
+                foreach (var libItemGroup in libraries)
+                {
+                    var satelliteFiles = await GetSatelliteFilesForLibrary(libItemGroup, packageReader, cancellationToken);
+                }
+            }
+        }
+
+        private async Task<List<string>> GetSatelliteFilesForLibrary(FrameworkSpecificGroup libraryFrameworkSpecificGroup, PackageReaderBase packageReader,
+            CancellationToken cancellationToken)
+        {
+            var satelliteFiles = new List<string>();
+
+            var nuspec = await packageReader.GetNuspecAsync(cancellationToken);
+            var nuspecReader = new NuspecReader(nuspec);
+
+
+            var satelliteFilesInGroup = libraryFrameworkSpecificGroup.Items
+            .Where(item =>
+                Path.GetDirectoryName(item)
+                    .Split(Path.DirectorySeparatorChar)
+                    .Contains(nuspecReader.GetLanguage(), StringComparer.OrdinalIgnoreCase)).ToList();
+
+            satelliteFiles.AddRange(satelliteFilesInGroup);
+
+            return satelliteFiles;
         }
     }
 }

@@ -87,7 +87,7 @@
         
         <Button Grid.Row="1" Grid.Column="1"
                 Command="{catel:CommandManagerBinding RefreshCurrentPage}"
-                Height="16" Width="16"
+                Height="24" Width="24"
                 Margin="3 0 3 0">
             <Viewbox>
                 <Canvas Width="24" Height="24">
@@ -124,7 +124,8 @@
          <Button Grid.Row="1" Grid.Column="7"
                 Command="{Binding ShowExtensibles}"
                 Margin="3 0 3 0"
-                Height="24" Width="24">
+                Height="24" Width="24"
+                ToolTip="Configure projects">
             <Viewbox>
                 <Canvas Width="24" Height="24">
                     <Path Data="{Binding Source={StaticResource App-box}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
@@ -134,7 +135,8 @@
         <Button Grid.Row="1" Grid.Column="8"
                 Command="{Binding ShowPackageSourceSettings}"
                 Margin="0 0 3 0"
-                Height="24" Width="24">
+                Height="24" Width="24"
+                ToolTip="Show package source settings">
             <Viewbox>
                 <Canvas Width="24" Height="24">
                     <Path Data="{Binding Source={StaticResource Settings-out}, Path=Data}" Fill="{StaticResource AccentColorBrush}"/>
@@ -143,7 +145,7 @@
         </Button>
         <Button Grid.Row="1" Grid.Column="9"
                 Command="{Binding RunNuGetCachesClearing}"
-                ToolTip="Clear all NuGet caches, including global packages folder"
+                ToolTip="Clear NuGet caches"
                 Margin="0 0 10 0"
                 Height="24" Width="24">
             <Viewbox>

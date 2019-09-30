@@ -2,10 +2,11 @@
 {
     using Catel;
     using Catel.Logging;
+    using NuGet.Common;
     using NuGet.Packaging.Core;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Extensions;
-    using NuGetPackageManager.Interfaces;
+    using NuGetPackageManager.Loggers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -16,22 +17,60 @@
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
+        private static readonly ILogger NuGetLogger = new DebugLogger(true);
+
         private readonly IEnumerable<SourceRepository> _sourceRepositories;
 
-        private readonly SourceRepository _optionalLocalRepository;
+        private readonly IEnumerable<SourceRepository> _optionalLocalRepositories;
+
+        private readonly SourceRepository _localRepository;
 
         public PackageMetadataProvider(IEnumerable<SourceRepository> sourceRepositories,
-            SourceRepository optionalLocalRepository)
+            IEnumerable<SourceRepository> optionalGlobalLocalRepositories)
         {
             Argument.IsNotNull(() => sourceRepositories);
 
             _sourceRepositories = sourceRepositories;
-            _optionalLocalRepository = optionalLocalRepository;
+            _optionalLocalRepositories = optionalGlobalLocalRepositories;
         }
 
-        public Task<IPackageSearchMetadata> GetLocalPackageMetadataAsync(PackageIdentity identity, bool includePrerelease, CancellationToken cancellationToken)
+        public PackageMetadataProvider(SourceRepository localRepository, IEnumerable<SourceRepository> sourceRepositories,
+            IEnumerable<SourceRepository> optionalGlobalLocalRepositories) : this(sourceRepositories, optionalGlobalLocalRepositories)
         {
-            throw new NotImplementedException();
+            Argument.IsNotNull(() => localRepository);
+
+            _localRepository = localRepository;
+        }
+
+        public async Task<IPackageSearchMetadata> GetLocalPackageMetadataAsync(PackageIdentity identity, bool includePrerelease, CancellationToken cancellationToken)
+        {
+            var sources = new List<SourceRepository>();
+
+            if (_optionalLocalRepositories != null)
+            {
+                sources.AddRange(_optionalLocalRepositories);
+            }
+
+            //if (_sourceRepositories != null)
+            //{
+            //    sources.AddRange(_sourceRepositories);
+            //}
+
+            // Take the package from the first source it is found in
+            foreach (var source in sources)
+            {
+                var result = await GetPackageMetadataFromLocalSourceAsync(source, identity, cancellationToken);
+
+                if (result != null)
+                {
+                    //TODO why additional fetching needed?
+                    //return result.WithVersions(
+                    //    () => FetchAndMergeVersionsAsync(identity, includePrerelease, ))
+                    return result;
+                }
+            }
+
+            return null;
         }
 
         public async Task<IPackageSearchMetadata> GetPackageMetadataAsync(PackageIdentity identity, bool includePrerelease, CancellationToken cancellationToken)
@@ -97,7 +136,7 @@
                     includePrerelease,
                     includeUnlisted,
                     sourceCacheContext,
-                    new Loggers.DebugLogger(true),
+                    NuGetLogger,
                     cancellationToken);
 
                 return packages;
@@ -115,9 +154,43 @@
             {
                 sourceCacheContext.MaxAge = DateTimeOffset.UtcNow;
 
-                var package = await metadataResource?.GetMetadataAsync(identity, sourceCacheContext, new Loggers.DebugLogger(true), cancellationToken);
+                var package = await metadataResource?.GetMetadataAsync(identity, sourceCacheContext, NuGetLogger, cancellationToken);
                 return package;
             }
         }
+
+        private async Task<IPackageSearchMetadata> GetPackageMetadataFromLocalSourceAsync(SourceRepository localRepository, PackageIdentity packageIdentity, CancellationToken token)
+        {
+            var localResource = await localRepository.GetResourceAsync<PackageMetadataResource>(token);
+
+            using (var sourceCacheContext = new SourceCacheContext())
+            {
+                var localPackages = await localResource?.GetMetadataAsync(
+                    packageIdentity.Id,
+                    includePrerelease: true,
+                    includeUnlisted: true,
+                    sourceCacheContext: sourceCacheContext,
+                    log: NuGetLogger,
+                    token: token);
+
+                var packageMetadata = localPackages?.FirstOrDefault(p => p.Identity.Version == packageIdentity.Version);
+
+                var versions = new[]
+                {
+                    new VersionInfo(packageIdentity.Version)
+                };
+
+                return packageMetadata?.WithVersions(versions);
+            }
+        }
+
+        //TODO
+        //private async Task<IEnumerable<VersionInfo>> FetchAndMergeVersionsAsync(PackageIdentity identity, bool includePrerelease, CancellationToken token)
+        //{
+        //    var rp = _localRepository;
+
+        //    Log.Info(rp.ToString());
+        //    return null;
+        //}
     }
 }

@@ -22,21 +22,39 @@
         public string SearchString { get; set; }
 
         /// <summary>
-        /// Create and retrive all unique package sources
+        /// Create and retrive all unique enabled package sources
         /// </summary>
         /// <returns></returns>
         public IReadOnlyList<PackageSource> GetAllPackageSources()
         {
-            var feeds = NuGetFeeds.Select(x => new PackageSource(x.Source));
+            var feeds = NuGetFeeds.Where(x => x.IsActive).Select(x => new PackageSource(x.Source));
             return feeds.ToList();
         }
 
         protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(NuGetFeeds))
+            if (string.Equals(e.PropertyName, nameof(ObservedFeed)))
+            {
+                var source = e.NewValue as INuGetSource;
+
+                if (source != null)
+                {
+                    source.IsSelected = true;
+                }
+
+                var oldSelected = e.OldValue as INuGetSource;
+
+                if (oldSelected != null)
+                {
+                    oldSelected.IsSelected = false;
+                }
+            }
+
+            if (string.Equals(e.PropertyName, nameof(NuGetFeeds)))
             {
                 ObservedFeed = NuGetFeeds.FirstOrDefault();
             }
+
             base.OnPropertyChanged(e);
         }
     }

@@ -20,10 +20,12 @@ namespace NuGetPackageManager
 
         public const string PackageManagement = "Package management";
 
+        public const string NotInstalled = "not installed";
+
         public static class Messages
         {
             public const string CacheClearEndedSuccessful = "NuGet cache cleared";
-            public const string CachedClearEndedWithError = "NuGet cache cleared with some errors. You can see details in log";
+            public const string CachedClearEndedWithError = "NuGet cache cleared with some errors. Is means some cached files  ";
             public const string CacheClearFailed = "Fatal error during cache clearing";
         }
     }

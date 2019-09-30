@@ -28,6 +28,8 @@
 
         public bool IsVerified => IsAllVerified();
 
+        public bool IsSelected { get; set; }
+
         public void AddFeed(NuGetFeed feed)
         {
             _sourceList.Add(feed);

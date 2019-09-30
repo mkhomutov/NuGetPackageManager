@@ -4,8 +4,9 @@
     using Catel.Logging;
     using NuGet.Common;
     using NuGet.Configuration;
+    using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Loggers;
     using NuGetPackageManager.Services;
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -16,25 +17,52 @@
 
         private readonly IFileDirectoryService _fileDirectoryService;
 
+        private SourceCacheContext _sourceContext = new SourceCacheContext();
+
         public NuGetCacheManager(IFileDirectoryService fileDirectoryService)
         {
             Argument.IsNotNull(() => fileDirectoryService);
+
             _fileDirectoryService = fileDirectoryService;
         }
 
         public bool ClearAll()
         {
             bool noErrors = true;
-            noErrors &= ClearNuGetFoler(SettingsUtility.GetHttpCacheFolder(), "Http-cache");
-            noErrors &= ClearNuGetFoler(_fileDirectoryService.GetGlobalPackagesFolder(), "Global-packages");
-            noErrors &= ClearNuGetFoler(NuGetEnvironment.GetFolderPath(NuGetFolderPath.Temp), "Temp");
+            noErrors &= ClearNuGetFolder(SettingsUtility.GetHttpCacheFolder(), "Http-cache");
+            noErrors &= ClearNuGetFolder(_fileDirectoryService.GetGlobalPackagesFolder(), "Global-packages");
+            noErrors &= ClearNuGetFolder(NuGetEnvironment.GetFolderPath(NuGetFolderPath.Temp), "Temp");
 
             Log.Info("Cache clearing operation finished");
 
             return noErrors;
         }
 
-        private bool ClearNuGetFoler(string folderPath, string folderDescription)
+        public HttpSourceCacheContext GetHttpCacheContext(int retryCount, bool directDownload = false)
+        {
+            //create http cache context from source cache instance
+            var baseCache = _sourceContext;
+
+            if (directDownload)
+            {
+                baseCache = _sourceContext.Clone();
+                baseCache.DirectDownload = directDownload;
+            }
+
+            return HttpSourceCacheContext.Create(baseCache, retryCount);
+        }
+
+        public HttpSourceCacheContext GetHttpCacheContext()
+        {
+            return GetHttpCacheContext(0);
+        }
+
+        public SourceCacheContext GetCacheContext()
+        {
+            return _sourceContext;
+        }
+
+        private bool ClearNuGetFolder(string folderPath, string folderDescription)
         {
             var success = true;
 
@@ -64,15 +92,7 @@
             {
                 //log all errors
 
-                if (failedDeletes.Any())
-                {
-                    Log.Info("Some directories cannot be deleted, directory tree was partially cleared:");
-
-                    foreach (var failedDelete in failedDeletes.OrderBy(f => f, StringComparer.OrdinalIgnoreCase))
-                    {
-                        Log.Info($"Failed to delete path {failedDelete}");
-                    }
-                }
+                LogHelper.LogUnclearedPaths(failedDeletes, Log);
             }
 
             return !failedDeletes.Any();

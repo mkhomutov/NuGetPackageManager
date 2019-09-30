@@ -2,15 +2,22 @@
 {
     using Catel;
     using Catel.Collections;
+    using Catel.Data;
+    using Catel.IoC;
     using Catel.Logging;
     using Catel.MVVM;
     using Catel.Services;
+    using Catel.Windows.Threading;
     using NuGet.Configuration;
     using NuGet.Protocol.Core.Types;
+    using NuGetPackageManager.Enums;
+    using NuGetPackageManager.Management;
+    using NuGetPackageManager.Management.EventArgs;
     using NuGetPackageManager.Models;
     using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Services;
     using NuGetPackageManager.Web;
+    using NuGetPackageManager.Windows;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
@@ -26,10 +33,20 @@
         private static readonly IHttpExceptionHandler<FatalProtocolException> packageLoadingExceptionHandler = new FatalProtocolExceptionHandler();
 
         private readonly IPackagesLoaderService _packagesLoaderService;
+        private readonly INuGetExtensibleProjectManager _projectManager;
         private readonly IRepositoryService _repositoryService;
         private readonly IPackageMetadataMediaDownloadService _packageMetadataMediaDownloadService;
         private readonly INuGetFeedVerificationService _nuGetFeedVerificationService;
+        private readonly IDefferedPackageLoaderService _defferedPackageLoaderService;
         private readonly IDispatcherService _dispatcherService;
+        private readonly ITypeFactory _typeFactory;
+
+        private readonly MetadataOrigin _pageType;
+
+        private static void ElapsedHandler(object sender, EventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
 
         private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
 
@@ -59,7 +76,8 @@
 
         public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
             IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService, INuGetFeedVerificationService nuGetFeedVerificationService,
-            ICommandManager commandManager, IDispatcherService dispatcherService, IRepositoryService repositoryService)
+            ICommandManager commandManager, IDispatcherService dispatcherService, IRepositoryService repositoryService, ITypeFactory typeFactory,
+            IDefferedPackageLoaderService defferedPackageLoaderService, INuGetExtensibleProjectManager projectManager)
         {
             Title = pageTitle;
 
@@ -70,14 +88,33 @@
             Argument.IsNotNull(() => nuGetFeedVerificationService);
             Argument.IsNotNull(() => dispatcherService);
             Argument.IsNotNull(() => repositoryService);
+            Argument.IsNotNull(() => typeFactory);
+            Argument.IsNotNull(() => defferedPackageLoaderService);
+            Argument.IsNotNull(() => projectManager);
 
             _packagesLoaderService = packagesLoaderService;
+
+            if (Title != "Browse")
+            {
+                _packagesLoaderService = this.GetServiceLocator().ResolveType<IPackagesLoaderService>(Title);
+            }
+
+
+            if (!Enum.TryParse(Title, out _pageType))
+            {
+                Log.Error("Unrecognized page type");
+            }
+
             _dispatcherService = dispatcherService;
             _packageMetadataMediaDownloadService = packageMetadataMediaDownloadService;
             _nuGetFeedVerificationService = nuGetFeedVerificationService;
             _repositoryService = repositoryService;
+            _defferedPackageLoaderService = defferedPackageLoaderService;
+            _projectManager = projectManager;
 
             Settings = explorerSettings;
+
+            _typeFactory = typeFactory;
 
             LoadNextPackagePage = new TaskCommand(LoadNextPackagePageExecute);
             CancelPageLoading = new TaskCommand(CancelPageLoadingExecute);
@@ -86,7 +123,36 @@
             commandManager.RegisterCommand(nameof(RefreshCurrentPage), RefreshCurrentPage, this);
         }
 
+        private void OnPackageItemsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            {
+                //item added on first place, collection was empty
+                if (e.NewStartingIndex == 0)
+                {
+                    SelectedPackageItem = PackageItems.FirstOrDefault();
+                }
+            }
+        }
+
+        //handle settings changes and force reloading if needed
+        private async void OnSettingsPropertyPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (Settings.ObservedFeed == null)
+            {
+                return;
+            }
+
+            if (String.Equals(e.PropertyName, nameof(Settings.IsPreReleaseIncluded)) ||
+                String.Equals(e.PropertyName, nameof(Settings.SearchString)) || String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
+            {
+                StartLoadingTimerOrInvalidateData();
+            }
+        }
+
         public static CancellationTokenSource VerificationTokenSource { get; set; } = new CancellationTokenSource();
+
+        public static CancellationTokenSource DelayCancellationTokenSource { get; set; } = new CancellationTokenSource();
 
         private PageContinuation PageInfo { get; set; }
 
@@ -112,47 +178,27 @@
             }
         }
 
-        public FastObservableCollection<IPackageSearchMetadata> Packages
-        {
-            get { return _packages; }
-            set
-            {
-                _packages = value;
-                RaisePropertyChanged(() => Packages);
-            }
-        }
+        public PackageDetailsViewModel SelectedPackageItem { get; set; }
 
-        //handle settings changes and force reloading if needed
-        private async void OnSettingsPropertyPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (Settings.ObservedFeed == null)
-            {
-                return;
-            }
-
-            if (String.Equals(e.PropertyName, nameof(Settings.IsPreReleaseIncluded)) ||
-                String.Equals(e.PropertyName, nameof(Settings.SearchString)) || String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
-            {
-                if (IsActive)
-                {
-                    StartLoadingTimer();
-                }
-            }
-        }
+        public FastObservableCollection<PackageDetailsViewModel> PackageItems { get; set; }
 
         public bool IsActive { get; set; }
+
+        /// <summary>
+        /// Show is data should be reloaded
+        /// when viewmodel became active
+        /// </summary>
+        public bool Invalidated { get; set; }
 
         public bool IsCancellationTokenAlive { get; set; }
 
         public bool IsLoadingInProcess { get; set; }
 
+        public bool IsFirstLoaded { get; set; } = true;
+
         public bool IsCancellationForced { get; set; }
 
-        public static CancellationTokenSource DelayCancellationTokenSource { get; set; } = new CancellationTokenSource();
-
         public CancellationTokenSource PageLoadingTokenSource { get; set; }
-
-        public IPackageSearchMetadata SelectedPackage { get; set; }
 
         protected async override Task InitializeAsync()
         {
@@ -162,7 +208,16 @@
                 SingleDelayTimer.Elapsed += OnTimerElapsed;
                 SingleDelayTimer.AutoReset = false;
 
+                SingleDelayTimer.SynchronizingObject = new SynchronizeInvoker(DispatcherHelper.CurrentDispatcher, _dispatcherService);
+
                 _packages = new FastObservableCollection<IPackageSearchMetadata>();
+
+                PackageItems = new FastObservableCollection<PackageDetailsViewModel>();
+
+                PackageItems.CollectionChanged += OnPackageItemsCollectionChanged;
+
+                _projectManager.Install += OnProjectManagerInstall;
+                _projectManager.Uninstall += OnProjectManagerUninstall;
 
                 //todo validation
                 if (Settings.ObservedFeed != null && !String.IsNullOrEmpty(Settings.ObservedFeed.Source))
@@ -170,6 +225,9 @@
                     var currentFeed = Settings.ObservedFeed;
                     PageInfo = new PageContinuation(PageSize, Settings.ObservedFeed.GetPackageSource());
                     var searchParams = new PackageSearchParameters(Settings.IsPreReleaseIncluded, Settings.SearchString);
+
+                    IsFirstLoaded = false;
+
                     await VerifySourceAndLoadPackagesAsync(PageInfo, currentFeed, searchParams);
                 }
                 else
@@ -183,6 +241,59 @@
             }
         }
 
+        protected override void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+
+            if (String.Equals(e.PropertyName, nameof(Invalidated)))
+            {
+                if ((bool)e.NewValue)
+                {
+                    Log.Info($"ViewModel {this} data was invalidated");
+                }
+            }
+
+            if (String.Equals(e.PropertyName, nameof(IsActive)))
+            {
+                if ((bool)e.NewValue)
+                {
+                    Log.Info($"Switched page: {Title} is active");
+                }
+            }
+
+            if (IsFirstLoaded)
+            {
+                return;
+            }
+
+            if (String.Equals(e.PropertyName, nameof(IsActive)))
+            {
+                if (Invalidated)
+                {
+                    //this happen when page selecting and old gathered package data 
+                    //doesnt match to current user search query
+                    StartLoadingTimerOrInvalidateData();
+                }
+            }
+        }
+
+        protected async override Task OnClosedAsync(bool? result)
+        {
+            PackageItems.CollectionChanged -= OnPackageItemsCollectionChanged;
+        }
+
+        private void StartLoadingTimerOrInvalidateData()
+        {
+            if (IsActive)
+            {
+                StartLoadingTimer();
+            }
+            else
+            {
+                Invalidated = true;
+            }
+        }
+
         private void StartLoadingTimer()
         {
             if (SingleDelayTimer.Enabled)
@@ -191,6 +302,8 @@
             }
 
             SingleDelayTimer.Start();
+
+            Log.Debug("Start loading delay timer");
         }
 
         private async void OnTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -259,6 +372,10 @@
                     IsCancellationTokenAlive = false;
                     PageLoadingTokenSource = null;
                 }
+                else
+                {
+                    Invalidated = true;
+                }
             }
             catch (OperationCanceledException e)
             {
@@ -301,6 +418,10 @@
             {
                 IsCancellationTokenAlive = false;
                 Log.Error(ex);
+            }
+            finally
+            {
+                await _defferedPackageLoaderService.StartLoadingAsync();
             }
         }
 
@@ -347,10 +468,7 @@
 
         private async Task RefreshCurrentPageExecute()
         {
-            if (IsActive)
-            {
-                StartLoadingTimer();
-            }
+            StartLoadingTimerOrInvalidateData();
         }
 
         #endregion
@@ -361,10 +479,15 @@
             {
                 IsLoadingInProcess = true;
 
-                if (PageInfo.Current < 0)
+                Log.Info($"Start query {Title} page");
+
+                bool isFirstLoad = pageInfo.Current < 0;
+
+                if (isFirstLoad)
                 {
-                    Packages.Clear();
+                    PackageItems.Clear();
                 }
+
 
                 var packages = await _packagesLoaderService.LoadAsync(
                     searchParameters.SearchString, pageInfo, new SearchFilter(searchParameters.IsPrereleaseIncluded), cancellationToken);
@@ -373,11 +496,9 @@
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                _dispatcherService.BeginInvoke(() =>
-                    {
-                        Packages.AddRange(packages);
-                    }
-                );
+                await CreatePackageListItems(packages);
+
+                Invalidated = false;
 
                 Log.Info($"Page {Title} updates with {packages.Count()} returned by query '{Settings.SearchString} from {PageInfo.Source}'");
 
@@ -391,6 +512,51 @@
             finally
             {
                 IsLoadingInProcess = false;
+            }
+        }
+
+        private async Task CreatePackageListItems(IEnumerable<IPackageSearchMetadata> packageSearchMetadataCollection)
+        {
+            IEnumerable<PackageDetailsViewModel> vms = null;
+
+            vms = packageSearchMetadataCollection.Select(x => _typeFactory.CreateInstanceWithParametersAndAutoCompletion<PackageDetailsViewModel>(x, _pageType)).ToList();
+
+            //create tokens, used for deffer execution of tasks
+            //obtained states/updates of packages
+
+            foreach (var vm in vms)
+            {
+                var deferToken = new DeferToken();
+
+                deferToken.LoadType = DetermineLoadBehavior(_pageType);
+                deferToken.Package = vm.Package;
+
+                deferToken.UpdateAction = (newState) =>
+                {
+                    vm.Status = newState;
+                };
+
+                _defferedPackageLoaderService.Add(deferToken);
+            }
+
+            _dispatcherService.BeginInvoke(() =>
+                    {
+                        PackageItems.AddRange(vms);
+                    }
+            );
+
+            MetadataOrigin DetermineLoadBehavior(MetadataOrigin page)
+            {
+                switch (page)
+                {
+                    case MetadataOrigin.Browse: return MetadataOrigin.Installed;
+
+                    case MetadataOrigin.Installed: return MetadataOrigin.Browse;
+
+                    case MetadataOrigin.Updates: return MetadataOrigin.Browse;
+                }
+
+                return MetadataOrigin.Browse;
             }
         }
 
@@ -413,6 +579,30 @@
             }
 
             await Task.CompletedTask;
+        }
+
+        private async Task OnProjectManagerUninstall(object sender, Management.EventArgs.UninstallNuGetProjectEventArgs e)
+        {
+            var batchedArgs = e as BatchedUninstallNuGetProjectEventArgs;
+
+            if (!batchedArgs.IsBatchEnd)
+            {
+                return;
+            }
+
+            StartLoadingTimerOrInvalidateData();
+        }
+
+        private async Task OnProjectManagerInstall(object sender, Management.EventArgs.InstallNuGetProjectEventArgs e)
+        {
+            var batchedArgs = e as BatchedInstallNuGetProjectEventArgs;
+
+            if (!batchedArgs.IsBatchEnd)
+            {
+                return;
+            }
+
+            StartLoadingTimerOrInvalidateData();
         }
 
         private async Task CanFeedBeLoadedAsync(CancellationToken cancelToken, INuGetSource source)

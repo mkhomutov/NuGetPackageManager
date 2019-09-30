@@ -4,27 +4,32 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:NuGetPackageManager.Views"
+             xmlns:enum="clr-namespace:NuGetPackageManager.Enums"
              xmlns:nugetc="clr-namespace:NuGetPackageManager.Controls"
              xmlns:catel="http://schemas.catelproject.com"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:mvvm="clr-namespace:NuGetPackageManager.MVVM"
              xmlns:converters="clr-namespace:NuGetPackageManager.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <catel:UserControl.Resources>
         <converters:UriToBitmapConverter x:Key="UriToBitmapConverter"/>
+        <converters:PackageStatusEnumToBoolConverter x:Key="PackageStatusEnumToBoolConverter"/>
+        <converters:PackageStatusEnumToBrushConverter x:Key="PackageStatusEnumToBrushConverter"/>
+        
     </catel:UserControl.Resources>
     <Grid>
         <Grid.Resources>
             <mvvm:BindingProxy Data="{Binding }" x:Key="ContextProxy"/>
         </Grid.Resources>
         <nugetc:InfiniteScrollListBox x:Name="infinitybox"
-                                      ItemsSource="{Binding Packages}"
+                                      ItemsSource="{Binding PackageItems}"
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       Command="{Binding LoadNextPackagePage}"
                                       IsCommandExecuting="{Binding IsCancellationTokenAlive}"
                                       HorizontalContentAlignment="Stretch"
-                                      SelectedItem="{Binding SelectedPackage}"
+                                      SelectedItem="{Binding SelectedPackageItem}"
                                       Height="800">
             <nugetc:InfiniteScrollListBox.ItemTemplate>
                 <DataTemplate>
@@ -35,21 +40,46 @@
                         
                         </Border>-->
 
-                        <Grid Margin="0 8 0 0">
+                        <Grid Margin="0 8 0 0"
+                              Height="96">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="60"/>
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="18"/>
-                                <RowDefinition Height="28"/>
-                                <RowDefinition Height="50"/>
+                                <RowDefinition Height="auto" MinHeight="8"/>
+                                <RowDefinition/>
                             </Grid.RowDefinitions>
 
-                            <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}, IsAsync=True}"
+                            <nugetc:Badged VerticalAlignment="Top" Margin="0 4 4 0"
+                                           IsShowedChanged="Badged_IsShowedChanged"
+                                           Grid.RowSpan="3"
+                                           BorderBrush="WhiteSmoke"
+                                           IsShowed="{Binding Status, Converter={StaticResource PackageStatusEnumToBoolConverter}}"
+                                           BadgeForeground="WhiteSmoke">
+                                <nugetc:Badged.Background>
+                                    <Binding Path="Status" Converter="{StaticResource PackageStatusEnumToBrushConverter}">
+                                        <Binding.ConverterParameter>
+                                            <x:Array Type="sys:String">
+                                                <sys:String>AvaialableUpdateBadgeBackgroundBrush</sys:String>
+                                                <sys:String>InstalledBadgeBackgroundBrush</sys:String>
+                                            </x:Array>
+                                        </Binding.ConverterParameter>
+                                    </Binding>
+                                </nugetc:Badged.Background>
+                                <nugetc:Badged.Badge>
+                                    <Viewbox>
+                                        <Canvas Width="24" Height="24" ClipToBounds="True">
+                                            <Path Data="{Binding Source={StaticResource Arrow-down-bold}, Path=Data}" 
+                                                  Fill="{Binding RelativeSource={RelativeSource AncestorType=nugetc:Badged}, Path=BadgeForeground}"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                </nugetc:Badged.Badge>
+                                <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}, IsAsync=True}"
                                        RenderOptions.BitmapScalingMode="Fant"
-                                       Height="32" Width="32" Grid.RowSpan="2"
-                                       VerticalAlignment="Top" Margin="0 4 2 0"/>
+                                       Height="32" Width="32"/>
+                            </nugetc:Badged>
 
                             <Grid Grid.Column="1">
                                 <Grid.ColumnDefinitions>
@@ -71,7 +101,7 @@
                                         <TextBlock Text="by:"></TextBlock>
                                         <TextBlock Text="{Binding Authors}"
                                                    TextTrimming="WordEllipsis"/>
-                                    </TextBlock>
+                                </TextBlock>
                                 <TextBlock Text="{Binding Identity.Version}"
                                                Margin="0 0 8 0"
                                                HorizontalAlignment="Right"
@@ -81,7 +111,9 @@
 
 
                             <Grid Grid.Column="1" Grid.Row="1"
-                                      Margin="0 4 0 0">
+                                      Margin="0 4 0 0"
+                                      Visibility="{Binding IsDownloadCountShowed, Converter={catel:BooleanToCollapsingVisibilityConverter}}"
+                                      Height="28">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="90"/>
@@ -96,12 +128,18 @@
                                     </Style>
                                 </Grid.Resources>
 
-                                <TextBlock Text="{Binding DownloadCount}" Grid.Column="0"/>
-                                <TextBlock Grid.Column="1" Margin="4 0 0 0">total downloads</TextBlock>
+                                <TextBlock Text="{Binding DownloadCount}" Grid.Column="0"
+                                           Visibility="{Binding IsDownloadCountShowed, Converter={catel:BooleanToCollapsingVisibilityConverter}}"/>
+                                <TextBlock Grid.Column="1" Margin="4 0 0 0"
+                                           Visibility="{Binding IsDownloadCountShowed, Converter={catel:BooleanToCollapsingVisibilityConverter}}">
+                                    total downloads
+                                </TextBlock>
                             </Grid>
 
                             <TextBlock Text="{Binding Summary }" TextWrapping="WrapWithOverflow"
-                                           Grid.Column="1" Grid.Row="2"/>
+                                       Grid.Column="1" Grid.Row="2"
+                                       TextTrimming="WordEllipsis"
+                                       MaxHeight="50"/>
                         </Grid>
                     </Grid>
                 </DataTemplate>

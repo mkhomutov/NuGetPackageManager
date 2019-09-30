@@ -8,9 +8,10 @@
     using NuGet.Packaging.Core;
     using NuGet.Protocol.Core.Types;
     using NuGet.Versioning;
-    using NuGetPackageManager.Interfaces;
+    using NuGetPackageManager.Enums;
     using NuGetPackageManager.Management;
     using NuGetPackageManager.Models;
+    using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
     using NuGetPackageManager.Windows;
@@ -34,18 +35,23 @@
 
         private IProgressManager _progressManager;
 
-        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
-            IPackageInstallationService installationService, IProgressManager progressManager)
+        private INuGetExtensibleProjectManager _projectManager;
+
+
+        public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, MetadataOrigin fromPage, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
+            IPackageInstallationService installationService, IProgressManager progressManager, INuGetExtensibleProjectManager projectManager)
         {
             Argument.IsNotNull(() => repositoryService);
             Argument.IsNotNull(() => settingsProvider);
             Argument.IsNotNull(() => installationService);
             Argument.IsNotNull(() => progressManager);
+            Argument.IsNotNull(() => projectManager);
 
             _repositoryService = repositoryService;
             _settingsProvider = settingsProvider;
             _installationService = installationService;
             _progressManager = progressManager;
+            _projectManager = projectManager;
 
             //create package from metadata
             if (packageMetadata != null)
@@ -53,23 +59,37 @@
                 Package = new NuGetPackage(packageMetadata);
             }
 
+            if (fromPage == MetadataOrigin.Browse)
+            {
+                //installed version is unknown until installed is loaded
+                Package.InstalledVersion = null;
+            }
+            if (fromPage == MetadataOrigin.Installed)
+            {
+                Package.InstalledVersion = Package.LastVersion;
+            }
+
+            IsDownloadCountShowed = fromPage != MetadataOrigin.Installed;
+
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
-            InstallPackage = new TaskCommand(InstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
-            UninstallPackage = new TaskCommand(UninstallPackageExecute);
+            InstallPackage = new TaskCommand(OnInstallPackageExecute, OnInstallPackageCanExecute);
+            UninstallPackage = new TaskCommand(OnUninstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
         }
 
         protected async override Task InitializeAsync()
         {
             try
             {
-                //by default last version always selected for user actions
-                SelectedVersion = Package.LastVersion;
+                //select identity version
+                SelectedVersion = Package.Identity.Version;
 
                 VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 
+                NuGetActionTarget.PropertyChanged += OnNuGetActionTargetPropertyPropertyChanged;
+
                 _packageMetadataProvider = InitMetadataProvider();
 
-                await LoadSinglePackageMetadataAsync();
+                await LoadSinglePackageMetadataAsync(Package.Identity);
             }
             catch (Exception e)
             {
@@ -77,31 +97,54 @@
             }
         }
 
-        protected async Task LoadSinglePackageMetadataAsync()
+        protected override Task CloseAsync()
         {
-            await LoadSinglePackageMetadataAsync(Package.Identity);
+            NuGetActionTarget.PropertyChanged -= OnNuGetActionTargetPropertyPropertyChanged;
+
+            return base.CloseAsync();
         }
 
         protected async Task LoadSinglePackageMetadataAsync(PackageIdentity identity)
         {
-            using (var cts = new CancellationTokenSource())
+            try
             {
-                //todo include prerelease
-                VersionData = await _packageMetadataProvider?.GetPackageMetadataAsync(
-                    identity, _settingsProvider.Model.IsPreReleaseIncluded, cts.Token);
+                using (var cts = new CancellationTokenSource())
+                {
+                    //todo include prerelease
+                    VersionData = await _packageMetadataProvider?.GetPackageMetadataAsync(
+                        identity, _settingsProvider.Model.IsPreReleaseIncluded, cts.Token);
 
-                DependencyInfo = VersionData.DependencySets;
+                    DependencyInfo = VersionData?.DependencySets;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Metadata retrieve error");
             }
         }
 
-        [Model]
+
+        [Model(SupportIEditableObject = false)]
         [Expose("Title")]
         [Expose("Description")]
+        [Expose("Summary")]
+        [Expose("DownloadCount")]
+        [Expose("Authors")]
+        [Expose("IconUrl")]
+        [Expose("Identity")]
+        [Expose("Status")]
         public NuGetPackage Package { get; set; }
 
         public ObservableCollection<NuGetVersion> VersionsCollection { get; set; }
 
         public object DependencyInfo { get; set; }
+
+        public DeferToken DefferedLoadingToken { get; set; }
+
+        [ViewModelToModel]
+        public PackageStatus Status { get; set; }
+
+        public bool IsDownloadCountShowed { get; }
 
         public NuGetActionTarget NuGetActionTarget { get; } = new NuGetActionTarget();
 
@@ -109,6 +152,9 @@
 
         public NuGetVersion SelectedVersion { get; set; }
 
+        public PackageIdentity SelectedPackage => new PackageIdentity(Package.Identity.Id, SelectedVersion);
+
+        [ViewModelToModel]
         public NuGetVersion InstalledVersion { get; set; }
 
         public int SelectedVersionIndex { get; set; }
@@ -119,19 +165,13 @@
         {
             try
             {
-                //todo check is initialized?
-                if (Package.Versions == null)
+                if (Package.LoadVersionsAsync().Wait(500))
                 {
-                    if (Package.LoadVersionsAsync().Wait(500))
-                    {
-
-                        VersionsCollection = new ObservableCollection<NuGetVersion>(Package.Versions);
-
-                    }
-                    else
-                    {
-                        throw new TimeoutException();
-                    }
+                    VersionsCollection = new ObservableCollection<NuGetVersion>(Package.Versions);
+                }
+                else
+                {
+                    throw new TimeoutException();
                 }
             }
             catch (TimeoutException ex)
@@ -146,7 +186,7 @@
 
         public TaskCommand InstallPackage { get; set; }
 
-        private async Task InstallPackageExecute()
+        private async Task OnInstallPackageExecute()
         {
             try
             {
@@ -154,8 +194,7 @@
 
                 using (var cts = new CancellationTokenSource())
                 {
-                    var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
-                    await _installationService.InstallAsync(identity, NuGetActionTarget.TargetProjects, cts.Token);
+                    await _projectManager.InstallPackageForMultipleProject(NuGetActionTarget.TargetProjects, SelectedPackage, cts.Token);
                 }
 
                 await Task.Delay(200);
@@ -168,10 +207,34 @@
             }
         }
 
+        private bool OnInstallPackageCanExecute()
+        {
+            var anyProject = NuGetActionTarget?.IsValid ?? false;
+
+            return anyProject && !IsInstalled();
+        }
+
         public TaskCommand UninstallPackage { get; set; }
 
-        private async Task UninstallPackageExecute()
+        private async Task OnUninstallPackageExecute()
         {
+            try
+            {
+                _progressManager.ShowBar(this);
+
+                using (var cts = new CancellationTokenSource())
+                {
+                    await _projectManager.UninstallPackageForMultipleProject(NuGetActionTarget.TargetProjects, SelectedPackage, cts.Token);
+                }
+
+                await Task.Delay(200);
+
+                _progressManager.HideBar(this);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"Error when uninstalling package {Package.Identity}, uninstall was failed");
+            }
         }
 
         private IPackageMetadataProvider InitMetadataProvider()
@@ -181,6 +244,12 @@
             var repositories = currentSourceContext.Repositories ?? currentSourceContext.PackageSources.Select(src => _repositoryService.GetRepository(src));
 
             return new PackageMetadataProvider(repositories, null);
+        }
+
+        private void OnNuGetActionTargetPropertyPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            var commandManager = this.GetViewModelCommandManager();
+            commandManager.InvalidateCommands();
         }
 
         protected override async void OnPropertyChanged(AdvancedPropertyChangedEventArgs e)
@@ -197,6 +266,11 @@
                 var identity = new PackageIdentity(Package.Identity.Id, SelectedVersion);
                 await LoadSinglePackageMetadataAsync(identity);
             }
+        }
+
+        private bool IsInstalled()
+        {
+            return Status == PackageStatus.UpdateAvailable || Status == PackageStatus.LastVersionInstalled;
         }
     }
 }

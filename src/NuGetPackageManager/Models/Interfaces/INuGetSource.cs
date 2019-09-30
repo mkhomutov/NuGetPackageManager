@@ -11,5 +11,7 @@
         bool IsAccessible { get; }
 
         bool IsVerified { get; }
+
+        bool IsSelected { get; set; }
     }
 }

@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
 
-    public interface IExtensibleProjectManager
+    public interface IExtensibleProjectLocator
     {
         IEnumerable<IExtensibleProject> GetAllExtensibleProjects();
 

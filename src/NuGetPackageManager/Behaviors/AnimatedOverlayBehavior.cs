@@ -135,17 +135,19 @@
         {
             base.OnIsEnabledChanged();
 
-            if (IsAssociatedObjectLoaded)
+            if (!IsAssociatedObjectLoaded)
             {
-                if (IsEnabled)
-                {
-                    sizeHandler = SetupAndShowOverlay(OverlayContent);
-                }
-                else
-                {
-                    HideOverlayAsync();
-                    HideActiveContainer();
-                }
+                return;
+            }
+
+            if (IsEnabled)
+            {
+                sizeHandler = SetupAndShowOverlay(OverlayContent);
+            }
+            else
+            {
+                HideOverlayAsync();
+                HideActiveContainer();
             }
         }
 

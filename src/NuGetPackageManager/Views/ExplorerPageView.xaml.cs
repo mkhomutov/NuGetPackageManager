@@ -1,5 +1,6 @@
-﻿using Catel.MVVM.Views;
-using NuGet.Protocol.Core.Types;
+﻿using Catel.MVVM;
+using Catel.MVVM.Views;
+using NuGetPackageManager.Controls;
 using System.Windows;
 
 namespace NuGetPackageManager.Views
@@ -9,20 +10,39 @@ namespace NuGetPackageManager.Views
     /// </summary>
     public partial class ExplorerPageView : Catel.Windows.Controls.UserControl
     {
+        const string ArrowUpResourceKey = "ArrowUpBadgeContent";
+        const string ArrowDownResourceKey = "ArrowDownBadgeContent";
+
+        FrameworkElement ArrowUpResource;
+        FrameworkElement ArrowDownResource;
+
         public ExplorerPageView()
         {
             //prevent closing view models
             InitializeComponent();
+
+            ArrowUpResource = FindResource(ArrowUpResourceKey) as FrameworkElement;
+            ArrowDownResource = FindResource(ArrowDownResourceKey) as FrameworkElement;
         }
 
-        [ViewToViewModel(viewModelPropertyName: "SelectedPackage", MappingType = ViewToViewModelMappingType.TwoWayViewModelWins)]
-        public IPackageSearchMetadata SelectedItemOnPage
+        [ViewToViewModel(viewModelPropertyName: "SelectedPackageItem", MappingType = ViewToViewModelMappingType.TwoWayViewModelWins)]
+        public IViewModel SelectedItemOnPage
         {
-            get { return (IPackageSearchMetadata)GetValue(SelectedItemOnPageProperty); }
+            get { return (IViewModel)GetValue(SelectedItemOnPageProperty); }
             set { SetValue(SelectedItemOnPageProperty, value); }
         }
 
         public static readonly DependencyProperty SelectedItemOnPageProperty =
-            DependencyProperty.Register(nameof(SelectedItemOnPage), typeof(IPackageSearchMetadata), typeof(ExplorerPageView), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(SelectedItemOnPage), typeof(IViewModel), typeof(ExplorerPageView), new PropertyMetadata(null));
+
+        private void Badged_IsShowedChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            var badgedSender = sender as Badged;
+
+            //if ((bool)e.NewValue)
+            //{
+            //    badgedSender.SetCurrentValue(Badged.BadgeProperty, ArrowDownResource);
+            //}
+        }
     }
 }

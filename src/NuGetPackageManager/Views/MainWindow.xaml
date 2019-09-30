@@ -110,16 +110,17 @@
             <TabControl.ContentTemplate>
                 <DataTemplate>
                     <StackPanel>
-                        <local:ExplorerPageView SelectedItemOnPage="{Binding Path=Data.SelectedPackageMetadata, Source={StaticResource RootContextProxy}, Mode=TwoWay}"/>
+                        <local:ExplorerPageView SelectedItemOnPage="{Binding Path=Data.SelectedPackageItem, Source={StaticResource RootContextProxy}, Mode=TwoWay}"/>
                     </StackPanel>
                 </DataTemplate>
             </TabControl.ContentTemplate>
         </orc:TabControl>
 
         <!--detail of current selected package -->
-        <local:PackageDetailsView DataContext="{Binding SelectedPackageMetadata}" 
+        <local:PackageDetailsView DataContext="{Binding SelectedPackageItem}" 
                                       Visibility="{Binding Path=., Converter={catel:ReferenceToHidingVisibilityConverter}}"
-                                      Grid.Row="1" Grid.Column="1"/>
+                                      Grid.Row="1" Grid.Column="1"
+                                      MaxHeight="{Binding ElementName=ExplorerPagesTabControl, Path=ActualHeight}"/>
 
     </Grid>
 </catel:DataWindow>

@@ -22,8 +22,7 @@
 
             foreach (var behavior in GetOverlayBehaviors(window))
             {
-                var progressBehavior = behavior as AnimatedOverlayBehavior;
-                progressBehavior.SetCurrentValue(BehaviorBase<DataWindow>.IsEnabledProperty, true);
+                behavior.SetCurrentValue(BehaviorBase<DataWindow>.IsEnabledProperty, true);
 
                 _storedManagedWindows.Add(vm, window);
             }
@@ -35,9 +34,7 @@
 
             if (_storedManagedWindows.TryGetValue(vm, out window))
             {
-                Log.Info($"Current window is { (window == null ? "null" : window.ToString()) }");
-
-                Log.Info($"List of current windows {Application.Current.Windows}");
+                Log.Info($"Current window is { window?.ToString() ?? "null" }");
 
                 foreach (var behavior in GetOverlayBehaviors(window))
                 {
