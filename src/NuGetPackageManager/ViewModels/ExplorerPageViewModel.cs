@@ -335,7 +335,9 @@
                 {
                     IsCancellationTokenAlive = true;
                     Log.Info("You can now cancel search from gui");
-                    using (PageLoadingTokenSource = CreateCanclellationTokenSource())
+
+                    //using (PageLoadingTokenSource = CreateCanclellationTokenSource())
+                    using(var pageTcs = GetCancelationTokenSource())
                     {
                         if (!currentSource.IsVerified)
                         {
@@ -352,7 +354,7 @@
                         if (!IsLoadingInProcess)
                         {
 
-                            await LoadPackagesAsync(pageinfo, PageLoadingTokenSource.Token, searchParams);
+                            await LoadPackagesAsync(pageinfo, pageTcs.Token, searchParams);
                         }
                         else
                         {
@@ -366,11 +368,14 @@
                                 AwaitedPageInfo = PageInfo;
                                 AwaitedSearchParameters = searchParams;
                             }
-                            PageLoadingTokenSource.Cancel();
+                            pageTcs.Cancel();
                         }
+
+                        tokenSource.Remove(pageTcs);
+
+                        PageLoadingTokenSource = null;
+                        IsCancellationTokenAlive = false;
                     }
-                    IsCancellationTokenAlive = false;
-                    PageLoadingTokenSource = null;
                 }
                 else
                 {
@@ -425,20 +430,27 @@
             }
         }
 
-        private CancellationTokenSource CreateCanclellationTokenSource()
+        HashSet<CancellationTokenSource> tokenSource = new HashSet<CancellationTokenSource>();
+
+        private CancellationTokenSource GetCancelationTokenSource()
         {
-            if (PageLoadingTokenSource == null)
-            {
-                return new CancellationTokenSource();
-            }
+            var source = new CancellationTokenSource();
 
-            if (PageLoadingTokenSource.IsCancellationRequested)
-            {
-                return new CancellationTokenSource();
-            }
+            tokenSource.Add(source);
 
-            return PageLoadingTokenSource;
+            return source;
         }
+
+        //private CancellationTokenSource CreateCanclellationTokenSource()
+        //{
+
+        //    if (PageLoadingTokenSource == null || PageLoadingTokenSource.IsCancellationRequested)
+        //    {
+        //        PageLoadingTokenSource = new CancellationTokenSource();
+        //    }
+
+        //    return PageLoadingTokenSource;
+        //}
 
         #region commands
         public TaskCommand LoadNextPackagePage { get; set; }
@@ -455,10 +467,14 @@
         private async Task CancelPageLoadingExecute()
         {
             IsCancellationForced = true;
+           
             //force cancel all operations
             if (IsCancellationTokenAlive)
             {
-                PageLoadingTokenSource.Cancel();
+                foreach(var token in tokenSource)
+                {
+                    token.Cancel();
+                }
             }
 
             IsCancellationForced = false;
