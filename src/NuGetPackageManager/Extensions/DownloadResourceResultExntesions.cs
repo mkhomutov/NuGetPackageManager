@@ -1,10 +1,10 @@
-﻿using Catel;
-using NuGet.Protocol.Core.Types;
-using System;
-using System.IO;
-
-namespace NuGetPackageManager
+﻿namespace NuGetPackageManager
 {
+    using Catel;
+    using NuGet.Protocol.Core.Types;
+    using System;
+    using System.IO;
+
     public static class DownloadResourceResultExntesions
     {
         public static string GetResourceRoot(this DownloadResourceResult downloadResourceResult)

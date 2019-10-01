@@ -9,7 +9,6 @@
     using NuGet.ProjectManagement;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Management.EventArgs;
-    using NuGetPackageManager.Management.Exceptions;
     using NuGetPackageManager.Packaging;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
@@ -340,18 +339,12 @@
                     switch (last)
                     {
                         case BatchedInstallNuGetProjectEventArgs b:
-                            {
                                 b.IsBatchEnd = true;
-
                                 break;
-                            }
 
                         case BatchedUninstallNuGetProjectEventArgs b:
-                            {
                                 b.IsBatchEnd = true;
-
                                 break;
-                            }
                     }
                 }
 

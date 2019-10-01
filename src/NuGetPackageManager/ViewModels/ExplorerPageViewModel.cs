@@ -323,7 +323,7 @@
             {
                 if (pageinfo.Source.IsMultipleSource)
                 {
-                    Context = _repositoryService.AcquireContext();
+                       Context = _repositoryService.AcquireContext();
                 }
                 else
                 {
