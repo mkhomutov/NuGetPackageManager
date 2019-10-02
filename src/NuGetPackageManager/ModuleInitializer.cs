@@ -64,6 +64,7 @@ public static class ModuleInitializer
 
         //package loaders
         serviceLocator.RegisterType<IPackagesLoaderService, PackagesLoaderService>();
+        //todo use separate providers instead of tags
         serviceLocator.RegisterTypeWithTag<IPackagesLoaderService, LocalPackagesLoaderService>("Installed");
         serviceLocator.RegisterTypeWithTag<IPackagesLoaderService, UpdatePackagesLoaderService>("Updates");
 

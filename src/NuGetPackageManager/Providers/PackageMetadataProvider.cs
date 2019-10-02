@@ -115,7 +115,16 @@
 
             return uniquePackages;
         }
-
+        
+        /// <summary>
+        /// Returns list of package metadata objects from repository
+        /// </summary>
+        /// <param name="repository"></param>
+        /// <param name="packageId"></param>
+        /// <param name="includePrerelease"></param>
+        /// <param name="includeUnlisted"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         private async Task<IEnumerable<IPackageSearchMetadata>> GetPackageMetadataListAsyncFromSource(SourceRepository repository,
             string packageId,
             bool includePrerelease,
@@ -143,11 +152,38 @@
             }
         }
 
+        /// <summary>
+        /// Returns list of package metadata objects along with all version metadtas from repository
+        /// </summary>
+        /// <param name="repository"></param>
+        /// <param name="identity"></param>
+        /// <param name="includePrerelease"></param>
+        /// <param name="takeVersions"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         private async Task<IPackageSearchMetadata> GetPackageMetadataAsyncFromSource(SourceRepository repository,
             PackageIdentity identity,
             bool includePrerelease,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            bool takeVersions = true)
         {
+            if(takeVersions)
+            {
+                //query all versions and pack them in a single object
+                var versionsMetadatas = await GetPackageMetadataListAsyncFromSource(repository, identity.Id, includePrerelease, false, cancellationToken);
+
+                if(!versionsMetadatas?.Any() ?? false)
+                {
+                    return null;
+                }
+
+                var unitedMetadata = versionsMetadatas
+                    .FirstOrDefault(p => p.Identity.Version == identity.Version)
+                    ?? PackageSearchMetadataBuilder.FromIdentity(identity).Build();
+
+                return unitedMetadata.WithVersions(versionsMetadatas.ToVersionInfo(includePrerelease));
+            }
+
             var metadataResource = await repository.GetResourceAsync<PackageMetadataResource>(cancellationToken);
 
             using (var sourceCacheContext = new SourceCacheContext())
@@ -159,6 +195,7 @@
             }
         }
 
+        
         private async Task<IPackageSearchMetadata> GetPackageMetadataFromLocalSourceAsync(SourceRepository localRepository, PackageIdentity packageIdentity, CancellationToken token)
         {
             var localResource = await localRepository.GetResourceAsync<PackageMetadataResource>(token);
