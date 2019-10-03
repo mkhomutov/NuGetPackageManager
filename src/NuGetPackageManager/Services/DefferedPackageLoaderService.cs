@@ -112,7 +112,7 @@
             if (token.LoadType == Enums.MetadataOrigin.Installed)
             {
                 //from local
-                return packageMetadataProvider.GetLocalPackageMetadataAsync(token.Package.Identity, token.Package.Identity.Version.IsPrerelease, ct);
+                return packageMetadataProvider.GetLowestLocalPackageMetadataAsync(token.Package.Identity.Id, token.Package.Identity.Version.IsPrerelease, ct);
             }
 
             return Task.Run(() => packageMetadataProvider.GetPackageMetadataAsync(token.Package.Identity, token.Package.Identity.Version.IsPrerelease, ct));

@@ -123,33 +123,7 @@
             commandManager.RegisterCommand(nameof(RefreshCurrentPage), RefreshCurrentPage, this);
         }
 
-        private void OnPackageItemsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
-            {
-                //item added on first place, collection was empty
-                if (e.NewStartingIndex == 0)
-                {
-                    SelectedPackageItem = PackageItems.FirstOrDefault();
-                }
-            }
-        }
-
-        //handle settings changes and force reloading if needed
-        private async void OnSettingsPropertyPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (Settings.ObservedFeed == null)
-            {
-                return;
-            }
-
-            if (String.Equals(e.PropertyName, nameof(Settings.IsPreReleaseIncluded)) ||
-                String.Equals(e.PropertyName, nameof(Settings.SearchString)) || String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
-            {
-                StartLoadingTimerOrInvalidateData();
-            }
-        }
-
+      
         public static CancellationTokenSource VerificationTokenSource { get; set; } = new CancellationTokenSource();
 
         public static CancellationTokenSource DelayCancellationTokenSource { get; set; } = new CancellationTokenSource();
@@ -178,14 +152,41 @@
             }
         }
 
+        private async void OnSettingsPropertyPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (Settings.ObservedFeed == null)
+            {
+                return;
+            }
+
+            if (String.Equals(e.PropertyName, nameof(Settings.IsPreReleaseIncluded)) ||
+                String.Equals(e.PropertyName, nameof(Settings.SearchString)) || String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
+            {
+                StartLoadingTimerOrInvalidateData();
+            }
+        }
+
+
         public PackageDetailsViewModel SelectedPackageItem { get; set; }
 
         public FastObservableCollection<PackageDetailsViewModel> PackageItems { get; set; }
 
+        private void OnPackageItemsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            {
+                //item added on first place, collection was empty
+                if (e.NewStartingIndex == 0 && IsActive)
+                {
+                    SelectedPackageItem = PackageItems.FirstOrDefault();
+                }
+            }
+        }
+
         public bool IsActive { get; set; }
 
         /// <summary>
-        /// Show is data should be reloaded
+        /// Shows is data should be reloaded
         /// when viewmodel became active
         /// </summary>
         public bool Invalidated { get; set; }
@@ -441,17 +442,6 @@
             return source;
         }
 
-        //private CancellationTokenSource CreateCanclellationTokenSource()
-        //{
-
-        //    if (PageLoadingTokenSource == null || PageLoadingTokenSource.IsCancellationRequested)
-        //    {
-        //        PageLoadingTokenSource = new CancellationTokenSource();
-        //    }
-
-        //    return PageLoadingTokenSource;
-        //}
-
         #region commands
         public TaskCommand LoadNextPackagePage { get; set; }
 
@@ -540,19 +530,22 @@
             //create tokens, used for deffer execution of tasks
             //obtained states/updates of packages
 
-            foreach (var vm in vms)
+            if (_pageType != MetadataOrigin.Updates)
             {
-                var deferToken = new DeferToken();
-
-                deferToken.LoadType = DetermineLoadBehavior(_pageType);
-                deferToken.Package = vm.Package;
-
-                deferToken.UpdateAction = (newState) =>
+                foreach (var vm in vms)
                 {
-                    vm.Status = newState;
-                };
+                    var deferToken = new DeferToken();
 
-                _defferedPackageLoaderService.Add(deferToken);
+                    deferToken.LoadType = DetermineLoadBehavior(_pageType);
+                    deferToken.Package = vm.Package;
+
+                    deferToken.UpdateAction = (newState) =>
+                    {
+                        vm.Status = newState;
+                    };
+
+                    _defferedPackageLoaderService.Add(deferToken);
+                }
             }
 
             _dispatcherService.BeginInvoke(() =>
@@ -568,8 +561,6 @@
                     case MetadataOrigin.Browse: return MetadataOrigin.Installed;
 
                     case MetadataOrigin.Installed: return MetadataOrigin.Browse;
-
-                    case MetadataOrigin.Updates: return MetadataOrigin.Browse;
                 }
 
                 return MetadataOrigin.Browse;

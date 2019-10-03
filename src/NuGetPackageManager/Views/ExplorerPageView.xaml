@@ -10,13 +10,15 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:mvvm="clr-namespace:NuGetPackageManager.MVVM"
              xmlns:converters="clr-namespace:NuGetPackageManager.Converters"
+             xmlns:template="clr-namespace:NuGetPackageManager.Controls.Templating"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <catel:UserControl.Resources>
         <converters:UriToBitmapConverter x:Key="UriToBitmapConverter"/>
         <converters:PackageStatusEnumToBoolConverter x:Key="PackageStatusEnumToBoolConverter"/>
         <converters:PackageStatusEnumToBrushConverter x:Key="PackageStatusEnumToBrushConverter"/>
-        
+        <template:BadgeContentTemplateSelector x:Key="BadgeContentTemplateSelector" />
+
     </catel:UserControl.Resources>
     <Grid>
         <Grid.Resources>
@@ -58,6 +60,24 @@
                                            BorderBrush="WhiteSmoke"
                                            IsShowed="{Binding Status, Converter={StaticResource PackageStatusEnumToBoolConverter}}"
                                            BadgeForeground="WhiteSmoke">
+                                <nugetc:Badged.Resources>
+                                    <DataTemplate x:Key="NotAvailable">
+                                        <Viewbox>
+                                            <Canvas Width="24" Height="24" ClipToBounds="True">
+                                                <Path Data="{Binding Source={StaticResource Arrow-down-bold}, Path=Data}" 
+                                                  Fill="{Binding RelativeSource={RelativeSource AncestorType=nugetc:Badged}, Path=BadgeForeground}"/>
+                                            </Canvas>
+                                        </Viewbox>
+                                    </DataTemplate>
+                                    <DataTemplate x:Key="Available">
+                                        <Viewbox>
+                                            <Canvas Width="24" Height="24" ClipToBounds="True">
+                                                <Path Data="{Binding Source={StaticResource Arrow-up-bold}, Path=Data}" 
+                                                  Fill="{Binding RelativeSource={RelativeSource AncestorType=nugetc:Badged}, Path=BadgeForeground}"/>
+                                            </Canvas>
+                                        </Viewbox>
+                                    </DataTemplate>
+                                </nugetc:Badged.Resources>
                                 <nugetc:Badged.Background>
                                     <Binding Path="Status" Converter="{StaticResource PackageStatusEnumToBrushConverter}">
                                         <Binding.ConverterParameter>
@@ -69,12 +89,12 @@
                                     </Binding>
                                 </nugetc:Badged.Background>
                                 <nugetc:Badged.Badge>
-                                    <Viewbox>
-                                        <Canvas Width="24" Height="24" ClipToBounds="True">
-                                            <Path Data="{Binding Source={StaticResource Arrow-down-bold}, Path=Data}" 
-                                                  Fill="{Binding RelativeSource={RelativeSource AncestorType=nugetc:Badged}, Path=BadgeForeground}"/>
-                                        </Canvas>
-                                    </Viewbox>
+                                    <ContentControl Content="{Binding Status}">
+                                        <ContentControl.ContentTemplateSelector>
+                                            <template:BadgeContentTemplateSelector Available="{StaticResource Available}"
+                                                                                   NotAvailable="{StaticResource NotAvailable}"/>
+                                        </ContentControl.ContentTemplateSelector>
+                                    </ContentControl>
                                 </nugetc:Badged.Badge>
                                 <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}, IsAsync=True}"
                                        RenderOptions.BitmapScalingMode="Fant"

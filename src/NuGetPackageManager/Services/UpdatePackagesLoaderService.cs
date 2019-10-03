@@ -4,10 +4,12 @@
     using Catel.IoC;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Management;
+    using NuGetPackageManager.Packaging;
     using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Providers;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -36,8 +38,8 @@
 
             _serviceLocator = this.GetServiceLocator();
 
-            _feedRepositoryLoader = new Lazy<IPackagesLoaderService>(() => _serviceLocator.ResolveType<IPackagesLoaderService>("Installed"));
-            _projectRepositoryLoader = new Lazy<IPackagesLoaderService>(() => _serviceLocator.ResolveType<IPackagesLoaderService>("Updates"));
+            _feedRepositoryLoader = new Lazy<IPackagesLoaderService>(() => _serviceLocator.ResolveType<IPackagesLoaderService>());
+            _projectRepositoryLoader = new Lazy<IPackagesLoaderService>(() => _serviceLocator.ResolveType<IPackagesLoaderService>("Installed"));
         }
 
         public Lazy<IPackageMetadataProvider> PackageMetadataProvider { get; set; }
@@ -51,8 +53,28 @@
                 PackageMetadataProvider = _projectRepositoryLoader.Value.PackageMetadataProvider;
             }
 
-            //getting last metadata from 
-            return null;
+            List<IPackageSearchMetadata> updateList = new List<IPackageSearchMetadata>();
+
+            //getting last metadata
+            foreach (var package in installedPackagesMetadatas)
+            {
+                var clonedMetadata = await PackageMetadataProvider.Value.GetPackageMetadataAsync(package.Identity, searchFilter.IncludePrerelease, token);
+
+                if (clonedMetadata == null)
+                {
+                    continue;
+                }
+
+                var versions = await clonedMetadata.GetVersionsAsync();
+
+                
+                if (versions.FirstOrDefault().Version > package.Identity.Version)
+                {
+                    updateList.Add(clonedMetadata);
+                }
+            }
+
+            return updateList;
         }
 
 
