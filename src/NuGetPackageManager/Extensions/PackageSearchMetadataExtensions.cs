@@ -1,13 +1,10 @@
-﻿using NuGet.Protocol.Core.Types;
-using NuGet.Versioning;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager
+﻿namespace NuGetPackageManager
 {
+    using NuGet.Protocol.Core.Types;
+    using NuGet.Versioning;
+    using System.Collections.Generic;
+    using System.Linq;
+
     public static class PackageSearchMetadataExtensions
     {
         public static IEnumerable<VersionInfo> ToVersionInfo(this IEnumerable<IPackageSearchMetadata> packages, bool includePrerelease)

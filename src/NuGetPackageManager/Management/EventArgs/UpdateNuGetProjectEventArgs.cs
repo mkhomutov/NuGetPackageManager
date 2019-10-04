@@ -13,14 +13,14 @@
 
         public UpdateNuGetProjectEventArgs(IExtensibleProject project, PackageIdentity beforeUpdate, IEnumerable<NuGetProjectEventArgs> updateEventArgs) : this(project, beforeUpdate)
         {
-            foreach(var arg in updateEventArgs)
+            foreach (var arg in updateEventArgs)
             {
-                if(arg is UninstallNuGetProjectEventArgs)
+                if (arg is UninstallNuGetProjectEventArgs)
                 {
                     RemovedVersions.Add(arg.Package.Version);
                 }
 
-                if(arg is InstallNuGetProjectEventArgs)
+                if (arg is InstallNuGetProjectEventArgs)
                 {
                     InstalledVersion = arg.Package.Version;
                 }

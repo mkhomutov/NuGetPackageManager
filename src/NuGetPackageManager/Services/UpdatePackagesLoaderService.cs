@@ -4,7 +4,6 @@
     using Catel.IoC;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Management;
-    using NuGetPackageManager.Packaging;
     using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Providers;
     using System;
@@ -69,14 +68,14 @@
 
                 var versions = await clonedMetadata.GetVersionsAsync();
 
-                
+
                 if (versions.FirstOrDefault().Version > package.Identity.Version)
                 {
                     var updateMetadata = clonedMetadata.WithVersions(versions);
                     updateList.Add(updateMetadata);
                 }
 
-                if(updateList.Count > pageContinuation.Size)
+                if (updateList.Count > pageContinuation.Size)
                 {
                     break;
                 }

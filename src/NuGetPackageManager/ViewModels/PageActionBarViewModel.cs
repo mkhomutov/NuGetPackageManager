@@ -1,19 +1,16 @@
-﻿using Catel;
-using Catel.Collections;
-using Catel.Logging;
-using Catel.MVVM;
-using NuGetPackageManager.Management;
-using NuGetPackageManager.Models;
-using NuGetPackageManager.Windows;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.ViewModels
+﻿namespace NuGetPackageManager.ViewModels
 {
+    using Catel;
+    using Catel.Logging;
+    using Catel.MVVM;
+    using NuGetPackageManager.Management;
+    using NuGetPackageManager.Windows;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class PageActionBarViewModel : ViewModelBase
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
@@ -21,12 +18,12 @@ namespace NuGetPackageManager.ViewModels
         private readonly IManagerPage _parentManagerPage;
 
         private readonly INuGetExtensibleProjectManager _projectManager;
-        
+
         private readonly IExtensibleProjectLocator _projectLocator;
-        
+
         private IProgressManager _progressManager;
 
-        public PageActionBarViewModel(IManagerPage managerPage, IProgressManager progressManager, INuGetExtensibleProjectManager projectManager, 
+        public PageActionBarViewModel(IManagerPage managerPage, IProgressManager progressManager, INuGetExtensibleProjectManager projectManager,
             IExtensibleProjectLocator projectLocator)
         {
             Argument.IsNotNull(() => managerPage);
@@ -56,7 +53,6 @@ namespace NuGetPackageManager.ViewModels
 
         public TaskCommand BatchUpdate { get; set; }
 
-
         private async Task BatchUpdateExecute()
         {
             try
@@ -65,7 +61,7 @@ namespace NuGetPackageManager.ViewModels
 
                 var batchedPackages = _parentManagerPage.PackageItems.Where(x => x.IsChecked).Select(x => x.Package).ToList();
 
-                var projects =_projectLocator.GetAllExtensibleProjects()
+                var projects = _projectLocator.GetAllExtensibleProjects()
                             .Where(x => _projectLocator.IsEnabled(x));
 
                 using (var cts = new CancellationTokenSource())
@@ -74,7 +70,7 @@ namespace NuGetPackageManager.ViewModels
                     {
                         var targetProjects = new List<IExtensibleProject>();
 
-                        foreach(var project in projects)
+                        foreach (var project in projects)
                         {
                             if (await _projectManager.IsPackageInstalledAsync(project, package.Identity, cts.Token))
                             {
@@ -84,7 +80,7 @@ namespace NuGetPackageManager.ViewModels
 
                         var targetVersion = (await package.LoadVersionsAsync() ?? package.Versions)?.FirstOrDefault();
 
-                        if(targetVersion == null)
+                        if (targetVersion == null)
                         {
                             throw new InvalidOperationException("Target version for update cannot be null");
                         }

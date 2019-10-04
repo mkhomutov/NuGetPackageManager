@@ -140,7 +140,7 @@
 
             return uniquePackages;
         }
-        
+
         /// <summary>
         /// Returns list of package metadata objects from repository
         /// </summary>
@@ -192,12 +192,12 @@
             CancellationToken cancellationToken,
             bool takeVersions = true)
         {
-            if(takeVersions)
+            if (takeVersions)
             {
                 //query all versions and pack them in a single object
                 var versionsMetadatas = await GetPackageMetadataListAsyncFromSource(repository, identity.Id, includePrerelease, false, cancellationToken);
 
-                if(!versionsMetadatas?.Any() ?? false)
+                if (!versionsMetadatas?.Any() ?? false)
                 {
                     return null;
                 }
@@ -220,25 +220,25 @@
             }
         }
 
-        
+
         private async Task<IPackageSearchMetadata> GetPackageMetadataFromLocalSourceAsync(SourceRepository localRepository, PackageIdentity packageIdentity, CancellationToken token)
         {
-                var localPackages = await GetPackageMetadataFromLocalSourceAsync(localRepository, packageIdentity.Id, token);
-;
-                var packageMetadata = localPackages?.FirstOrDefault(p => p.Identity.Version == packageIdentity.Version);
+            var localPackages = await GetPackageMetadataFromLocalSourceAsync(localRepository, packageIdentity.Id, token);
+            ;
+            var packageMetadata = localPackages?.FirstOrDefault(p => p.Identity.Version == packageIdentity.Version);
 
-                var versions = new[]
-                {
+            var versions = new[]
+            {
                     new VersionInfo(packageIdentity.Version)
                 };
 
-                return packageMetadata?.WithVersions(versions);
-            
+            return packageMetadata?.WithVersions(versions);
+
         }
 
         private async Task<IEnumerable<IPackageSearchMetadata>> GetPackageMetadataFromLocalSourceAsync(
             SourceRepository localRepository,
-            string packageId, 
+            string packageId,
             CancellationToken token)
         {
             var localResource = await localRepository.GetResourceAsync<PackageMetadataResource>(token);

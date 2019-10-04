@@ -1,6 +1,5 @@
 ﻿using Catel.MVVM;
 using Catel.MVVM.Views;
-using NuGetPackageManager.Controls;
 using System.Windows;
 
 namespace NuGetPackageManager.Views

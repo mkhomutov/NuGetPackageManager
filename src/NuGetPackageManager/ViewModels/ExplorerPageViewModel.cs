@@ -118,7 +118,7 @@
             commandManager.RegisterCommand(nameof(RefreshCurrentPage), RefreshCurrentPage, this);
         }
 
-      
+
         public static CancellationTokenSource VerificationTokenSource { get; set; } = new CancellationTokenSource();
 
         public static CancellationTokenSource DelayCancellationTokenSource { get; set; } = new CancellationTokenSource();
@@ -323,7 +323,7 @@
             {
                 if (pageinfo.Source.IsMultipleSource)
                 {
-                       Context = _repositoryService.AcquireContext();
+                    Context = _repositoryService.AcquireContext();
                 }
                 else
                 {
@@ -337,7 +337,7 @@
                     Log.Info("You can now cancel search from gui");
 
                     //using (PageLoadingTokenSource = CreateCanclellationTokenSource())
-                    using(var pageTcs = GetCancelationTokenSource())
+                    using (var pageTcs = GetCancelationTokenSource())
                     {
                         if (!currentSource.IsVerified)
                         {
@@ -456,11 +456,11 @@
         private async Task CancelPageLoadingExecute()
         {
             IsCancellationForced = true;
-           
+
             //force cancel all operations
             if (IsCancellationTokenAlive)
             {
-                foreach(var token in tokenSource)
+                foreach (var token in tokenSource)
                 {
                     token.Cancel();
                 }

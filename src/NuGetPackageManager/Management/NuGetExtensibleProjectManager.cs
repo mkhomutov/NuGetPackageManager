@@ -62,7 +62,7 @@
                 return;
             }
 
-            if(updateToken != null && !updateToken.IsDisposed)
+            if (updateToken != null && !updateToken.IsDisposed)
             {
                 updateToken.Add(args);
                 return;
@@ -297,13 +297,13 @@
             }
         }
 
-        public async Task UpdatePackageForProject(IExtensibleProject project, string packageid, NuGetVersion targetVersion , CancellationToken token)
+        public async Task UpdatePackageForProject(IExtensibleProject project, string packageid, NuGetVersion targetVersion, CancellationToken token)
         {
             try
             {
                 var version = await GetVersionInstalledAsync(project, packageid, token);
 
-                using(updateToken = new BatchUpdateToken(new PackageIdentity(packageid, version)))
+                using (updateToken = new BatchUpdateToken(new PackageIdentity(packageid, version)))
                 {
                     await UpdatePackage(project, new PackageIdentity(packageid, version), targetVersion, token);
                 }
@@ -315,7 +315,7 @@
                     await OnUpdateAsync(updateArg);
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e, $"Error during package {packageid} update");
             }
@@ -342,7 +342,7 @@
                     await OnUpdateAsync(updateArg);
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error(e, $"Error during package {packageid} update");
             }
@@ -430,12 +430,12 @@
                     switch (last)
                     {
                         case BatchedInstallNuGetProjectEventArgs b:
-                                b.IsBatchEnd = true;
-                                break;
+                            b.IsBatchEnd = true;
+                            break;
 
                         case BatchedUninstallNuGetProjectEventArgs b:
-                                b.IsBatchEnd = true;
-                                break;
+                            b.IsBatchEnd = true;
+                            break;
                     }
                 }
 
@@ -465,7 +465,7 @@
             {
                 return supressedInvokationEventArgs
                     .GroupBy(e => new { e.Package.Id, e.Project })
-                    .Select(group => 
+                    .Select(group =>
                             new UpdateNuGetProjectEventArgs(group.Key.Project, _identity, group))
                     .ToList();
 
