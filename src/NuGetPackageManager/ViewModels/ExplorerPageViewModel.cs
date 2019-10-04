@@ -25,7 +25,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class ExplorerPageViewModel : ViewModelBase
+    public class ExplorerPageViewModel : ViewModelBase, IManagerPage
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
         private static readonly int PageSize = 17;
@@ -42,11 +42,6 @@
         private readonly ITypeFactory _typeFactory;
 
         private readonly MetadataOrigin _pageType;
-
-        private static void ElapsedHandler(object sender, EventArgs e)
-        {
-            //throw new NotImplementedException();
-        }
 
         private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
 
@@ -71,8 +66,6 @@
         private static IDisposable _context;
 
         private ExplorerSettingsContainer _settings;
-
-        private FastObservableCollection<IPackageSearchMetadata> _packages { get; set; }
 
         public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
             IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService, INuGetFeedVerificationService nuGetFeedVerificationService,
@@ -104,6 +97,8 @@
             {
                 Log.Error("Unrecognized page type");
             }
+
+            CanBatchProjectActions = _pageType == MetadataOrigin.Updates;
 
             _dispatcherService = dispatcherService;
             _packageMetadataMediaDownloadService = packageMetadataMediaDownloadService;
@@ -199,6 +194,12 @@
 
         public bool IsCancellationForced { get; set; }
 
+        /// <summary>
+        /// Is project manipulations can be performed on multiple packages
+        /// on this page in one operation
+        /// </summary>
+        public bool CanBatchProjectActions { get; set; }
+
         public CancellationTokenSource PageLoadingTokenSource { get; set; }
 
         protected async override Task InitializeAsync()
@@ -210,8 +211,6 @@
                 SingleDelayTimer.AutoReset = false;
 
                 SingleDelayTimer.SynchronizingObject = new SynchronizeInvoker(DispatcherHelper.CurrentDispatcher, _dispatcherService);
-
-                _packages = new FastObservableCollection<IPackageSearchMetadata>();
 
                 PackageItems = new FastObservableCollection<PackageDetailsViewModel>();
 
@@ -283,7 +282,7 @@
             PackageItems.CollectionChanged -= OnPackageItemsCollectionChanged;
         }
 
-        private void StartLoadingTimerOrInvalidateData()
+        public void StartLoadingTimerOrInvalidateData()
         {
             if (IsActive)
             {

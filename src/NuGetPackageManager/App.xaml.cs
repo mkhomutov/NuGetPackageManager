@@ -12,6 +12,8 @@ namespace NuGetPackageManager
         {
             LogManager.AddDebugListener();
 
+            LogManager.IsDebugEnabled = false;
+
             base.OnStartup(e);
         }
     }

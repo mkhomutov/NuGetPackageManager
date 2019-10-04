@@ -25,31 +25,27 @@
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
+        private readonly IRepositoryService _repositoryService;
+
+        private readonly IModelProvider<ExplorerSettingsContainer> _settingsProvider;
+
+        private readonly IProgressManager _progressManager;
+
+        private readonly INuGetExtensibleProjectManager _projectManager;
+
         private IPackageMetadataProvider _packageMetadataProvider;
-
-        private IRepositoryService _repositoryService;
-
-        private IPackageInstallationService _installationService;
-
-        private IModelProvider<ExplorerSettingsContainer> _settingsProvider;
-
-        private IProgressManager _progressManager;
-
-        private INuGetExtensibleProjectManager _projectManager;
 
 
         public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, MetadataOrigin fromPage, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
-            IPackageInstallationService installationService, IProgressManager progressManager, INuGetExtensibleProjectManager projectManager)
+                IProgressManager progressManager, INuGetExtensibleProjectManager projectManager)
         {
             Argument.IsNotNull(() => repositoryService);
             Argument.IsNotNull(() => settingsProvider);
-            Argument.IsNotNull(() => installationService);
             Argument.IsNotNull(() => progressManager);
             Argument.IsNotNull(() => projectManager);
 
             _repositoryService = repositoryService;
             _settingsProvider = settingsProvider;
-            _installationService = installationService;
             _progressManager = progressManager;
             _projectManager = projectManager;
 
@@ -74,6 +70,8 @@
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
             InstallPackage = new TaskCommand(OnInstallPackageExecute, OnInstallPackageCanExecute);
             UninstallPackage = new TaskCommand(OnUninstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
+
+            CanBeAddedInBatchOperation = fromPage == MetadataOrigin.Updates;
         }
 
         protected async override Task InitializeAsync()
@@ -158,6 +156,10 @@
         public NuGetVersion InstalledVersion { get; set; }
 
         public int SelectedVersionIndex { get; set; }
+
+        public bool CanBeAddedInBatchOperation { get; set; }
+
+        public bool IsChecked { get; set; }
 
         public Command LoadInfoAboutVersions { get; set; }
 

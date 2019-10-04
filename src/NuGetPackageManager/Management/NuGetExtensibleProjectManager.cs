@@ -8,6 +8,7 @@
     using NuGet.Packaging.Core;
     using NuGet.ProjectManagement;
     using NuGet.Protocol.Core.Types;
+    using NuGet.Versioning;
     using NuGetPackageManager.Management.EventArgs;
     using NuGetPackageManager.Packaging;
     using NuGetPackageManager.Providers;
@@ -33,6 +34,7 @@
         const string MetadataName = "Name";
 
         private BatchOperationToken batchToken;
+        private BatchUpdateToken updateToken;
 
         public NuGetExtensibleProjectManager(IPackageInstallationService packageInstallationService, IFrameworkNameProvider frameworkNameProvider,
             INuGetProjectContextProvider nuGetProjectContextProvider, ISourceRepositoryProvider repositoryProvider)
@@ -54,9 +56,15 @@
         {
             var args = new InstallNuGetProjectEventArgs(project, package, result);
 
-            if (!batchToken.IsDisposed)
+            if (batchToken != null && !batchToken.IsDisposed)
             {
                 batchToken.Add(new BatchedInstallNuGetProjectEventArgs(args));
+                return;
+            }
+
+            if(updateToken != null && !updateToken.IsDisposed)
+            {
+                updateToken.Add(args);
                 return;
             }
 
@@ -69,9 +77,15 @@
         {
             var args = new UninstallNuGetProjectEventArgs(project, package, result);
 
-            if (!batchToken.IsDisposed)
+            if (batchToken != null && !batchToken.IsDisposed)
             {
                 batchToken.Add(new BatchedUninstallNuGetProjectEventArgs(args));
+                return;
+            }
+
+            if (updateToken != null && !updateToken.IsDisposed)
+            {
+                updateToken.Add(args);
                 return;
             }
 
@@ -80,15 +94,13 @@
 
         public event AsyncEventHandler<UpdateNuGetProjectEventArgs> Update;
 
-        async Task OnUpdateAsync(IExtensibleProject project, PackageIdentity package)
+        async Task OnUpdateAsync(UpdateNuGetProjectEventArgs args)
         {
-            var args = new UpdateNuGetProjectEventArgs(project, package);
-
-            //if (!batchToken.IsDisposed)
-            //{
-            //    batchToken.Add(args);
-            //    return;
-            //}
+            if (batchToken != null && !batchToken.IsDisposed)
+            {
+                batchToken.Add(args);
+                return;
+            }
 
             await Update.SafeInvokeAsync(this, args);
         }
@@ -156,6 +168,20 @@
             var installedPackage = installedReferences.Where(x => x.PackageIdentity.Equals(package, NuGet.Versioning.VersionComparison.Version)).FirstOrDefault();
 
             return installedPackage != null;
+        }
+
+        public async Task<NuGetVersion> GetVersionInstalledAsync(IExtensibleProject project, string packageId, CancellationToken token)
+        {
+            //var underluyingFolderProject = new FolderNuGetProject(project.ContentPath);
+
+            //var result = underluyingFolderProject.PackageExists(package);
+
+            var installedReferences = await GetInstalledPackagesAsync(project, token);
+
+            var installedVersion = installedReferences.Where(x => string.Equals(x.PackageIdentity.Id, packageId) && x.PackageIdentity.HasVersion)
+                .Select(x => x.PackageIdentity.Version).FirstOrDefault();
+
+            return installedVersion;
         }
 
 
@@ -271,6 +297,71 @@
             }
         }
 
+        public async Task UpdatePackageForProject(IExtensibleProject project, string packageid, NuGetVersion targetVersion , CancellationToken token)
+        {
+            try
+            {
+                var version = await GetVersionInstalledAsync(project, packageid, token);
+
+                using(updateToken = new BatchUpdateToken(new PackageIdentity(packageid, version)))
+                {
+                    await UpdatePackage(project, new PackageIdentity(packageid, version), targetVersion, token);
+                }
+
+                var updates = updateToken.GetUpdateEventArgs();
+
+                foreach (var updateArg in updates)
+                {
+                    await OnUpdateAsync(updateArg);
+                }
+            }
+            catch(Exception e)
+            {
+                Log.Error(e, $"Error during package {packageid} update");
+            }
+        }
+
+        public async Task UpdatePackageForMultipleProject(IReadOnlyList<IExtensibleProject> projects, string packageid, NuGetVersion targetVersion, CancellationToken token)
+        {
+            try
+            {
+                using (updateToken = new BatchUpdateToken(new PackageIdentity(packageid, targetVersion)))
+                {
+                    foreach (var project in projects)
+                    {
+                        var version = await GetVersionInstalledAsync(project, packageid, token);
+
+                        await UpdatePackage(project, new PackageIdentity(packageid, version), targetVersion, token);
+                    }
+                }
+
+                var updates = updateToken.GetUpdateEventArgs();
+
+                foreach (var updateArg in updates)
+                {
+                    await OnUpdateAsync(updateArg);
+                }
+            }
+            catch(Exception e)
+            {
+                Log.Error(e, $"Error during package {packageid} update");
+            }
+        }
+
+        private async Task UpdatePackage(IExtensibleProject project, PackageIdentity installedVersion, NuGetVersion targetVersion, CancellationToken token)
+        {
+            try
+            {
+                await UninstallPackageForProject(project, installedVersion, token);
+
+                await InstallPackageForProject(project, new PackageIdentity(installedVersion.Id, targetVersion), token);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"Error during package {installedVersion} update");
+            }
+        }
+
         /// <summary>
         /// Creates minimal required metadata for initializing NuGet PackagesConfigNuGetProject from
         /// our IExtensibleProject
@@ -348,6 +439,40 @@
                     }
                 }
 
+                IsDisposed = true;
+            }
+        }
+
+        private class BatchUpdateToken : IDisposable
+        {
+            private readonly List<NuGetProjectEventArgs> supressedInvokationEventArgs = new List<NuGetProjectEventArgs>();
+
+            private readonly PackageIdentity _identity;
+
+            public BatchUpdateToken(PackageIdentity identity)
+            {
+                _identity = identity;
+            }
+
+            public bool IsDisposed { get; private set; }
+
+            public void Add(NuGetProjectEventArgs eventArgs)
+            {
+                supressedInvokationEventArgs.Add(eventArgs);
+            }
+
+            public IEnumerable<UpdateNuGetProjectEventArgs> GetUpdateEventArgs()
+            {
+                return supressedInvokationEventArgs
+                    .GroupBy(e => new { e.Package.Id, e.Project })
+                    .Select(group => 
+                            new UpdateNuGetProjectEventArgs(group.Key.Project, _identity, group))
+                    .ToList();
+
+            }
+
+            public void Dispose()
+            {
                 IsDisposed = true;
             }
         }

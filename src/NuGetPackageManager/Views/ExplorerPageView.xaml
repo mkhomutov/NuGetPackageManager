@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:NuGetPackageManager.Views"
              xmlns:enum="clr-namespace:NuGetPackageManager.Enums"
              xmlns:nugetc="clr-namespace:NuGetPackageManager.Controls"
+             xmlns:views="clr-namespace:NuGetPackageManager.Views"
              xmlns:catel="http://schemas.catelproject.com"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:mvvm="clr-namespace:NuGetPackageManager.MVVM"
@@ -20,10 +21,21 @@
         <template:BadgeContentTemplateSelector x:Key="BadgeContentTemplateSelector" />
 
     </catel:UserControl.Resources>
-    <Grid>
+    <Grid x:Name="PageGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        
         <Grid.Resources>
             <mvvm:BindingProxy Data="{Binding }" x:Key="ContextProxy"/>
         </Grid.Resources>
+
+        <views:PageActionBar Visibility="{Binding CanBatchProjectActions, Converter={catel:BooleanToCollapsingVisibilityConverter}}"
+                             DataContext="{Binding}"
+                             Margin="0 0 0 2"/>
+
+
         <nugetc:InfiniteScrollListBox x:Name="infinitybox"
                                       ItemsSource="{Binding PackageItems}"
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -32,7 +44,8 @@
                                       IsCommandExecuting="{Binding IsCancellationTokenAlive}"
                                       HorizontalContentAlignment="Stretch"
                                       SelectedItem="{Binding SelectedPackageItem}"
-                                      Height="800">
+                                      Grid.Row="1"
+                                      MaxHeight="{Binding ElementName=PageGrid, Path=ActualHeight}">
             <nugetc:InfiniteScrollListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid>
@@ -54,8 +67,18 @@
                                 <RowDefinition/>
                             </Grid.RowDefinitions>
 
+                            <CheckBox VerticalAlignment="Bottom"
+                                      HorizontalAlignment="Left"
+                                      Margin="0 0 0 4"
+                                      Visibility="{Binding CanBeAddedInBatchOperation, Converter={catel:BooleanToCollapsingVisibilityConverter}}"
+                                      IsChecked="{Binding IsChecked}"
+                                      Grid.RowSpan="3">
+                                <CheckBox.LayoutTransform>
+                                    <ScaleTransform ScaleX="1.2" ScaleY="1.2"/>
+                                </CheckBox.LayoutTransform>
+                            </CheckBox>
+
                             <nugetc:Badged VerticalAlignment="Top" Margin="0 4 4 0"
-                                           IsShowedChanged="Badged_IsShowedChanged"
                                            Grid.RowSpan="3"
                                            BorderBrush="WhiteSmoke"
                                            IsShowed="{Binding Status, Converter={StaticResource PackageStatusEnumToBoolConverter}}"
@@ -171,9 +194,11 @@
         </nugetc:InfiniteScrollListBox>
         
         <!--loading indication -->
-        <Border Panel.ZIndex="1" Height="80" VerticalAlignment="Bottom"
+        <Border Panel.ZIndex="1" Height="80"
+                VerticalAlignment="Bottom"
                 Background="{DynamicResource AccentColorBrush3}"
                 BorderBrush="{DynamicResource AccentColorBrush}"
+                Grid.Row="1"
                 BorderThickness="0 2 0 1"
                 Visibility="{Binding ElementName=infinitybox, Path=IsCommandExecuting, Converter={catel:BooleanToCollapsingVisibilityConverter}}">
             <StackPanel>

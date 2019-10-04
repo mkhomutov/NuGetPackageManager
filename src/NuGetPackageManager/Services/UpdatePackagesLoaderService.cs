@@ -46,7 +46,9 @@
 
         public async Task<IEnumerable<IPackageSearchMetadata>> LoadAsync(string searchTerm, PageContinuation pageContinuation, SearchFilter searchFilter, CancellationToken token)
         {
-            var installedPackagesMetadatas = await _projectRepositoryLoader.Value.LoadAsync(searchTerm, pageContinuation, searchFilter, token);
+            var localContinuation = new PageContinuation(pageContinuation);
+
+            var installedPackagesMetadatas = await _projectRepositoryLoader.Value.LoadAsync(searchTerm, localContinuation, searchFilter, token);
 
             if (PackageMetadataProvider == null)
             {
@@ -70,13 +72,17 @@
                 
                 if (versions.FirstOrDefault().Version > package.Identity.Version)
                 {
-                    updateList.Add(clonedMetadata);
+                    var updateMetadata = clonedMetadata.WithVersions(versions);
+                    updateList.Add(updateMetadata);
+                }
+
+                if(updateList.Count > pageContinuation.Size)
+                {
+                    break;
                 }
             }
 
             return updateList;
         }
-
-
     }
 }
