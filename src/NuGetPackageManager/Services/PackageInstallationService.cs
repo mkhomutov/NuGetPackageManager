@@ -17,6 +17,7 @@
     using NuGetPackageManager.Cache;
     using NuGetPackageManager.Loggers;
     using NuGetPackageManager.Management;
+    using NuGetPackageManager.Management.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.IO;
