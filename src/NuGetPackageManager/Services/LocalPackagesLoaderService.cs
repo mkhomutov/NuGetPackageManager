@@ -46,8 +46,6 @@
 
             var observedProjects = _extensibleProjectLocator.GetAllExtensibleProjects();
 
-            List<PackageIdentity> packages = new List<PackageIdentity>();
-
             var httpHandler = await repository.GetResourceAsync<HttpHandlerResourceV3>();
 
             try
@@ -68,7 +66,6 @@
 
                 List<IPackageSearchMetadata> combinedFindedMetadata = new List<IPackageSearchMetadata>();
 
-                //todo do it parallel as in VS
                 foreach (var package in pagedPackages)
                 {
                     var metadata = await GetPackageMetadataAsync(package, searchFilter.IncludePrerelease, token);

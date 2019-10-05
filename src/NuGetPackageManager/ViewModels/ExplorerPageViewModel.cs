@@ -510,9 +510,9 @@
                 IsLoadingInProcess = false;
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -572,15 +572,8 @@
             {
                 if (metadata.IconUrl != null)
                 {
-                    try
-                    {
-                        token.ThrowIfCancellationRequested();
-                        await _packageMetadataMediaDownloadService.DownloadFromAsync(metadata);
-                    }
-                    catch (Exception)
-                    {
-                        throw;
-                    }
+                    token.ThrowIfCancellationRequested();
+                    await _packageMetadataMediaDownloadService.DownloadFromAsync(metadata);
                 }
             }
 
@@ -613,42 +606,35 @@
 
         private async Task CanFeedBeLoadedAsync(CancellationToken cancelToken, INuGetSource source)
         {
-            try
+            Log.Info($"{source} is verified");
+
+            if (source is NuGetFeed)
             {
-                Log.Info($"{source} is verified");
+                var singleSource = source as NuGetFeed;
 
-                if (source is NuGetFeed)
+                singleSource.VerificationResult = singleSource.IsLocal() ? FeedVerificationResult.Valid
+                    : await _nuGetFeedVerificationService.VerifyFeedAsync(source.Source, cancelToken);
+            }
+            else if (source is CombinedNuGetSource)
+            {
+                var combinedSource = source as CombinedNuGetSource;
+                var unaccessibleFeeds = new List<NuGetFeed>();
+
+                foreach (var feed in combinedSource.GetAllSources())
                 {
-                    var singleSource = source as NuGetFeed;
+                    feed.VerificationResult = feed.IsLocal() ? FeedVerificationResult.Valid
+                    : await _nuGetFeedVerificationService.VerifyFeedAsync(feed.Source, cancelToken);
 
-                    singleSource.VerificationResult = singleSource.IsLocal() ? FeedVerificationResult.Valid
-                        : await _nuGetFeedVerificationService.VerifyFeedAsync(source.Source, cancelToken);
-                }
-                else if (source is CombinedNuGetSource)
-                {
-                    var combinedSource = source as CombinedNuGetSource;
-                    var unaccessibleFeeds = new List<NuGetFeed>();
-
-                    foreach (var feed in combinedSource.GetAllSources())
+                    if (!feed.IsAccessible)
                     {
-                        feed.VerificationResult = feed.IsLocal() ? FeedVerificationResult.Valid
-                        : await _nuGetFeedVerificationService.VerifyFeedAsync(feed.Source, cancelToken);
-
-                        if (!feed.IsAccessible)
-                        {
-                            unaccessibleFeeds.Add(feed);
-                            Log.Warning($"{feed} is unaccessible. It won't be used when 'All' option selected");
-                        }
+                        unaccessibleFeeds.Add(feed);
+                        Log.Warning($"{feed} is unaccessible. It won't be used when 'All' option selected");
                     }
-
-                    unaccessibleFeeds.ForEach(x => combinedSource.RemoveFeed(x));
                 }
-                else Log.Error($"Parameter {source} has invalid type");
+
+                unaccessibleFeeds.ForEach(x => combinedSource.RemoveFeed(x));
             }
-            catch (Exception)
-            {
-                throw;
-            }
+            else Log.Error($"Parameter {source} has invalid type");
         }
     }
 }

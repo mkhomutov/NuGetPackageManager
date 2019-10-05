@@ -118,10 +118,6 @@
             return Task.Run(() => packageMetadataProvider.GetPackageMetadataAsync(token.Package.Identity, token.Package.Identity.Version.IsPrerelease, ct));
         }
 
-        public void CancelLoading()
-        {
-        }
-
         public IPackageMetadataProvider InitializeMetadataProvider()
         {
 

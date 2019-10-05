@@ -21,7 +21,7 @@
 
         private readonly IExtensibleProjectLocator _projectLocator;
 
-        private IProgressManager _progressManager;
+        private readonly IProgressManager _progressManager;
 
         public PageActionBarViewModel(IManagerPage managerPage, IProgressManager progressManager, INuGetExtensibleProjectManager projectManager,
             IExtensibleProjectLocator projectLocator)

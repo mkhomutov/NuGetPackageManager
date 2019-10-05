@@ -90,8 +90,6 @@
             {
                 if (ct.IsCancellationRequested)
                 {
-                    result = FeedVerificationResult.Unknown;
-
                     //cancel operation
                     throw new OperationCanceledException("Verification was canceled", ex, ct);
                 }
@@ -139,7 +137,7 @@
             {
                 var packageSource = new PackageSource(source);
 
-                var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root: null), Repository.Provider.GetCoreV3());
+                //var repoProvider = new SourceRepositoryProvider(Settings.LoadDefaultSettings(root: null), Repository.Provider.GetCoreV3());
 
                 var repository = new SourceRepository(packageSource, v3_providers);
 

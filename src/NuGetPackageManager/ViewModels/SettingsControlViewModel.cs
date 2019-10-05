@@ -131,14 +131,11 @@ namespace NuGetPackageManager.ViewModels
 
         protected override void ValidateBusinessRules(List<IBusinessRuleValidationResult> validationResults)
         {
-            if (SelectedFeed != null)
+            if (SelectedFeed != null && IsNamesNotUniqueRule(out var names))
             {
-                if (IsNamesNotUniqueRule(out var names))
+                foreach (var name in names)
                 {
-                    foreach (var name in names)
-                    {
-                        validationResults.Add(BusinessRuleValidationResult.CreateError($"Two or more feeds have same name '{name}'"));
-                    }
+                    validationResults.Add(BusinessRuleValidationResult.CreateError($"Two or more feeds have same name '{name}'"));
                 }
             }
         }

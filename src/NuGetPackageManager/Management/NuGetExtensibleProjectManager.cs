@@ -107,24 +107,13 @@
 
         public async Task<IEnumerable<PackageReference>> GetInstalledPackagesAsync(IExtensibleProject project, CancellationToken token)
         {
-            try
-            {
-                //TODO should local metadata is also be checked?
+            //TODO should local metadata is also be checked?
 
-                //var pathResolver = new PackagePathResolver(project.ContentPath);
+            var packageConfigProject = CreatePackageConfigProjectFromExtensible(project);
 
-                //var directories = System.IO.Directory.GetDirectories(project.ContentPath);
+            var packageReferences = await packageConfigProject.GetInstalledPackagesAsync(token);
 
-                var packageConfigProject = CreatePackageConfigProjectFromExtensible(project);
-
-                var packageReferences = await packageConfigProject.GetInstalledPackagesAsync(token);
-
-                return packageReferences;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            return packageReferences;
         }
 
         /// <summary>
@@ -165,17 +154,13 @@
 
             var installedReferences = await GetInstalledPackagesAsync(project, token);
 
-            var installedPackage = installedReferences.Where(x => x.PackageIdentity.Equals(package, NuGet.Versioning.VersionComparison.Version)).FirstOrDefault();
+            var installedPackage = installedReferences.FirstOrDefault(x => x.PackageIdentity.Equals(package, NuGet.Versioning.VersionComparison.Version));
 
             return installedPackage != null;
         }
 
         public async Task<NuGetVersion> GetVersionInstalledAsync(IExtensibleProject project, string packageId, CancellationToken token)
         {
-            //var underluyingFolderProject = new FolderNuGetProject(project.ContentPath);
-
-            //var result = underluyingFolderProject.PackageExists(package);
-
             var installedReferences = await GetInstalledPackagesAsync(project, token);
 
             var installedVersion = installedReferences.Where(x => string.Equals(x.PackageIdentity.Id, packageId) && x.PackageIdentity.HasVersion)

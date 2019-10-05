@@ -108,7 +108,6 @@
             {
                 using (var cts = new CancellationTokenSource())
                 {
-                    //todo include prerelease
                     VersionData = await _packageMetadataProvider?.GetPackageMetadataAsync(
                         identity, _settingsProvider.Model.IsPreReleaseIncluded, cts.Token);
 
