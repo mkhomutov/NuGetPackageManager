@@ -30,7 +30,10 @@
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
         private static readonly int PageSize = 17;
         private static readonly int SingleTasksDelayMs = 800;
-        private static readonly IHttpExceptionHandler<FatalProtocolException> packageLoadingExceptionHandler = new FatalProtocolExceptionHandler();
+        private static readonly IHttpExceptionHandler<FatalProtocolException> PackageLoadingExceptionHandler = new FatalProtocolExceptionHandler();
+
+        private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
+
 
         private readonly IPackagesLoaderService _packagesLoaderService;
         private readonly INuGetExtensibleProjectManager _projectManager;
@@ -43,7 +46,7 @@
 
         private readonly MetadataOrigin _pageType;
 
-        private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
+        private readonly HashSet<CancellationTokenSource> _tokenSource = new HashSet<CancellationTokenSource>();
 
         /// <summary>
         /// Repository context. 
@@ -368,10 +371,12 @@
                                 AwaitedPageInfo = PageInfo;
                                 AwaitedSearchParameters = searchParams;
                             }
-                            pageTcs.Cancel();
+
+                            //task with pageTcs source cancel all loading tasks in-process
+                            CancelLoadingTasks(pageTcs);
                         }
 
-                        tokenSource.Remove(pageTcs);
+                        _tokenSource.Remove(pageTcs);
 
                         PageLoadingTokenSource = null;
                         IsCancellationTokenAlive = false;
@@ -411,7 +416,7 @@
             catch (FatalProtocolException ex)
             {
                 IsCancellationTokenAlive = false;
-                var result = packageLoadingExceptionHandler.HandleException(ex, currentSource.Source);
+                var result = PackageLoadingExceptionHandler.HandleException(ex, currentSource.Source);
 
                 if (result == FeedVerificationResult.AuthenticationRequired)
                 {
@@ -428,17 +433,6 @@
             {
                 await _defferedPackageLoaderService.StartLoadingAsync();
             }
-        }
-
-        HashSet<CancellationTokenSource> tokenSource = new HashSet<CancellationTokenSource>();
-
-        private CancellationTokenSource GetCancelationTokenSource()
-        {
-            var source = new CancellationTokenSource();
-
-            tokenSource.Add(source);
-
-            return source;
         }
 
         #region commands
@@ -460,7 +454,7 @@
             //force cancel all operations
             if (IsCancellationTokenAlive)
             {
-                foreach (var token in tokenSource)
+                foreach (var token in _tokenSource)
                 {
                     token.Cancel();
                 }
@@ -477,6 +471,26 @@
         }
 
         #endregion
+
+        private CancellationTokenSource GetCancelationTokenSource()
+        {
+            var source = new CancellationTokenSource();
+
+            _tokenSource.Add(source);
+
+            return source;
+        }
+
+        private void CancelLoadingTasks(CancellationTokenSource token)
+        {
+            foreach(var tokenSource in _tokenSource)
+            {
+                if(tokenSource != token)
+                {
+                    tokenSource.Cancel();
+                }
+            }
+        }
 
         private async Task LoadPackagesAsync(PageContinuation pageInfo, CancellationToken cancellationToken, PackageSearchParameters searchParameters)
         {

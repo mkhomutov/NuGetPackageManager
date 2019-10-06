@@ -5,6 +5,7 @@ namespace NuGetPackageManager.Controls
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
+    using System.Windows.Controls.Primitives;
 
     public class InfiniteScrollListBox : ListBox
     {
@@ -44,8 +45,15 @@ namespace NuGetPackageManager.Controls
 
         private async void OnScrollViewerScrollChanged(object sender, ScrollChangedEventArgs e)
         {
-            var first = _scrollViewer.VerticalOffset;
-            var last = _scrollViewer.ViewportHeight + first;
+            var scrolled = _scrollViewer.VerticalOffset;
+
+            var last = _scrollViewer.ViewportHeight + scrolled;
+
+            if(ScrollSize > last)
+            {
+                return;
+            }
+
             if (_scrollViewer.ViewportHeight > 0 && last >= Items.Count)
             {
                 await ExecuteLoadingItemsCommandAsync();
@@ -93,5 +101,17 @@ namespace NuGetPackageManager.Controls
         private void OnIsCommandExecutingChanged(DependencyPropertyChangedEventArgs e)
         {
         }
+
+        public int ScrollSize
+        {
+            get { return (int)GetValue(ScrollSizeProperty); }
+            set { SetValue(ScrollSizeProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for ScrollSize.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty ScrollSizeProperty =
+            DependencyProperty.Register("ScrollSize", typeof(int), typeof(InfiniteScrollListBox), new PropertyMetadata(0));
+
+
     }
 }

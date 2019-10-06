@@ -69,7 +69,7 @@
 
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
             InstallPackage = new TaskCommand(OnInstallPackageExecute, OnInstallPackageCanExecute);
-            UninstallPackage = new TaskCommand(OnUninstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
+            UninstallPackage = new TaskCommand(OnUninstallPackageExecute, OnUninstallPackageCanExecute);
 
             CanBeAddedInBatchOperation = fromPage == MetadataOrigin.Updates;
         }
@@ -236,6 +236,13 @@
             {
                 Log.Error(e, $"Error when uninstalling package {Package.Identity}, uninstall was failed");
             }
+        }
+
+        private bool OnUninstallPackageCanExecute()
+        {
+            var anyProject = NuGetActionTarget?.IsValid ?? false;
+
+            return anyProject && IsInstalled();
         }
 
         private IPackageMetadataProvider InitMetadataProvider()

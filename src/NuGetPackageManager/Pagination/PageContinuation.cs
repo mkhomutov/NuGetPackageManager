@@ -7,7 +7,7 @@
     {
         private int _lastNumber = -1;
 
-        private int _pageSize = 100;
+        private int _pageSize = -1;
 
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 

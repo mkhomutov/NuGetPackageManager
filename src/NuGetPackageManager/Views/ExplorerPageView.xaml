@@ -41,6 +41,7 @@
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       Command="{Binding LoadNextPackagePage}"
+                                      ScrollSize="7"
                                       IsCommandExecuting="{Binding IsCancellationTokenAlive}"
                                       HorizontalContentAlignment="Stretch"
                                       SelectedItem="{Binding SelectedPackageItem}"
