@@ -119,7 +119,7 @@
                   ItemsSource="{Binding ActiveFeeds}"
                   Margin="3 0 3 0"
                   IsSynchronizedWithCurrentItem="True"
-                  SelectedItem="{Binding ObservedFeed}"/>
+                  SelectedItem="{Binding ObservedFeed, Mode=TwoWay}"/>
         <!--select source feed-->
          <Button Grid.Row="1" Grid.Column="7"
                 Command="{Binding ShowExtensibles}"

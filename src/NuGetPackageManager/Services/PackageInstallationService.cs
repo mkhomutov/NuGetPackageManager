@@ -149,6 +149,10 @@
                     return downloadResults;
                 }
             }
+            catch(NuGetResolverInputException e)
+            {
+                throw new ProjectInstallException($"Package {package} or some of it dependencies are missed for current target framework", e);
+            }
             catch (ProjectInstallException)
             {
                 throw;
