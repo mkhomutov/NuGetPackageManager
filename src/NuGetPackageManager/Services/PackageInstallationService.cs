@@ -15,6 +15,7 @@
     using NuGetPackageManager.Cache;
     using NuGetPackageManager.Loggers;
     using NuGetPackageManager.Management;
+    using NuGetPackageManager.Management.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -125,24 +126,42 @@
                     }
                 }
 
-                var resolverContext = GetResolverContext(package, availabePackageStorage);
-
-                var resolver = new PackageResolver();
-
-                var packagesInstallationList = resolver.Resolve(resolverContext, cancellationToken);
-
-                var availablePackagesToInstall = packagesInstallationList
-                    .Select(
-                        x => availabePackageStorage
-                            .Single(p => PackageIdentityComparer.Default.Equals(p, x)));
-
                 using (var cacheContext = _nuGetCacheManager.GetCacheContext())
                 {
+                    //select main sourceDependencyInfo
+                    var mainPackageInfo = availabePackageStorage.FirstOrDefault(p => p.Id == package.Id);
+
+                    //try to download main package and check it target version
+                    var mainDownloadedFiles = await DownloadPackageResourceAsync(mainPackageInfo, cacheContext, cancellationToken);
+
+                    var canBeInstalled = await CheckCanBeInstalledAsync(project, mainDownloadedFiles.PackageReader, targetFramework, cancellationToken);
+
+                    if(!canBeInstalled)
+                    {
+                        throw new IncompatiblePackageException($"Package {package} incompatible with project target platform {targetFramework}");
+                    }
+
+
+                    var resolverContext = GetResolverContext(package, availabePackageStorage);
+
+                    var resolver = new PackageResolver();
+
+                    var packagesInstallationList = resolver.Resolve(resolverContext, cancellationToken);
+
+                    var availablePackagesToInstall = packagesInstallationList
+                        .Select(
+                            x => availabePackageStorage
+                                .Single(p => PackageIdentityComparer.Default.Equals(p, x)));
+
+               
+                    //accure downloadResourceResults for all package identities
                     var downloadResults = await DownloadPackagesResourcesAsync(availablePackagesToInstall, cacheContext, cancellationToken);
 
                     var extractionContext = GetExtractionContext();
 
                     await ExtractPackagesResourcesAsync(downloadResults, project, extractionContext, cancellationToken);
+
+                    await CheckLibAndFrameworkItems(downloadResults, targetFramework, cancellationToken);
 
                     return downloadResults;
                 }
@@ -229,21 +248,34 @@
 
             foreach (var package in packageIdentities)
             {
-                var downloadResource = await package.Source.GetResourceAsync<DownloadResource>(cancellationToken);
-
-                var downloadResult = await downloadResource.GetDownloadResourceResultAsync
-                    (
-                        package,
-                        new PackageDownloadContext(cacheContext),
-                        globalFolderPath,
-                        NuGetLog,
-                        cancellationToken
-                    );
+                var downloadResult = await DownloadPackageResourceAsync(package, cacheContext, cancellationToken, globalFolderPath);
 
                 downloaded.Add(package, downloadResult);
             }
 
             return downloaded;
+        }
+
+        private async Task<DownloadResourceResult> DownloadPackageResourceAsync(
+            SourcePackageDependencyInfo package, SourceCacheContext cacheContext, CancellationToken cancellationToken, string globalFolder = "")
+        {
+            if(string.Equals(globalFolder, ""))
+            {
+                globalFolder = _fileDirectoryService.GetGlobalPackagesFolder();
+            }
+
+            var downloadResource = await package.Source.GetResourceAsync<DownloadResource>(cancellationToken);
+
+            var downloadResult = await downloadResource.GetDownloadResourceResultAsync
+                (
+                    package,
+                    new PackageDownloadContext(cacheContext),
+                    globalFolder,
+                    NuGetLog,
+                    cancellationToken
+                );
+
+            return downloadResult;
         }
 
         private async Task ExtractPackagesResourcesAsync(
@@ -346,6 +378,16 @@
             return extractionContext;
         }
 
+        private async Task<bool> CheckCanBeInstalledAsync(IExtensibleProject project, PackageReaderBase packageReader, NuGetFramework targetFramework, CancellationToken token)
+        {
+            var frameworkReducer = new FrameworkReducer();
+
+            var libraries = await packageReader.GetLibItemsAsync(token);
+
+            var bestMatches = frameworkReducer.GetNearest(targetFramework, libraries.Select(x => x.TargetFramework));
+
+            return bestMatches != null;
+        }
 
         private async Task CheckLibAndFrameworkItems(IDictionary<SourcePackageDependencyInfo, DownloadResourceResult> downloadedPackagesDictionary,
             NuGetFramework targetFramework, CancellationToken cancellationToken)

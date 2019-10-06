@@ -199,12 +199,14 @@
                 }
 
                 await Task.Delay(200);
-
-                _progressManager.HideBar(this);
             }
             catch (Exception e)
             {
                 Log.Error(e, $"Error when installing package {Package.Identity}, installation was failed");
+            }
+            finally
+            {
+                _progressManager.HideBar(this);
             }
         }
 
@@ -229,12 +231,14 @@
                 }
 
                 await Task.Delay(200);
-
-                _progressManager.HideBar(this);
             }
             catch (Exception e)
             {
                 Log.Error(e, $"Error when uninstalling package {Package.Identity}, uninstall was failed");
+            }
+            finally
+            {
+                _progressManager.HideBar(this);
             }
         }
 

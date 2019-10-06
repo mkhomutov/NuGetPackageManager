@@ -17,7 +17,7 @@
 
         public IReadOnlyList<NuGetPackage> PackageList { get; set; }
 
-        public string Framework => ".NETStandard,Version=v2.0";
+        public string Framework => ".NETStandard,Version=v2.1";
 
         public string ContentPath { get; }
 

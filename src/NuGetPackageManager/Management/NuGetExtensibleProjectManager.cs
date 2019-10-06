@@ -207,6 +207,15 @@
                 Log.Error(e, $"The Installation of package {package} was failed");
 
                 //rollback packages
+                //todo always provide correct rollback info
+
+                if (e?.CurrentBatch == null)
+                {
+                    return;
+                }
+
+                Log.Info("Rollback changes");
+
                 foreach (var canceledPackages in e.CurrentBatch)
                 {
                     await UninstallPackageForProject(project, canceledPackages, token);
@@ -216,6 +225,7 @@
             catch (Exception e)
             {
                 Log.Error(e, $"The Installation of package {package} was failed");
+                throw;
             }
         }
 
