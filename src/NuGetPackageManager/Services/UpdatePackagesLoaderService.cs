@@ -90,7 +90,7 @@
 
                 return updateList;
             }
-            catch(Exception ex) when (token.IsCancellationRequested)
+            catch (Exception ex) when (token.IsCancellationRequested)
             {
                 throw new OperationCanceledException("Search request was canceled", ex, token);
             }

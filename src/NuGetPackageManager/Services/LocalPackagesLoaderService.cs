@@ -57,9 +57,9 @@
                     .Where(package => package.Id.IndexOf(searchTerm ?? String.Empty, StringComparison.OrdinalIgnoreCase) != -1)
                     .OrderBy(package => package.Id)
                     .Skip(pageContinuation.GetNext());
-         
 
-                if(pageContinuation.Size > 0)
+
+                if (pageContinuation.Size > 0)
                 {
                     pagedPackages = pagedPackages.Take(pageContinuation.Size).ToList();
                 }

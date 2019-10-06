@@ -483,9 +483,9 @@
 
         private void CancelLoadingTasks(CancellationTokenSource token)
         {
-            foreach(var tokenSource in _tokenSource)
+            foreach (var tokenSource in _tokenSource)
             {
-                if(tokenSource != token)
+                if (tokenSource != token)
                 {
                     tokenSource.Cancel();
                 }

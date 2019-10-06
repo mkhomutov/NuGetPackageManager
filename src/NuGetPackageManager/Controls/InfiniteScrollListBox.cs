@@ -5,7 +5,6 @@ namespace NuGetPackageManager.Controls
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
-    using System.Windows.Controls.Primitives;
 
     public class InfiniteScrollListBox : ListBox
     {
@@ -49,7 +48,7 @@ namespace NuGetPackageManager.Controls
 
             var last = _scrollViewer.ViewportHeight + scrolled;
 
-            if(ScrollSize > last)
+            if (ScrollSize > last)
             {
                 return;
             }

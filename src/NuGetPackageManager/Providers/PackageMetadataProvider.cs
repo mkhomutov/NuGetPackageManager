@@ -224,7 +224,7 @@
         private async Task<IPackageSearchMetadata> GetPackageMetadataFromLocalSourceAsync(SourceRepository localRepository, PackageIdentity packageIdentity, CancellationToken token)
         {
             var localPackages = await GetPackageMetadataFromLocalSourceAsync(localRepository, packageIdentity.Id, token);
-            
+
             var packageMetadata = localPackages?.FirstOrDefault(p => p.Identity.Version == packageIdentity.Version);
 
             var versions = new[]

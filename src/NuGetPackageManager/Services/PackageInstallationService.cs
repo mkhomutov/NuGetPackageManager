@@ -10,10 +10,8 @@
     using NuGet.Packaging.Core;
     using NuGet.Packaging.Signing;
     using NuGet.ProjectManagement;
-    using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
     using NuGet.Resolver;
-    using NuGet.Versioning;
     using NuGetPackageManager.Cache;
     using NuGetPackageManager.Loggers;
     using NuGetPackageManager.Management;
@@ -149,7 +147,7 @@
                     return downloadResults;
                 }
             }
-            catch(NuGetResolverInputException e)
+            catch (NuGetResolverInputException e)
             {
                 throw new ProjectInstallException($"Package {package} or some of it dependencies are missed for current target framework", e);
             }
