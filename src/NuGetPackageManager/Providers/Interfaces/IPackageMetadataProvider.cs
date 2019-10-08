@@ -55,5 +55,6 @@ namespace NuGetPackageManager.Providers
         Task<IPackageSearchMetadata> GetLocalPackageMetadataAsync(PackageIdentity identity,
             bool includePrerelease, CancellationToken cancellationToken);
         Task<IPackageSearchMetadata> GetLowestLocalPackageMetadataAsync(string packageid, bool includePrrelease, CancellationToken cancellationToken);
+        Task<IPackageSearchMetadata> GetHighestPackageMetadataAsync(string packageId, bool includePrerelease, CancellationToken cancellationToken);
     }
 }

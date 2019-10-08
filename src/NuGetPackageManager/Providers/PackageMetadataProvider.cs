@@ -123,6 +123,16 @@
             return master;
         }
 
+        public async Task<IPackageSearchMetadata> GetHighestPackageMetadataAsync(string packageId, bool includePrerelease, CancellationToken cancellationToken)
+        {
+            //returned type - packageRegistrationMetadata
+            var metadataList = await GetPackageMetadataListAsync(packageId, includePrerelease, false, cancellationToken);
+
+            var master = metadataList.OrderByDescending(x => x.Identity.Version).FirstOrDefault();
+
+            return master.WithVersions(() => metadataList.ToVersionInfo(includePrerelease));
+        }
+
         public async Task<IEnumerable<IPackageSearchMetadata>> GetPackageMetadataListAsync(string packageId, bool includePrerelease, bool includeUnlisted, CancellationToken cancellationToken)
         {
             var tasks = _sourceRepositories.Select(repo => GetPackageMetadataListAsyncFromSource(repo, packageId, includePrerelease, includeUnlisted, cancellationToken)).ToArray();

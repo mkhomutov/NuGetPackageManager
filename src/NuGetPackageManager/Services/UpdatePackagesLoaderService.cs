@@ -5,6 +5,7 @@
     using Catel.Logging;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Management;
+    using NuGetPackageManager.Packaging;
     using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Providers;
     using System;
@@ -12,6 +13,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using static NuGet.Protocol.Core.Types.PackageSearchMetadataBuilder;
 
     public class UpdatePackagesLoaderService : IPackagesLoaderService
     {
@@ -26,6 +28,8 @@
         //underlying service
         private readonly Lazy<IPackagesLoaderService> _feedRepositoryLoader;
         private readonly Lazy<IPackagesLoaderService> _projectRepositoryLoader;
+
+        private readonly HashSet<string> _discardedPackagesSet = new HashSet<string>();
 
         public UpdatePackagesLoaderService(IRepositoryService repositoryService, IExtensibleProjectLocator extensibleProjectLocator,
            INuGetExtensibleProjectManager nuGetExtensibleProjectManager)
@@ -50,9 +54,17 @@
         {
             try
             {
+                if(pageContinuation.Current <= 0)
+                {
+                    //start search from begin, don't skip packages
+                    _discardedPackagesSet.Clear();
+                }
+
                 var localContinuation = new PageContinuation(pageContinuation);
 
-                var installedPackagesMetadatas = await _projectRepositoryLoader.Value.LoadAsync(searchTerm, localContinuation, searchFilter, token);
+                var installedPackagesMetadatas = (await _projectRepositoryLoader.Value.LoadAsync(searchTerm, localContinuation, searchFilter, token));
+
+                pageContinuation.GetNext();
 
                 Log.Info("Local packages queryed for further available update searching");
 
@@ -66,23 +78,23 @@
                 //getting last metadata
                 foreach (var package in installedPackagesMetadatas)
                 {
-                    var clonedMetadata = await PackageMetadataProvider.Value.GetPackageMetadataAsync(package.Identity, searchFilter.IncludePrerelease, token);
-
-                    if (clonedMetadata == null)
+                    if(_discardedPackagesSet.Contains(package.Identity.Id))
                     {
                         continue;
                     }
 
-                    var versions = await clonedMetadata.GetVersionsAsync();
+                    var clonedMetadata = await PackageMetadataProvider.Value.GetHighestPackageMetadataAsync(package.Identity.Id, searchFilter.IncludePrerelease, token);
 
-
-                    if (versions.FirstOrDefault().Version > package.Identity.Version)
+                    if (clonedMetadata.Identity.Version > package.Identity.Version)
                     {
-                        var updateMetadata = clonedMetadata.WithVersions(versions);
-                        updateList.Add(updateMetadata);
+                        var combinedMetadata = UpdatePackageSearchMetadataBuilder.FromMetadatas(clonedMetadata as ClonedPackageSearchMetadata, package).Build();
+                        updateList.Add(combinedMetadata);
                     }
 
-                    if (updateList.Count > pageContinuation.Size)
+                    _discardedPackagesSet.Add(package.Identity.Id);
+
+
+                    if (updateList.Count >= pageContinuation.Size)
                     {
                         break;
                     }

@@ -11,6 +11,7 @@
     using NuGetPackageManager.Enums;
     using NuGetPackageManager.Management;
     using NuGetPackageManager.Models;
+    using NuGetPackageManager.Packaging;
     using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
@@ -65,6 +66,16 @@
                 Package.InstalledVersion = Package.LastVersion;
             }
 
+            if (fromPage == MetadataOrigin.Updates)
+            {
+                var updateMetadata = packageMetadata as UpdatePackageSearchMetadata;
+
+                if(updateMetadata != null)
+                {
+                    InstalledVersion = updateMetadata.FromVersion.Version;
+                }
+            }
+
             IsDownloadCountShowed = fromPage != MetadataOrigin.Installed;
 
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
@@ -79,7 +90,7 @@
             try
             {
                 //select identity version
-                SelectedVersion = Package.Identity.Version;
+                SelectedVersion = SelectedVersion ?? Package.Identity.Version;
 
                 VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 
@@ -166,18 +177,7 @@
         {
             try
             {
-                if (Package.LoadVersionsAsync().Wait(500))
-                {
-                    VersionsCollection = new ObservableCollection<NuGetVersion>(Package.Versions);
-                }
-                else
-                {
-                    throw new TimeoutException();
-                }
-            }
-            catch (TimeoutException ex)
-            {
-                Log.Error(ex, "Failed to get package versions for a given time (500 ms)");
+                PopulateVersionCollection();
             }
             catch (Exception ex)
             {
@@ -256,6 +256,25 @@
             var repositories = currentSourceContext.Repositories ?? currentSourceContext.PackageSources.Select(src => _repositoryService.GetRepository(src));
 
             return new PackageMetadataProvider(repositories, null);
+        }
+
+        private void PopulateVersionCollection()
+        {
+            try
+            {
+                if (Package.LoadVersionsAsync().Wait(500))
+                {
+                    VersionsCollection = new ObservableCollection<NuGetVersion>(Package.Versions);
+                }
+                else
+                {
+                    throw new TimeoutException();
+                }
+            }
+            catch (TimeoutException ex)
+            {
+                Log.Error(ex, "Failed to get package versions for a given time (500 ms)");
+            }
         }
 
         private void OnNuGetActionTargetPropertyPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
