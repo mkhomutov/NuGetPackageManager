@@ -10,7 +10,6 @@
     using NuGetPackageManager.Providers;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using static NuGet.Protocol.Core.Types.PackageSearchMetadataBuilder;
@@ -54,7 +53,7 @@
         {
             try
             {
-                if(pageContinuation.Current <= 0)
+                if (pageContinuation.Current <= 0)
                 {
                     //start search from begin, don't skip packages
                     _discardedPackagesSet.Clear();
@@ -78,7 +77,7 @@
                 //getting last metadata
                 foreach (var package in installedPackagesMetadatas)
                 {
-                    if(_discardedPackagesSet.Contains(package.Identity.Id))
+                    if (_discardedPackagesSet.Contains(package.Identity.Id))
                     {
                         continue;
                     }

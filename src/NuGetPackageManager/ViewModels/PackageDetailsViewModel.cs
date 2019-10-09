@@ -70,7 +70,7 @@
             {
                 var updateMetadata = packageMetadata as UpdatePackageSearchMetadata;
 
-                if(updateMetadata != null)
+                if (updateMetadata != null)
                 {
                     InstalledVersion = updateMetadata.FromVersion.Version;
                 }

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NuGetPackageManager.Management.Exceptions
+﻿namespace NuGetPackageManager.Management.Exceptions
 {
+    using System;
+
     public class IncompatiblePackageException : ProjectInstallException
     {
         public IncompatiblePackageException(string message, Exception innerException) : base(message, innerException)
@@ -14,7 +10,6 @@ namespace NuGetPackageManager.Management.Exceptions
 
         public IncompatiblePackageException(string message) : base(message)
         {
-
         }
     }
 }

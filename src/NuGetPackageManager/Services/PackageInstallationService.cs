@@ -136,7 +136,7 @@
 
                     var canBeInstalled = await CheckCanBeInstalledAsync(project, mainDownloadedFiles.PackageReader, targetFramework, cancellationToken);
 
-                    if(!canBeInstalled)
+                    if (!canBeInstalled)
                     {
                         throw new IncompatiblePackageException($"Package {package} incompatible with project target platform {targetFramework}");
                     }
@@ -153,7 +153,7 @@
                             x => availabePackageStorage
                                 .Single(p => PackageIdentityComparer.Default.Equals(p, x)));
 
-               
+
                     //accure downloadResourceResults for all package identities
                     var downloadResults = await DownloadPackagesResourcesAsync(availablePackagesToInstall, cacheContext, cancellationToken);
 
@@ -259,7 +259,7 @@
         private async Task<DownloadResourceResult> DownloadPackageResourceAsync(
             SourcePackageDependencyInfo package, SourceCacheContext cacheContext, CancellationToken cancellationToken, string globalFolder = "")
         {
-            if(string.Equals(globalFolder, ""))
+            if (string.Equals(globalFolder, ""))
             {
                 globalFolder = _fileDirectoryService.GetGlobalPackagesFolder();
             }

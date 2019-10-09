@@ -1,19 +1,15 @@
-﻿using Catel;
-using NuGet.Packaging;
-using NuGet.Packaging.Core;
-using NuGet.Protocol.Core.Types;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static NuGet.Protocol.Core.Types.PackageSearchMetadataBuilder;
-
-namespace NuGetPackageManager.Packaging
+﻿namespace NuGetPackageManager.Packaging
 {
+    using Catel;
+    using NuGet.Packaging;
+    using NuGet.Protocol.Core.Types;
+    using System.Linq;
+    using static NuGet.Protocol.Core.Types.PackageSearchMetadataBuilder;
+
     public class UpdatePackageSearchMetadataBuilder
     {
         private readonly ClonedPackageSearchMetadata _metadata;
+
         private IPackageSearchMetadata _updatedVersionMetadata;
 
         private UpdatePackageSearchMetadataBuilder(ClonedPackageSearchMetadata metadata, IPackageSearchMetadata updatedVersionMetadata)
@@ -22,7 +18,7 @@ namespace NuGetPackageManager.Packaging
             Argument.IsNotNull(() => updatedVersionMetadata);
 
             _metadata = metadata;
-            _updatedVersionMetadata = updatedVersionMetadata; 
+            _updatedVersionMetadata = updatedVersionMetadata;
         }
 
         public static UpdatePackageSearchMetadataBuilder FromMetadatas(ClonedPackageSearchMetadata metadata, IPackageSearchMetadata updatedVersionMetadata)
