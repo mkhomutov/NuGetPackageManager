@@ -4,6 +4,7 @@
     using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
     using NuGetPackageManager.Pagination;
+    using NuGetPackageManager.Providers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -12,6 +13,8 @@
 
     public class PackagesLoaderService : IPackagesLoaderService
     {
+        public Lazy<IPackageMetadataProvider> PackageMetadataProvider { get; set; }
+
         public async Task<IEnumerable<IPackageSearchMetadata>> LoadAsync(string searchTerm, PageContinuation pageContinuation, SearchFilter searchFilter, CancellationToken token)
         {
             Argument.IsValid(nameof(pageContinuation), pageContinuation, pageContinuation.IsValid);

@@ -1,6 +1,5 @@
 ﻿using Catel.MVVM;
 using Catel.MVVM.Views;
-using NuGetPackageManager.Controls;
 using System.Windows;
 
 namespace NuGetPackageManager.Views
@@ -34,15 +33,5 @@ namespace NuGetPackageManager.Views
 
         public static readonly DependencyProperty SelectedItemOnPageProperty =
             DependencyProperty.Register(nameof(SelectedItemOnPage), typeof(IViewModel), typeof(ExplorerPageView), new PropertyMetadata(null));
-
-        private void Badged_IsShowedChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            var badgedSender = sender as Badged;
-
-            //if ((bool)e.NewValue)
-            //{
-            //    badgedSender.SetCurrentValue(Badged.BadgeProperty, ArrowDownResource);
-            //}
-        }
     }
 }

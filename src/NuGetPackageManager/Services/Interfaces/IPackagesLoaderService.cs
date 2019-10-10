@@ -8,6 +8,8 @@
 
     public interface IPackagesLoaderService
     {
+        System.Lazy<Providers.IPackageMetadataProvider> PackageMetadataProvider { get; set; }
+
         Task<IEnumerable<IPackageSearchMetadata>> LoadAsync(string searchTerm, PageContinuation pageContinuation, SearchFilter searchFilter, CancellationToken token);
     }
 }

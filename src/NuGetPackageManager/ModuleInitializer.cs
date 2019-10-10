@@ -2,6 +2,8 @@
 using Catel.IoC;
 using NuGet.Credentials;
 using NuGet.Frameworks;
+using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 using NuGetPackageManager.Cache;
 using NuGetPackageManager.Management;
@@ -50,6 +52,9 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<INuGetExtensibleProjectManager, NuGetExtensibleProjectManager>();
 
         serviceLocator.RegisterType<IFrameworkNameProvider, DefaultFrameworkNameProvider>();
+        serviceLocator.RegisterType<IFrameworkCompatibilityProvider, DefaultCompatibilityProvider>();
+
+        serviceLocator.RegisterType<IPackageCoreReader, PackageReaderBase>();
 
         serviceLocator.RegisterType<ISynchronousUiVisualizer, SynchronousUIVisualizerService>();
         serviceLocator.RegisterType<IMessageDialogService, MessageDialogService>();
@@ -64,6 +69,7 @@ public static class ModuleInitializer
 
         //package loaders
         serviceLocator.RegisterType<IPackagesLoaderService, PackagesLoaderService>();
+        //todo use separate providers instead of tags
         serviceLocator.RegisterTypeWithTag<IPackagesLoaderService, LocalPackagesLoaderService>("Installed");
         serviceLocator.RegisterTypeWithTag<IPackagesLoaderService, UpdatePackagesLoaderService>("Updates");
 

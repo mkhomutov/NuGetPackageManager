@@ -10,10 +10,8 @@
     using NuGet.Packaging.Core;
     using NuGet.Packaging.Signing;
     using NuGet.ProjectManagement;
-    using NuGet.Protocol;
     using NuGet.Protocol.Core.Types;
     using NuGet.Resolver;
-    using NuGet.Versioning;
     using NuGetPackageManager.Cache;
     using NuGetPackageManager.Loggers;
     using NuGetPackageManager.Management;
@@ -39,9 +37,6 @@
 
         private readonly INuGetCacheManager _nuGetCacheManager;
 
-        private readonly ITypeFactory _typeFactory;
-
-
         public PackageInstallationService(IFrameworkNameProvider frameworkNameProvider,
             ISourceRepositoryProvider sourceRepositoryProvider,
             IFileDirectoryService fileDirectoryService,
@@ -50,46 +45,29 @@
             Argument.IsNotNull(() => frameworkNameProvider);
             Argument.IsNotNull(() => sourceRepositoryProvider);
             Argument.IsNotNull(() => fileDirectoryService);
-            //Argument.IsNotNull(() => nuGetCacheManager);
 
             _frameworkNameProvider = frameworkNameProvider;
             _sourceRepositoryProvider = sourceRepositoryProvider;
             _fileDirectoryService = fileDirectoryService;
-
-            _typeFactory = typeFactory;
 
             _nuGetCacheManager = new NuGetCacheManager(_fileDirectoryService);
         }
 
         public async Task InstallAsync(PackageIdentity package, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken)
         {
-            try
-            {
-                var repositories = SourceContext.CurrentContext.Repositories;
+            var repositories = SourceContext.CurrentContext.Repositories;
 
-                foreach (var proj in projects)
-                {
-                    await InstallAsync(package, proj, repositories, cancellationToken);
-                }
-            }
-            catch (Exception)
+            foreach (var proj in projects)
             {
-                throw;
+                await InstallAsync(package, proj, repositories, cancellationToken);
             }
         }
 
         public async Task UninstallAsync(PackageIdentity package, IEnumerable<IExtensibleProject> projects, CancellationToken cancellationToken)
         {
-            try
+            foreach (var proj in projects)
             {
-                foreach (var proj in projects)
-                {
-                    await UninstallAsync(package, proj, cancellationToken);
-                }
-            }
-            catch (Exception)
-            {
-                throw;
+                await UninstallAsync(package, proj, cancellationToken);
             }
 
         }
@@ -121,7 +99,7 @@
 
 
         public async Task<IDictionary<SourcePackageDependencyInfo, DownloadResourceResult>> InstallAsync(
-            PackageIdentity identity,
+            PackageIdentity package,
             IExtensibleProject project,
             IReadOnlyList<SourceRepository> repositories,
             CancellationToken cancellationToken)
@@ -130,9 +108,9 @@
             {
                 var targetFramework = FrameworkParser.TryParseFrameworkName(project.Framework, _frameworkNameProvider);
 
-                var resContext = new NuGet.PackageManagement.ResolutionContext();
+                //todo check is this context needed explicitily
+                //var resContext = new NuGet.PackageManagement.ResolutionContext();
 
-                var respos = _sourceRepositoryProvider.GetRepositories();
 
                 var availabePackageStorage = new HashSet<SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
 
@@ -141,37 +119,56 @@
                     foreach (var repository in repositories)
                     {
                         var dependencyInfoResource = await repository.GetResourceAsync<DependencyInfoResource>();
-                        var regResource = await repository.GetResourceAsync<RegistrationResourceV3>();
 
-                        var uri = regResource.GetUri(identity.Id);
-
-                        await ResolveDependenciesRecursivelyAsync(identity, targetFramework, dependencyInfoResource, cacheContext,
+                        await ResolveDependenciesRecursivelyAsync(package, targetFramework, dependencyInfoResource, cacheContext,
                             availabePackageStorage, cancellationToken);
 
                     }
                 }
 
-                var resolverContext = GetResolverContext(identity, availabePackageStorage);
-
-                var resolver = new PackageResolver();
-
-                var packagesInstallationList = resolver.Resolve(resolverContext, cancellationToken);
-
-                var availablePackagesToInstall = packagesInstallationList
-                    .Select(
-                        x => availabePackageStorage
-                            .Single(p => PackageIdentityComparer.Default.Equals(p, x)));
-
                 using (var cacheContext = _nuGetCacheManager.GetCacheContext())
                 {
+                    //select main sourceDependencyInfo
+                    var mainPackageInfo = availabePackageStorage.FirstOrDefault(p => p.Id == package.Id);
+
+                    //try to download main package and check it target version
+                    var mainDownloadedFiles = await DownloadPackageResourceAsync(mainPackageInfo, cacheContext, cancellationToken);
+
+                    var canBeInstalled = await CheckCanBeInstalledAsync(project, mainDownloadedFiles.PackageReader, targetFramework, cancellationToken);
+
+                    if (!canBeInstalled)
+                    {
+                        throw new IncompatiblePackageException($"Package {package} incompatible with project target platform {targetFramework}");
+                    }
+
+
+                    var resolverContext = GetResolverContext(package, availabePackageStorage);
+
+                    var resolver = new PackageResolver();
+
+                    var packagesInstallationList = resolver.Resolve(resolverContext, cancellationToken);
+
+                    var availablePackagesToInstall = packagesInstallationList
+                        .Select(
+                            x => availabePackageStorage
+                                .Single(p => PackageIdentityComparer.Default.Equals(p, x)));
+
+
+                    //accure downloadResourceResults for all package identities
                     var downloadResults = await DownloadPackagesResourcesAsync(availablePackagesToInstall, cacheContext, cancellationToken);
 
                     var extractionContext = GetExtractionContext();
 
                     await ExtractPackagesResourcesAsync(downloadResults, project, extractionContext, cancellationToken);
 
+                    await CheckLibAndFrameworkItems(downloadResults, targetFramework, cancellationToken);
+
                     return downloadResults;
                 }
+            }
+            catch (NuGetResolverInputException e)
+            {
+                throw new ProjectInstallException($"Package {package} or some of it dependencies are missed for current target framework", e);
             }
             catch (ProjectInstallException)
             {
@@ -211,9 +208,7 @@
             downloadStack.Push(dependencyInfo); //and add it to package store
 
 
-            var singleVersion = new VersionRange(minVersion: identity.Version, includeMinVersion: true, maxVersion: identity.Version, includeMaxVersion: true);
-
-            //commented code used for testing
+            //commented code, used for testing target framework versions resolving
             //var httpClient = typeof(DependencyInfoResourceV3).GetFieldEx("_client").GetValue(dependencyInfoResource);
             //var regInfo = await ResolverMetadataClient.GetRegistrationInfo(httpClient as HttpSource, testUri, identity.Id, singleVersion, cacheContext, targetFramework, logger, cancellationToken);
 
@@ -247,34 +242,40 @@
         private async Task<IDictionary<SourcePackageDependencyInfo, DownloadResourceResult>> DownloadPackagesResourcesAsync(
             IEnumerable<SourcePackageDependencyInfo> packageIdentities, SourceCacheContext cacheContext, CancellationToken cancellationToken)
         {
-            try
+            var downloaded = new Dictionary<SourcePackageDependencyInfo, DownloadResourceResult>();
+
+            string globalFolderPath = _fileDirectoryService.GetGlobalPackagesFolder();
+
+            foreach (var package in packageIdentities)
             {
-                var downloaded = new Dictionary<SourcePackageDependencyInfo, DownloadResourceResult>();
+                var downloadResult = await DownloadPackageResourceAsync(package, cacheContext, cancellationToken, globalFolderPath);
 
-                string globalFolderPath = _fileDirectoryService.GetGlobalPackagesFolder();
-
-                foreach (var package in packageIdentities)
-                {
-                    var downloadResource = await package.Source.GetResourceAsync<DownloadResource>(cancellationToken);
-
-                    var downloadResult = await downloadResource.GetDownloadResourceResultAsync
-                        (
-                            package,
-                            new PackageDownloadContext(cacheContext),
-                            globalFolderPath,
-                            NuGetLog,
-                            cancellationToken
-                        );
-
-                    downloaded.Add(package, downloadResult);
-                }
-
-                return downloaded;
+                downloaded.Add(package, downloadResult);
             }
-            catch (Exception)
+
+            return downloaded;
+        }
+
+        private async Task<DownloadResourceResult> DownloadPackageResourceAsync(
+            SourcePackageDependencyInfo package, SourceCacheContext cacheContext, CancellationToken cancellationToken, string globalFolder = "")
+        {
+            if (string.Equals(globalFolder, ""))
             {
-                throw;
+                globalFolder = _fileDirectoryService.GetGlobalPackagesFolder();
             }
+
+            var downloadResource = await package.Source.GetResourceAsync<DownloadResource>(cancellationToken);
+
+            var downloadResult = await downloadResource.GetDownloadResourceResultAsync
+                (
+                    package,
+                    new PackageDownloadContext(cacheContext),
+                    globalFolder,
+                    NuGetLog,
+                    cancellationToken
+                );
+
+            return downloadResult;
         }
 
         private async Task ExtractPackagesResourcesAsync(
@@ -377,6 +378,16 @@
             return extractionContext;
         }
 
+        private async Task<bool> CheckCanBeInstalledAsync(IExtensibleProject project, PackageReaderBase packageReader, NuGetFramework targetFramework, CancellationToken token)
+        {
+            var frameworkReducer = new FrameworkReducer();
+
+            var libraries = await packageReader.GetLibItemsAsync(token);
+
+            var bestMatches = frameworkReducer.GetNearest(targetFramework, libraries.Select(x => x.TargetFramework));
+
+            return bestMatches != null;
+        }
 
         private async Task CheckLibAndFrameworkItems(IDictionary<SourcePackageDependencyInfo, DownloadResourceResult> downloadedPackagesDictionary,
             NuGetFramework targetFramework, CancellationToken cancellationToken)

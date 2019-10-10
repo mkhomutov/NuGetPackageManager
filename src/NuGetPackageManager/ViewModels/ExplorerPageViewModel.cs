@@ -25,12 +25,15 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class ExplorerPageViewModel : ViewModelBase
+    public class ExplorerPageViewModel : ViewModelBase, IManagerPage
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
         private static readonly int PageSize = 17;
         private static readonly int SingleTasksDelayMs = 800;
-        private static readonly IHttpExceptionHandler<FatalProtocolException> packageLoadingExceptionHandler = new FatalProtocolExceptionHandler();
+        private static readonly IHttpExceptionHandler<FatalProtocolException> PackageLoadingExceptionHandler = new FatalProtocolExceptionHandler();
+
+        private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
+
 
         private readonly IPackagesLoaderService _packagesLoaderService;
         private readonly INuGetExtensibleProjectManager _projectManager;
@@ -43,12 +46,7 @@
 
         private readonly MetadataOrigin _pageType;
 
-        private static void ElapsedHandler(object sender, EventArgs e)
-        {
-            //throw new NotImplementedException();
-        }
-
-        private static readonly System.Timers.Timer SingleDelayTimer = new System.Timers.Timer(SingleTasksDelayMs);
+        private readonly HashSet<CancellationTokenSource> _tokenSource = new HashSet<CancellationTokenSource>();
 
         /// <summary>
         /// Repository context. 
@@ -71,8 +69,6 @@
         private static IDisposable _context;
 
         private ExplorerSettingsContainer _settings;
-
-        private FastObservableCollection<IPackageSearchMetadata> _packages { get; set; }
 
         public ExplorerPageViewModel(ExplorerSettingsContainer explorerSettings, string pageTitle, IPackagesLoaderService packagesLoaderService,
             IPackageMetadataMediaDownloadService packageMetadataMediaDownloadService, INuGetFeedVerificationService nuGetFeedVerificationService,
@@ -105,6 +101,8 @@
                 Log.Error("Unrecognized page type");
             }
 
+            CanBatchProjectActions = _pageType == MetadataOrigin.Updates;
+
             _dispatcherService = dispatcherService;
             _packageMetadataMediaDownloadService = packageMetadataMediaDownloadService;
             _nuGetFeedVerificationService = nuGetFeedVerificationService;
@@ -123,32 +121,6 @@
             commandManager.RegisterCommand(nameof(RefreshCurrentPage), RefreshCurrentPage, this);
         }
 
-        private void OnPackageItemsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
-            {
-                //item added on first place, collection was empty
-                if (e.NewStartingIndex == 0)
-                {
-                    SelectedPackageItem = PackageItems.FirstOrDefault();
-                }
-            }
-        }
-
-        //handle settings changes and force reloading if needed
-        private async void OnSettingsPropertyPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (Settings.ObservedFeed == null)
-            {
-                return;
-            }
-
-            if (String.Equals(e.PropertyName, nameof(Settings.IsPreReleaseIncluded)) ||
-                String.Equals(e.PropertyName, nameof(Settings.SearchString)) || String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
-            {
-                StartLoadingTimerOrInvalidateData();
-            }
-        }
 
         public static CancellationTokenSource VerificationTokenSource { get; set; } = new CancellationTokenSource();
 
@@ -178,14 +150,41 @@
             }
         }
 
+        private async void OnSettingsPropertyPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (Settings.ObservedFeed == null)
+            {
+                return;
+            }
+
+            if (String.Equals(e.PropertyName, nameof(Settings.IsPreReleaseIncluded)) ||
+                String.Equals(e.PropertyName, nameof(Settings.SearchString)) || String.Equals(e.PropertyName, nameof(Settings.ObservedFeed)))
+            {
+                StartLoadingTimerOrInvalidateData();
+            }
+        }
+
+
         public PackageDetailsViewModel SelectedPackageItem { get; set; }
 
         public FastObservableCollection<PackageDetailsViewModel> PackageItems { get; set; }
 
+        private void OnPackageItemsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            {
+                //item added on first place, collection was empty
+                if (e.NewStartingIndex == 0 && IsActive)
+                {
+                    SelectedPackageItem = PackageItems.FirstOrDefault();
+                }
+            }
+        }
+
         public bool IsActive { get; set; }
 
         /// <summary>
-        /// Show is data should be reloaded
+        /// Shows is data should be reloaded
         /// when viewmodel became active
         /// </summary>
         public bool Invalidated { get; set; }
@@ -198,6 +197,12 @@
 
         public bool IsCancellationForced { get; set; }
 
+        /// <summary>
+        /// Is project manipulations can be performed on multiple packages
+        /// on this page in one operation
+        /// </summary>
+        public bool CanBatchProjectActions { get; set; }
+
         public CancellationTokenSource PageLoadingTokenSource { get; set; }
 
         protected async override Task InitializeAsync()
@@ -209,8 +214,6 @@
                 SingleDelayTimer.AutoReset = false;
 
                 SingleDelayTimer.SynchronizingObject = new SynchronizeInvoker(DispatcherHelper.CurrentDispatcher, _dispatcherService);
-
-                _packages = new FastObservableCollection<IPackageSearchMetadata>();
 
                 PackageItems = new FastObservableCollection<PackageDetailsViewModel>();
 
@@ -282,7 +285,7 @@
             PackageItems.CollectionChanged -= OnPackageItemsCollectionChanged;
         }
 
-        private void StartLoadingTimerOrInvalidateData()
+        public void StartLoadingTimerOrInvalidateData()
         {
             if (IsActive)
             {
@@ -335,7 +338,9 @@
                 {
                     IsCancellationTokenAlive = true;
                     Log.Info("You can now cancel search from gui");
-                    using (PageLoadingTokenSource = CreateCanclellationTokenSource())
+
+                    //using (PageLoadingTokenSource = CreateCanclellationTokenSource())
+                    using (var pageTcs = GetCancelationTokenSource())
                     {
                         if (!currentSource.IsVerified)
                         {
@@ -352,7 +357,7 @@
                         if (!IsLoadingInProcess)
                         {
 
-                            await LoadPackagesAsync(pageinfo, PageLoadingTokenSource.Token, searchParams);
+                            await LoadPackagesAsync(pageinfo, pageTcs.Token, searchParams);
                         }
                         else
                         {
@@ -366,11 +371,16 @@
                                 AwaitedPageInfo = PageInfo;
                                 AwaitedSearchParameters = searchParams;
                             }
-                            PageLoadingTokenSource.Cancel();
+
+                            //task with pageTcs source cancel all loading tasks in-process
+                            CancelLoadingTasks(pageTcs);
                         }
+
+                        _tokenSource.Remove(pageTcs);
+
+                        PageLoadingTokenSource = null;
+                        IsCancellationTokenAlive = false;
                     }
-                    IsCancellationTokenAlive = false;
-                    PageLoadingTokenSource = null;
                 }
                 else
                 {
@@ -406,7 +416,7 @@
             catch (FatalProtocolException ex)
             {
                 IsCancellationTokenAlive = false;
-                var result = packageLoadingExceptionHandler.HandleException(ex, currentSource.Source);
+                var result = PackageLoadingExceptionHandler.HandleException(ex, currentSource.Source);
 
                 if (result == FeedVerificationResult.AuthenticationRequired)
                 {
@@ -425,21 +435,6 @@
             }
         }
 
-        private CancellationTokenSource CreateCanclellationTokenSource()
-        {
-            if (PageLoadingTokenSource == null)
-            {
-                return new CancellationTokenSource();
-            }
-
-            if (PageLoadingTokenSource.IsCancellationRequested)
-            {
-                return new CancellationTokenSource();
-            }
-
-            return PageLoadingTokenSource;
-        }
-
         #region commands
         public TaskCommand LoadNextPackagePage { get; set; }
 
@@ -455,10 +450,14 @@
         private async Task CancelPageLoadingExecute()
         {
             IsCancellationForced = true;
+
             //force cancel all operations
             if (IsCancellationTokenAlive)
             {
-                PageLoadingTokenSource.Cancel();
+                foreach (var token in _tokenSource)
+                {
+                    token.Cancel();
+                }
             }
 
             IsCancellationForced = false;
@@ -472,6 +471,26 @@
         }
 
         #endregion
+
+        private CancellationTokenSource GetCancelationTokenSource()
+        {
+            var source = new CancellationTokenSource();
+
+            _tokenSource.Add(source);
+
+            return source;
+        }
+
+        private void CancelLoadingTasks(CancellationTokenSource token)
+        {
+            foreach (var tokenSource in _tokenSource)
+            {
+                if (tokenSource != token)
+                {
+                    tokenSource.Cancel();
+                }
+            }
+        }
 
         private async Task LoadPackagesAsync(PageContinuation pageInfo, CancellationToken cancellationToken, PackageSearchParameters searchParameters)
         {
@@ -505,9 +524,9 @@
                 IsLoadingInProcess = false;
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -524,19 +543,22 @@
             //create tokens, used for deffer execution of tasks
             //obtained states/updates of packages
 
-            foreach (var vm in vms)
+            if (_pageType != MetadataOrigin.Updates)
             {
-                var deferToken = new DeferToken();
-
-                deferToken.LoadType = DetermineLoadBehavior(_pageType);
-                deferToken.Package = vm.Package;
-
-                deferToken.UpdateAction = (newState) =>
+                foreach (var vm in vms)
                 {
-                    vm.Status = newState;
-                };
+                    var deferToken = new DeferToken();
 
-                _defferedPackageLoaderService.Add(deferToken);
+                    deferToken.LoadType = DetermineLoadBehavior(_pageType);
+                    deferToken.Package = vm.Package;
+
+                    deferToken.UpdateAction = (newState) =>
+                    {
+                        vm.Status = newState;
+                    };
+
+                    _defferedPackageLoaderService.Add(deferToken);
+                }
             }
 
             _dispatcherService.BeginInvoke(() =>
@@ -552,8 +574,6 @@
                     case MetadataOrigin.Browse: return MetadataOrigin.Installed;
 
                     case MetadataOrigin.Installed: return MetadataOrigin.Browse;
-
-                    case MetadataOrigin.Updates: return MetadataOrigin.Browse;
                 }
 
                 return MetadataOrigin.Browse;
@@ -566,15 +586,8 @@
             {
                 if (metadata.IconUrl != null)
                 {
-                    try
-                    {
-                        token.ThrowIfCancellationRequested();
-                        await _packageMetadataMediaDownloadService.DownloadFromAsync(metadata);
-                    }
-                    catch (Exception)
-                    {
-                        throw;
-                    }
+                    token.ThrowIfCancellationRequested();
+                    await _packageMetadataMediaDownloadService.DownloadFromAsync(metadata);
                 }
             }
 
@@ -607,42 +620,35 @@
 
         private async Task CanFeedBeLoadedAsync(CancellationToken cancelToken, INuGetSource source)
         {
-            try
+            Log.Info($"{source} is verified");
+
+            if (source is NuGetFeed)
             {
-                Log.Info($"{source} is verified");
+                var singleSource = source as NuGetFeed;
 
-                if (source is NuGetFeed)
+                singleSource.VerificationResult = singleSource.IsLocal() ? FeedVerificationResult.Valid
+                    : await _nuGetFeedVerificationService.VerifyFeedAsync(source.Source, cancelToken);
+            }
+            else if (source is CombinedNuGetSource)
+            {
+                var combinedSource = source as CombinedNuGetSource;
+                var unaccessibleFeeds = new List<NuGetFeed>();
+
+                foreach (var feed in combinedSource.GetAllSources())
                 {
-                    var singleSource = source as NuGetFeed;
+                    feed.VerificationResult = feed.IsLocal() ? FeedVerificationResult.Valid
+                    : await _nuGetFeedVerificationService.VerifyFeedAsync(feed.Source, cancelToken);
 
-                    singleSource.VerificationResult = singleSource.IsLocal() ? FeedVerificationResult.Valid
-                        : await _nuGetFeedVerificationService.VerifyFeedAsync(source.Source, cancelToken);
-                }
-                else if (source is CombinedNuGetSource)
-                {
-                    var combinedSource = source as CombinedNuGetSource;
-                    var unaccessibleFeeds = new List<NuGetFeed>();
-
-                    foreach (var feed in combinedSource.GetAllSources())
+                    if (!feed.IsAccessible)
                     {
-                        feed.VerificationResult = feed.IsLocal() ? FeedVerificationResult.Valid
-                        : await _nuGetFeedVerificationService.VerifyFeedAsync(feed.Source, cancelToken);
-
-                        if (!feed.IsAccessible)
-                        {
-                            unaccessibleFeeds.Add(feed);
-                            Log.Warning($"{feed} is unaccessible. It won't be used when 'All' option selected");
-                        }
+                        unaccessibleFeeds.Add(feed);
+                        Log.Warning($"{feed} is unaccessible. It won't be used when 'All' option selected");
                     }
-
-                    unaccessibleFeeds.ForEach(x => combinedSource.RemoveFeed(x));
                 }
-                else Log.Error($"Parameter {source} has invalid type");
+
+                unaccessibleFeeds.ForEach(x => combinedSource.RemoveFeed(x));
             }
-            catch (Exception)
-            {
-                throw;
-            }
+            else Log.Error($"Parameter {source} has invalid type");
         }
     }
 }

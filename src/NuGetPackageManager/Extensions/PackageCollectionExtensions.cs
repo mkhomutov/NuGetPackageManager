@@ -1,11 +1,11 @@
-﻿using NuGet.Packaging.Core;
-using NuGet.Versioning;
-using NuGetPackageManager.Packaging;
-using System;
-using System.Linq;
-
-namespace NuGetPackageManager
+﻿namespace NuGetPackageManager
 {
+    using NuGet.Packaging.Core;
+    using NuGet.Versioning;
+    using NuGetPackageManager.Packaging;
+    using System;
+    using System.Linq;
+
     public static class PackageCollectionExtensions
     {
         public static PackageIdentity[] GetLatest(this PackageCollection packages, IVersionComparer versionComparer)

@@ -89,7 +89,7 @@ namespace NuGetPackageManager.Models
                 Versions = VersionsInfo.Select(x => x.Version).OrderByDescending(x => x).ToList();
             }
 
-            LastVersion = Versions.FirstOrDefault();
+            LastVersion = Versions?.FirstOrDefault() ?? Identity.Version;
         }
 
         public async Task<IEnumerable<NuGetVersion>> LoadVersionsAsync()

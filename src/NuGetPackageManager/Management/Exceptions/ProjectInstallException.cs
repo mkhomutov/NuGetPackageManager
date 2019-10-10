@@ -1,11 +1,17 @@
-﻿using NuGet.Packaging.Core;
-using System;
-using System.Collections.Generic;
-
-namespace NuGetPackageManager.Management.Exceptions
+﻿namespace NuGetPackageManager.Management
 {
+    using NuGet.Packaging.Core;
+    using System;
+    using System.Collections.Generic;
+
     public class ProjectInstallException : ProjectManageException
     {
+
+        public ProjectInstallException(string message) : base(message)
+        {
+
+        }
+
         public ProjectInstallException(string message, Exception innerException) : base(message, innerException)
         {
         }

@@ -11,6 +11,7 @@
     using NuGetPackageManager.Enums;
     using NuGetPackageManager.Management;
     using NuGetPackageManager.Models;
+    using NuGetPackageManager.Packaging;
     using NuGetPackageManager.Pagination;
     using NuGetPackageManager.Providers;
     using NuGetPackageManager.Services;
@@ -25,31 +26,27 @@
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
+        private readonly IRepositoryService _repositoryService;
+
+        private readonly IModelProvider<ExplorerSettingsContainer> _settingsProvider;
+
+        private readonly IProgressManager _progressManager;
+
+        private readonly INuGetExtensibleProjectManager _projectManager;
+
         private IPackageMetadataProvider _packageMetadataProvider;
-
-        private IRepositoryService _repositoryService;
-
-        private IPackageInstallationService _installationService;
-
-        private IModelProvider<ExplorerSettingsContainer> _settingsProvider;
-
-        private IProgressManager _progressManager;
-
-        private INuGetExtensibleProjectManager _projectManager;
 
 
         public PackageDetailsViewModel(IPackageSearchMetadata packageMetadata, MetadataOrigin fromPage, IRepositoryService repositoryService, IModelProvider<ExplorerSettingsContainer> settingsProvider,
-            IPackageInstallationService installationService, IProgressManager progressManager, INuGetExtensibleProjectManager projectManager)
+                IProgressManager progressManager, INuGetExtensibleProjectManager projectManager)
         {
             Argument.IsNotNull(() => repositoryService);
             Argument.IsNotNull(() => settingsProvider);
-            Argument.IsNotNull(() => installationService);
             Argument.IsNotNull(() => progressManager);
             Argument.IsNotNull(() => projectManager);
 
             _repositoryService = repositoryService;
             _settingsProvider = settingsProvider;
-            _installationService = installationService;
             _progressManager = progressManager;
             _projectManager = projectManager;
 
@@ -69,11 +66,23 @@
                 Package.InstalledVersion = Package.LastVersion;
             }
 
+            if (fromPage == MetadataOrigin.Updates)
+            {
+                var updateMetadata = packageMetadata as UpdatePackageSearchMetadata;
+
+                if (updateMetadata != null)
+                {
+                    InstalledVersion = updateMetadata.FromVersion.Version;
+                }
+            }
+
             IsDownloadCountShowed = fromPage != MetadataOrigin.Installed;
 
             LoadInfoAboutVersions = new Command(LoadInfoAboutVersionsExecute, () => Package != null);
             InstallPackage = new TaskCommand(OnInstallPackageExecute, OnInstallPackageCanExecute);
-            UninstallPackage = new TaskCommand(OnUninstallPackageExecute, () => NuGetActionTarget?.IsValid ?? false);
+            UninstallPackage = new TaskCommand(OnUninstallPackageExecute, OnUninstallPackageCanExecute);
+
+            CanBeAddedInBatchOperation = fromPage == MetadataOrigin.Updates;
         }
 
         protected async override Task InitializeAsync()
@@ -81,7 +90,7 @@
             try
             {
                 //select identity version
-                SelectedVersion = Package.Identity.Version;
+                SelectedVersion = SelectedVersion ?? Package.Identity.Version;
 
                 VersionsCollection = new ObservableCollection<NuGetVersion>() { SelectedVersion };
 
@@ -110,7 +119,6 @@
             {
                 using (var cts = new CancellationTokenSource())
                 {
-                    //todo include prerelease
                     VersionData = await _packageMetadataProvider?.GetPackageMetadataAsync(
                         identity, _settingsProvider.Model.IsPreReleaseIncluded, cts.Token);
 
@@ -159,24 +167,17 @@
 
         public int SelectedVersionIndex { get; set; }
 
+        public bool CanBeAddedInBatchOperation { get; set; }
+
+        public bool IsChecked { get; set; }
+
         public Command LoadInfoAboutVersions { get; set; }
 
         private void LoadInfoAboutVersionsExecute()
         {
             try
             {
-                if (Package.LoadVersionsAsync().Wait(500))
-                {
-                    VersionsCollection = new ObservableCollection<NuGetVersion>(Package.Versions);
-                }
-                else
-                {
-                    throw new TimeoutException();
-                }
-            }
-            catch (TimeoutException ex)
-            {
-                Log.Error(ex, "Failed to get package versions for a given time (500 ms)");
+                PopulateVersionCollection();
             }
             catch (Exception ex)
             {
@@ -198,12 +199,14 @@
                 }
 
                 await Task.Delay(200);
-
-                _progressManager.HideBar(this);
             }
             catch (Exception e)
             {
                 Log.Error(e, $"Error when installing package {Package.Identity}, installation was failed");
+            }
+            finally
+            {
+                _progressManager.HideBar(this);
             }
         }
 
@@ -228,13 +231,22 @@
                 }
 
                 await Task.Delay(200);
-
-                _progressManager.HideBar(this);
             }
             catch (Exception e)
             {
                 Log.Error(e, $"Error when uninstalling package {Package.Identity}, uninstall was failed");
             }
+            finally
+            {
+                _progressManager.HideBar(this);
+            }
+        }
+
+        private bool OnUninstallPackageCanExecute()
+        {
+            var anyProject = NuGetActionTarget?.IsValid ?? false;
+
+            return anyProject && IsInstalled();
         }
 
         private IPackageMetadataProvider InitMetadataProvider()
@@ -244,6 +256,25 @@
             var repositories = currentSourceContext.Repositories ?? currentSourceContext.PackageSources.Select(src => _repositoryService.GetRepository(src));
 
             return new PackageMetadataProvider(repositories, null);
+        }
+
+        private void PopulateVersionCollection()
+        {
+            try
+            {
+                if (Package.LoadVersionsAsync().Wait(500))
+                {
+                    VersionsCollection = new ObservableCollection<NuGetVersion>(Package.Versions);
+                }
+                else
+                {
+                    throw new TimeoutException();
+                }
+            }
+            catch (TimeoutException ex)
+            {
+                Log.Error(ex, "Failed to get package versions for a given time (500 ms)");
+            }
         }
 
         private void OnNuGetActionTargetPropertyPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

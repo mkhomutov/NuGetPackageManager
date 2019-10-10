@@ -1,4 +1,4 @@
-﻿namespace NuGetPackageManager.Management.Exceptions
+﻿namespace NuGetPackageManager.Management
 {
     using System;
 

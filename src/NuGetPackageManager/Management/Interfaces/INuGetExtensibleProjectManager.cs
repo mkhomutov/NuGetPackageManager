@@ -19,6 +19,7 @@ namespace NuGetPackageManager.Management
         IEnumerable<NuGet.Protocol.Core.Types.SourceRepository> AsLocalRepositories(IEnumerable<IExtensibleProject> projects);
         Task UninstallPackageForMultipleProject(IReadOnlyList<IExtensibleProject> projects, PackageIdentity package, CancellationToken token);
         Task InstallPackageForMultipleProject(IReadOnlyList<IExtensibleProject> projects, PackageIdentity package, CancellationToken token);
+        Task UpdatePackageForMultipleProject(IReadOnlyList<IExtensibleProject> projects, string packageid, NuGet.Versioning.NuGetVersion targetVersion, CancellationToken token);
 
         event AsyncEventHandler<InstallNuGetProjectEventArgs> Install;
 

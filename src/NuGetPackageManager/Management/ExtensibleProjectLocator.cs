@@ -4,7 +4,6 @@
     using Catel.Configuration;
     using Catel.IoC;
     using Catel.Logging;
-    using NuGetPackageManager.Management.Exceptions;
     using NuGetPackageManager.Services;
     using System;
     using System.Collections.Generic;

@@ -19,13 +19,6 @@
         /// </summary>
         public IPackageSourceProvider PackageSourceProvider => null;
 
-        //public SourceRepositoryProvider(INuGetSettings settings)
-        //{
-        //    Argument.IsNotNull(() => settings);
-        //    _resourceProviders = Repository.Provider.GetCoreV3();
-        //    _settings = settings;
-        //}
-
         public SourceRepositoryProvider(IModelProvider<ExplorerSettingsContainer> settingsProvider)
         {
             Argument.IsNotNull(() => settingsProvider);

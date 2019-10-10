@@ -15,7 +15,7 @@
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
-        private IConfigurationService _configurationService;
+        private readonly IConfigurationService _configurationService;
 
         public WindowsCredentialProvider(IConfigurationService configurationService)
         {

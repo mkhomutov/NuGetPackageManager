@@ -7,7 +7,7 @@
     {
         private int _lastNumber = -1;
 
-        private int _pageSize = 1;
+        private int _pageSize = -1;
 
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
@@ -16,6 +16,12 @@
             _pageSize = pageSize;
 
             Source = packageSourceWrapper;
+        }
+
+        public PageContinuation(PageContinuation continuation)
+        {
+            Source = continuation.Source;
+            _lastNumber = continuation.Current;
         }
 
         public int LastNumber { get => _lastNumber; private set => _lastNumber = value; }
@@ -33,6 +39,17 @@
         public int GetNext()
         {
             Log.Info($"Got next {Size} positions, starts from {Next}");
+
+            var next = Next;
+
+            LastNumber = LastNumber + Size;
+
+            return next;
+        }
+
+        public int GetNext(int count)
+        {
+            Log.Info($"Got next {count} positions, starts from {Next}");
 
             var next = Next;
 

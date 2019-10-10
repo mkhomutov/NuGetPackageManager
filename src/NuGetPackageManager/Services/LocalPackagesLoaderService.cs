@@ -46,15 +46,6 @@
 
             var observedProjects = _extensibleProjectLocator.GetAllExtensibleProjects();
 
-            //get local search resources for all active projects folders
-            //IEnumerable<FindLocalPackagesResource> localResourcesList = 
-            //    observedProjects.Select(x => x.ContentPath)
-            //    .Select(x =>
-            //        Repository.Factory.GetCoreV3(x)
-            //            .GetResource<FindLocalPackagesResource>()).ToList();
-
-            List<PackageIdentity> packages = new List<PackageIdentity>();
-
             var httpHandler = await repository.GetResourceAsync<HttpHandlerResourceV3>();
 
             try
@@ -65,14 +56,16 @@
                     .GetLatest(VersionComparer.Default)
                     .Where(package => package.Id.IndexOf(searchTerm ?? String.Empty, StringComparison.OrdinalIgnoreCase) != -1)
                     .OrderBy(package => package.Id)
-                    .Skip(pageContinuation.GetNext())
-                    .Take(pageContinuation.Size)
-                    .ToArray();
+                    .Skip(pageContinuation.GetNext());
 
+
+                if (pageContinuation.Size > 0)
+                {
+                    pagedPackages = pagedPackages.Take(pageContinuation.Size).ToList();
+                }
 
                 List<IPackageSearchMetadata> combinedFindedMetadata = new List<IPackageSearchMetadata>();
 
-                //todo do it parallel as in VS
                 foreach (var package in pagedPackages)
                 {
                     var metadata = await GetPackageMetadataAsync(package, searchFilter.IncludePrerelease, token);

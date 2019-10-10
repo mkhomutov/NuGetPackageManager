@@ -27,7 +27,7 @@
         /// <returns></returns>
         public IReadOnlyList<PackageSource> GetAllPackageSources()
         {
-            var feeds = NuGetFeeds.Where(x => x.IsActive).Select(x => new PackageSource(x.Source));
+            var feeds = NuGetFeeds.Where(x => x.IsSelected).Select(x => new PackageSource(x.Source));
             return feeds.ToList();
         }
 

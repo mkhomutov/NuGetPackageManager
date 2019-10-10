@@ -6,31 +6,47 @@
              xmlns:local="clr-namespace:NuGetPackageManager.Views"
              xmlns:enum="clr-namespace:NuGetPackageManager.Enums"
              xmlns:nugetc="clr-namespace:NuGetPackageManager.Controls"
+             xmlns:views="clr-namespace:NuGetPackageManager.Views"
              xmlns:catel="http://schemas.catelproject.com"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:mvvm="clr-namespace:NuGetPackageManager.MVVM"
              xmlns:converters="clr-namespace:NuGetPackageManager.Converters"
+             xmlns:template="clr-namespace:NuGetPackageManager.Controls.Templating"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <catel:UserControl.Resources>
         <converters:UriToBitmapConverter x:Key="UriToBitmapConverter"/>
         <converters:PackageStatusEnumToBoolConverter x:Key="PackageStatusEnumToBoolConverter"/>
         <converters:PackageStatusEnumToBrushConverter x:Key="PackageStatusEnumToBrushConverter"/>
-        
+        <template:BadgeContentTemplateSelector x:Key="BadgeContentTemplateSelector" />
+
     </catel:UserControl.Resources>
-    <Grid>
+    <Grid x:Name="PageGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        
         <Grid.Resources>
             <mvvm:BindingProxy Data="{Binding }" x:Key="ContextProxy"/>
         </Grid.Resources>
+
+        <views:PageActionBar Visibility="{Binding CanBatchProjectActions, Converter={catel:BooleanToCollapsingVisibilityConverter}}"
+                             DataContext="{Binding}"
+                             Margin="0 0 0 2"/>
+
+
         <nugetc:InfiniteScrollListBox x:Name="infinitybox"
                                       ItemsSource="{Binding PackageItems}"
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       Command="{Binding LoadNextPackagePage}"
+                                      ScrollSize="7"
                                       IsCommandExecuting="{Binding IsCancellationTokenAlive}"
                                       HorizontalContentAlignment="Stretch"
                                       SelectedItem="{Binding SelectedPackageItem}"
-                                      Height="800">
+                                      Grid.Row="1"
+                                      MaxHeight="{Binding ElementName=PageGrid, Path=ActualHeight}">
             <nugetc:InfiniteScrollListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid>
@@ -52,12 +68,40 @@
                                 <RowDefinition/>
                             </Grid.RowDefinitions>
 
+                            <CheckBox VerticalAlignment="Bottom"
+                                      HorizontalAlignment="Left"
+                                      Margin="0 0 0 4"
+                                      Visibility="{Binding CanBeAddedInBatchOperation, Converter={catel:BooleanToCollapsingVisibilityConverter}}"
+                                      IsChecked="{Binding IsChecked}"
+                                      Grid.RowSpan="3">
+                                <CheckBox.LayoutTransform>
+                                    <ScaleTransform ScaleX="1.2" ScaleY="1.2"/>
+                                </CheckBox.LayoutTransform>
+                            </CheckBox>
+
                             <nugetc:Badged VerticalAlignment="Top" Margin="0 4 4 0"
-                                           IsShowedChanged="Badged_IsShowedChanged"
                                            Grid.RowSpan="3"
                                            BorderBrush="WhiteSmoke"
                                            IsShowed="{Binding Status, Converter={StaticResource PackageStatusEnumToBoolConverter}}"
                                            BadgeForeground="WhiteSmoke">
+                                <nugetc:Badged.Resources>
+                                    <DataTemplate x:Key="NotAvailable">
+                                        <Viewbox>
+                                            <Canvas Width="24" Height="24" ClipToBounds="True">
+                                                <Path Data="{Binding Source={StaticResource Arrow-down-bold}, Path=Data}" 
+                                                  Fill="{Binding RelativeSource={RelativeSource AncestorType=nugetc:Badged}, Path=BadgeForeground}"/>
+                                            </Canvas>
+                                        </Viewbox>
+                                    </DataTemplate>
+                                    <DataTemplate x:Key="Available">
+                                        <Viewbox>
+                                            <Canvas Width="24" Height="24" ClipToBounds="True">
+                                                <Path Data="{Binding Source={StaticResource Arrow-up-bold}, Path=Data}" 
+                                                  Fill="{Binding RelativeSource={RelativeSource AncestorType=nugetc:Badged}, Path=BadgeForeground}"/>
+                                            </Canvas>
+                                        </Viewbox>
+                                    </DataTemplate>
+                                </nugetc:Badged.Resources>
                                 <nugetc:Badged.Background>
                                     <Binding Path="Status" Converter="{StaticResource PackageStatusEnumToBrushConverter}">
                                         <Binding.ConverterParameter>
@@ -69,12 +113,12 @@
                                     </Binding>
                                 </nugetc:Badged.Background>
                                 <nugetc:Badged.Badge>
-                                    <Viewbox>
-                                        <Canvas Width="24" Height="24" ClipToBounds="True">
-                                            <Path Data="{Binding Source={StaticResource Arrow-down-bold}, Path=Data}" 
-                                                  Fill="{Binding RelativeSource={RelativeSource AncestorType=nugetc:Badged}, Path=BadgeForeground}"/>
-                                        </Canvas>
-                                    </Viewbox>
+                                    <ContentControl Content="{Binding Status}">
+                                        <ContentControl.ContentTemplateSelector>
+                                            <template:BadgeContentTemplateSelector Available="{StaticResource Available}"
+                                                                                   NotAvailable="{StaticResource NotAvailable}"/>
+                                        </ContentControl.ContentTemplateSelector>
+                                    </ContentControl>
                                 </nugetc:Badged.Badge>
                                 <Image Source="{Binding Path=IconUrl, Converter={StaticResource UriToBitmapConverter}, IsAsync=True}"
                                        RenderOptions.BitmapScalingMode="Fant"
@@ -151,9 +195,11 @@
         </nugetc:InfiniteScrollListBox>
         
         <!--loading indication -->
-        <Border Panel.ZIndex="1" Height="80" VerticalAlignment="Bottom"
+        <Border Panel.ZIndex="1" Height="80"
+                VerticalAlignment="Bottom"
                 Background="{DynamicResource AccentColorBrush3}"
                 BorderBrush="{DynamicResource AccentColorBrush}"
+                Grid.Row="1"
                 BorderThickness="0 2 0 1"
                 Visibility="{Binding ElementName=infinitybox, Path=IsCommandExecuting, Converter={catel:BooleanToCollapsingVisibilityConverter}}">
             <StackPanel>

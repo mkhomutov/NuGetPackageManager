@@ -85,8 +85,7 @@
 
             ActiveFeeds = new ObservableCollection<INuGetSource>(GetActiveFeedsFromSettings());
 
-            //select top feed
-            ObservedFeed = ActiveFeeds.FirstOrDefault();
+            ObservedFeed = ActiveFeeds.FirstOrDefault(x => x.IsSelected);
 
             return base.InitializeAsync();
         }
@@ -136,7 +135,7 @@
             {
                 var shouldRunClear = await _messageService.ShowAsync("Clean all NuGet caches, including global packages folder?", "NuGet Package Management", MessageButton.YesNo);
 
-                if (shouldRunClear == MessageResult.Cancel)
+                if (shouldRunClear == MessageResult.No)
                 {
                     return;
                 }
@@ -200,15 +199,6 @@
             var allInOneSource = new CombinedNuGetSource(activefeeds);
 
             activefeeds.Insert(0, allInOneSource);
-
-            ObservedFeed = activefeeds.FirstOrDefault(x => x.IsSelected);
-
-            if (ObservedFeed != null)
-            {
-                activefeeds.Remove(ObservedFeed);
-
-                activefeeds.Insert(0, ObservedFeed);
-            }
 
             return activefeeds;
         }
