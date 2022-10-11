@@ -69,7 +69,7 @@
     <PackageReference Include="NuGet.PackageManagement" Version="4.9.4" />
     <PackageReference Include="NuGet.Packaging.Core" Version="4.9.4" />
     <PackageReference Include="NuGet.ProjectModel" Version="4.9.4" />
-    <PackageReference Include="NuGet.Protocol" Version="4.9.4" />
+    <PackageReference Include="NuGet.Protocol" Version="4.9.6+a32bce39889f724fbd11cfd12e946f802168b583" />
     <PackageReference Include="Obsolete.Fody" Version="5.0.0" />
     <PackageReference Include="Orc.Controls" Version="3.2.10" />
     <PackageReference Include="Orc.Notifications" Version="3.1.0" />
