@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras">
+<Project Sdk="MSBuild.Sdk.Extras">
 
   <PropertyGroup>
     <TargetFrameworks>net462</TargetFrameworks>
@@ -66,7 +66,7 @@
     <PackageReference Include="ModuleInit.Fody" Version="2.0.0" />
     <PackageReference Include="NuGet.Credentials" Version="4.9.4" />
     <PackageReference Include="NuGet.DependencyResolver.Core" Version="4.9.4" />
-    <PackageReference Include="NuGet.PackageManagement" Version="4.9.4" />
+    <PackageReference Include="NuGet.PackageManagement" Version="6.0.5" />
     <PackageReference Include="NuGet.Packaging.Core" Version="4.9.4" />
     <PackageReference Include="NuGet.ProjectModel" Version="4.9.4" />
     <PackageReference Include="NuGet.Protocol" Version="4.9.4" />
